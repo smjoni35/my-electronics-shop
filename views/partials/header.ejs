@@ -4,6 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title><%= typeof title !== 'undefined' ? title : storeName %></title>
+    <link rel="icon" type="image/png" href="/img/favicon.png">
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;600;700&family=Inter:wght@400;500;600&family=JetBrains+Mono:wght@400;500;600;700&family=Hind+Siliguri:wght@400;500;600;700&display=swap" rel="stylesheet">
@@ -12,13 +13,13 @@
 <body>
     <header class="site-header">
         <div class="container header-inner">
-            <a href="/" class="logo"><span class="logo-mark"></span><%= storeName %></a>
+            <a href="/" class="logo"><img src="/img/logo.png" alt="<%= storeName %>" class="logo-img"></a>
             <form action="/" method="GET" class="search-form">
                 <span class="search-prompt">&#10095;</span>
-                <input type="text" name="q" placeholder="প্রোডাক্ট খুঁজুন..." value="<%= typeof q !== 'undefined' ? q : '' %>">
-                <button type="submit">খুঁজুন</button>
+                <input type="text" name="q" placeholder="Search your product..." value="<%= typeof q !== 'undefined' ? q : '' %>">
+                <button type="submit">Search</button>
             </form>
-            <a href="/cart" class="cart-link">🛒 কার্ট <span class="cart-count"><%= cartCount %></span></a>
+            <a href="/cart" class="cart-link">🛒 Curt<span class="cart-count"><%= cartCount %></span></a>
         </div>
     </header>
     <main class="container">
