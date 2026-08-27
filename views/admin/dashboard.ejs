@@ -13,19 +13,19 @@
     <%- include('nav') %>
     <div class="container">
         <div class="stats-row">
-            <div class="stat-box">মোট অর্ডার: <strong><%= stats.total_orders %></strong></div>
-            <div class="stat-box">মোট বিক্রি: <strong>৳<%= parseFloat(stats.total_revenue).toLocaleString('en-BD') %></strong></div>
-            <div class="stat-box">মোট প্রোডাক্ট: <strong><%= products.length %></strong></div>
+            <div class="stat-box">Total Order<strong><%= stats.total_orders %></strong></div>
+            <div class="stat-box">Total Sell<strong>৳<%= parseFloat(stats.total_revenue).toLocaleString('en-BD') %></strong></div>
+            <div class="stat-box">Total Product<strong><%= products.length %></strong></div>
         </div>
 
         <div class="admin-header-row">
-            <h1>প্রোডাক্টসমূহ</h1>
-            <a href="/admin/products/new" class="btn-primary">+ নতুন প্রোডাক্ট</a>
+            <h1>Products</h1>
+            <a href="/admin/products/new" class="btn-primary">+ Add Product</a>
         </div>
 
         <table class="admin-table">
             <thead>
-                <tr><th>ছবি</th><th>নাম</th><th>দাম</th><th>স্টক</th><th>ক্যাটাগরি</th><th>একশন</th></tr>
+                <tr><th>Photo</th><th>Name</th><th>Price</th><th>Stock</th><th>Category</th><th>Action</th></tr>
             </thead>
             <tbody>
                 <% products.forEach(p => { %>
@@ -36,9 +36,9 @@
                     <td><%= p.stock %></td>
                     <td><%= p.category || '-' %></td>
                     <td class="actions">
-                        <a href="/admin/products/<%= p.id %>/edit">এডিট</a>
-                        <form action="/admin/products/<%= p.id %>/delete" method="POST" onsubmit="return confirm('নিশ্চিত?')">
-                            <button type="submit" class="btn-remove">ডিলিট</button>
+                        <a href="/admin/products/<%= p.id %>/edit">Edit</a>
+                        <form action="/admin/products/<%= p.id %>/delete" method="POST" onsubmit="return confirm('Confirm?')">
+                            <button type="submit" class="btn-remove">Delete</button>
                         </form>
                     </td>
                 </tr>
