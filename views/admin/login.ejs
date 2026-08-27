@@ -1,0 +1,26 @@
+<!DOCTYPE html>
+<html lang="bn">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Admin Login</title>
+    <link rel="stylesheet" href="/css/style.css">
+</head>
+<body>
+    <div class="admin-login-box">
+        <h1>Admin লগইন</h1>
+        <% if (error) { %>
+            <p class="error-msg"><%= error %></p>
+        <% } %>
+        <form action="/admin/login" method="POST">
+            <label>ইউজারনেম
+                <input type="text" name="username" required>
+            </label>
+            <label>পাসওয়ার্ড
+                <input type="password" name="password" required>
+            </label>
+            <button type="submit" class="btn-primary">লগইন</button>
+        </form>
+    </div>
+</body>
+</html>
