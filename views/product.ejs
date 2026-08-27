@@ -1,0 +1,32 @@
+<%- include('partials/header', { title: product.name + ' - ' + storeName }) %>
+
+<div class="product-detail">
+    <div class="product-detail-img">
+        <% if (product.image_url) { %>
+            <img src="<%= product.image_url %>" alt="<%= product.name %>">
+        <% } else { %>
+            <div class="no-img large">ছবি নেই</div>
+        <% } %>
+    </div>
+    <div class="product-detail-info">
+        <h1><%= product.name %></h1>
+        <p class="price large">৳<%= parseFloat(product.price).toLocaleString('en-BD') %></p>
+        <p class="category-tag"><%= product.category || '' %></p>
+        <p class="description"><%= product.description %></p>
+
+        <% if (product.stock > 0) { %>
+            <p class="stock-info">স্টকে আছে: <%= product.stock %> টি</p>
+            <form action="/cart/add" method="POST" class="add-cart-form">
+                <input type="hidden" name="productId" value="<%= product.id %>">
+                <label>পরিমাণ:
+                    <input type="number" name="quantity" value="1" min="1" max="<%= product.stock %>">
+                </label>
+                <button type="submit" class="btn-primary">কার্টে যোগ করুন</button>
+            </form>
+        <% } else { %>
+            <p class="stock-badge out">এই মুহূর্তে স্টক নেই</p>
+        <% } %>
+    </div>
+</div>
+
+<%- include('partials/footer') %>
