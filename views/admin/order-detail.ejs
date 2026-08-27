@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>অর্ডার #<%= order.id %></title>
+    <title>Order #<%= order.id %></title>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;600;700&family=Inter:wght@400;500;600&family=JetBrains+Mono:wght@400;500;600;700&family=Hind+Siliguri:wght@400;500;600;700&display=swap" rel="stylesheet">
@@ -12,16 +12,16 @@
 <body>
     <%- include('nav') %>
     <div class="container">
-        <h1>অর্ডার #<%= order.id %></h1>
+        <h1>Order #<%= order.id %></h1>
         <div class="order-detail-box">
-            <p><strong>কাস্টমার:</strong> <%= order.customer_name %></p>
-            <p><strong>ফোন:</strong> <%= order.phone %></p>
-            <p><strong>ঠিকানা:</strong> <%= order.address %>, <%= order.city %></p>
-            <p><strong>মোট:</strong> ৳<%= parseFloat(order.total).toLocaleString('en-BD') %></p>
-            <p><strong>পেমেন্ট:</strong> Cash on Delivery</p>
+            <p><strong>Customer:</strong> <%= order.customer_name %></p>
+            <p><strong>Phone:</strong> <%= order.phone %></p>
+            <p><strong>Address:</strong> <%= order.address %>, <%= order.city %></p>
+            <p><strong>Total:</strong> ৳<%= parseFloat(order.total).toLocaleString('en-BD') %></p>
+            <p><strong>Payment:</strong> Cash on Delivery</p>
 
             <form action="/admin/orders/<%= order.id %>/status" method="POST" class="status-form">
-                <label>স্ট্যাটাস পরিবর্তন করুন:
+                <label>:
                     <select name="status">
                         <option value="pending" <%= order.status === 'pending' ? 'selected' : '' %>>Pending</option>
                         <option value="confirmed" <%= order.status === 'confirmed' ? 'selected' : '' %>>Confirmed</option>
@@ -30,13 +30,13 @@
                         <option value="cancelled" <%= order.status === 'cancelled' ? 'selected' : '' %>>Cancelled</option>
                     </select>
                 </label>
-                <button type="submit" class="btn-primary">আপডেট করুন</button>
+                <button type="submit" class="btn-primary">Update</button>
             </form>
         </div>
 
         <h2>প্রোডাক্টসমূহ</h2>
         <table class="admin-table">
-            <thead><tr><th>প্রোডাক্ট</th><th>দাম</th><th>পরিমাণ</th><th>সাবটোটাল</th></tr></thead>
+            <thead><tr><th>Product</th><th>Price</th><th>Quantity</th><th>Subtotal</th></tr></thead>
             <tbody>
                 <% items.forEach(item => { %>
                 <tr>
@@ -48,7 +48,7 @@
                 <% }) %>
             </tbody>
         </table>
-        <a href="/admin/orders">← অর্ডার লিস্টে ফিরুন</a>
+        <a href="/admin/orders">← Return to order list</a>
     </div>
 </body>
 </html>
