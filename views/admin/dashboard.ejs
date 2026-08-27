@@ -1,0 +1,47 @@
+<!DOCTYPE html>
+<html lang="bn">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Admin Dashboard</title>
+    <link rel="stylesheet" href="/css/style.css">
+</head>
+<body>
+    <%- include('nav') %>
+    <div class="container">
+        <div class="stats-row">
+            <div class="stat-box">মোট অর্ডার: <strong><%= stats.total_orders %></strong></div>
+            <div class="stat-box">মোট বিক্রি: <strong>৳<%= parseFloat(stats.total_revenue).toLocaleString('en-BD') %></strong></div>
+            <div class="stat-box">মোট প্রোডাক্ট: <strong><%= products.length %></strong></div>
+        </div>
+
+        <div class="admin-header-row">
+            <h1>প্রোডাক্টসমূহ</h1>
+            <a href="/admin/products/new" class="btn-primary">+ নতুন প্রোডাক্ট</a>
+        </div>
+
+        <table class="admin-table">
+            <thead>
+                <tr><th>ছবি</th><th>নাম</th><th>দাম</th><th>স্টক</th><th>ক্যাটাগরি</th><th>একশন</th></tr>
+            </thead>
+            <tbody>
+                <% products.forEach(p => { %>
+                <tr>
+                    <td><% if (p.image_url) { %><img src="<%= p.image_url %>" class="thumb"><% } %></td>
+                    <td><%= p.name %></td>
+                    <td>৳<%= parseFloat(p.price).toLocaleString('en-BD') %></td>
+                    <td><%= p.stock %></td>
+                    <td><%= p.category || '-' %></td>
+                    <td class="actions">
+                        <a href="/admin/products/<%= p.id %>/edit">এডিট</a>
+                        <form action="/admin/products/<%= p.id %>/delete" method="POST" onsubmit="return confirm('নিশ্চিত?')">
+                            <button type="submit" class="btn-remove">ডিলিট</button>
+                        </form>
+                    </td>
+                </tr>
+                <% }) %>
+            </tbody>
+        </table>
+    </div>
+</body>
+</html>
