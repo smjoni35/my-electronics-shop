@@ -11,15 +11,15 @@
 </head>
 <body>
     <div class="admin-login-box">
-        <h1>Admin লগইন</h1>
+        <h1>Admin Log In</h1>
         <% if (error) { %>
             <p class="error-msg"><%= error %></p>
         <% } %>
         <form action="/admin/login" method="POST">
-            <label>ইউজারনেম
+            <label>Username
                 <input type="text" name="username" required>
             </label>
-            <label>পাসওয়ার্ড
+            <label>Password
                 <input type="password" name="password" required>
             </label>
             <button type="submit" class="btn-primary">লগইন</button>
