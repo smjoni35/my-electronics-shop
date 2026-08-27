@@ -1,0 +1,20 @@
+<!DOCTYPE html>
+<html lang="bn">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title><%= typeof title !== 'undefined' ? title : storeName %></title>
+    <link rel="stylesheet" href="/css/style.css">
+</head>
+<body>
+    <header class="site-header">
+        <div class="container header-inner">
+            <a href="/" class="logo"><%= storeName %></a>
+            <form action="/" method="GET" class="search-form">
+                <input type="text" name="q" placeholder="প্রোডাক্ট খুঁজুন..." value="<%= typeof q !== 'undefined' ? q : '' %>">
+                <button type="submit">খুঁজুন</button>
+            </form>
+            <a href="/cart" class="cart-link">🛒 কার্ট (<%= cartCount %>)</a>
+        </div>
+    </header>
+    <main class="container">
