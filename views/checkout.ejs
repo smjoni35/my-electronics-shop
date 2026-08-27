@@ -1,0 +1,26 @@
+<%- include('partials/header', { title: 'চেকআউট - ' + storeName }) %>
+
+<h1 class="page-title">চেকআউট</h1>
+<p class="info-note">পেমেন্ট মেথড: <strong>ক্যাশ অন ডেলিভারি (COD)</strong> — পণ্য হাতে পেয়ে টাকা পরিশোধ করুন।</p>
+
+<% if (error) { %>
+    <p class="error-msg"><%= error %></p>
+<% } %>
+
+<form action="/checkout" method="POST" class="checkout-form">
+    <label>পুরো নাম *
+        <input type="text" name="customerName" required>
+    </label>
+    <label>মোবাইল নম্বর *
+        <input type="tel" name="phone" required placeholder="01XXXXXXXXX">
+    </label>
+    <label>শহর
+        <input type="text" name="city" placeholder="ঢাকা, চট্টগ্রাম...">
+    </label>
+    <label>সম্পূর্ণ ঠিকানা *
+        <textarea name="address" required rows="3"></textarea>
+    </label>
+    <button type="submit" class="btn-primary">অর্ডার নিশ্চিত করুন</button>
+</form>
+
+<%- include('partials/footer') %>
