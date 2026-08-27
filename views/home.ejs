@@ -1,0 +1,37 @@
+<%- include('partials/header') %>
+
+<div class="category-bar">
+    <a href="/" class="<%= activeCategory === '' ? 'active' : '' %>">সব প্রোডাক্ট</a>
+    <% categories.forEach(c => { %>
+        <a href="/?category=<%= encodeURIComponent(c.category) %>" class="<%= activeCategory === c.category ? 'active' : '' %>"><%= c.category %></a>
+    <% }) %>
+</div>
+
+<h1 class="page-title">প্রোডাক্টসমূহ</h1>
+
+<% if (products.length === 0) { %>
+    <p class="empty-msg">কোনো প্রোডাক্ট পাওয়া যায়নি।</p>
+<% } else { %>
+<div class="product-grid">
+    <% products.forEach(p => { %>
+        <a href="/product/<%= p.id %>" class="product-card">
+            <div class="product-img">
+                <% if (p.image_url) { %>
+                    <img src="<%= p.image_url %>" alt="<%= p.name %>">
+                <% } else { %>
+                    <div class="no-img">ছবি নেই</div>
+                <% } %>
+            </div>
+            <div class="product-info">
+                <h3><%= p.name %></h3>
+                <p class="price">৳<%= parseFloat(p.price).toLocaleString('en-BD') %></p>
+                <% if (p.stock <= 0) { %>
+                    <span class="stock-badge out">স্টক নেই</span>
+                <% } %>
+            </div>
+        </a>
+    <% }) %>
+</div>
+<% } %>
+
+<%- include('partials/footer') %>
