@@ -3,7 +3,7 @@
 <div class="product-detail">
     <div class="product-detail-img">
         <% if (product.image_url) { %>
-            <img src="<%= product.image_url %>" alt="<%= product.name %>">
+            <img src="<%= product.image_url %>" alt="<%= product.name %>" loading="lazy">
         <% } else { %>
             <div class="no-img large">ছবি নেই</div>
         <% } %>
@@ -11,11 +11,11 @@
     <div class="product-detail-info">
         <h1><%= product.name %></h1>
         <p class="price large">৳<%= parseFloat(product.price).toLocaleString('en-BD') %></p>
-        <p class="category-tag"><%= product.category || '' %></p>
+        <% if (product.category) { %><p class="category-tag"><%= product.category %></p><% } %>
         <p class="description"><%= product.description %></p>
 
         <% if (product.stock > 0) { %>
-            <p class="stock-info">স্টকে আছে: <%= product.stock %> টি</p>
+            <p class="stock-info stock-dot">স্টকে আছে: <%= product.stock %> টি</p>
             <form action="/cart/add" method="POST" class="add-cart-form">
                 <input type="hidden" name="productId" value="<%= product.id %>">
                 <label>পরিমাণ:
