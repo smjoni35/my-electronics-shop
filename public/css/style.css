@@ -2,25 +2,25 @@
    Design tokens — "circuit board" theme for an electronics storefront
    ========================================================================== */
 :root {
-    --bg: #0a0e14;
-    --bg-grid: rgba(255, 180, 84, 0.055);
-    --surface: #12161f;
-    --surface-2: #1a1f2b;
-    --surface-3: #222836;
-    --border: #262c3a;
-    --border-soft: #1c212c;
-    --text: #edf0f5;
-    --text-muted: #8891a3;
-    --text-faint: #565f72;
+    --bg: #060a15;
+    --bg-grid: rgba(255, 210, 63, 0.05);
+    --surface: #0d1425;
+    --surface-2: #141d33;
+    --surface-3: #1c2743;
+    --border: #263252;
+    --border-soft: #161f38;
+    --text: #eef1fb;
+    --text-muted: #8b93b0;
+    --text-faint: #545e7f;
 
-    --accent: #ffb454;       /* copper / solder amber — CTAs, price, primary */
-    --accent-dark: #e69a3a;
-    --accent-ink: #241505;   /* text-on-accent */
-    --accent-2: #56e0c1;     /* mint signal — links, in-stock, focus */
-    --accent-2-dark: #35b89c;
+    --accent: #ffd23f;       /* gadget-zone gold — CTAs, price, primary */
+    --accent-dark: #f0b90b;
+    --accent-ink: #1a1300;   /* text-on-accent */
+    --accent-2: #29b6f6;     /* gadget-zone electric blue — links, in-stock, focus */
+    --accent-2-dark: #0f93d1;
     --danger: #ff5470;
     --danger-bg: rgba(255, 84, 112, 0.12);
-    --success-bg: rgba(86, 224, 193, 0.12);
+    --success-bg: rgba(41, 182, 246, 0.12);
 
     --radius-sm: 6px;
     --radius: 10px;
@@ -95,9 +95,15 @@ h1, h2, h3 { font-family: var(--font-display); font-weight: 700; letter-spacing:
     height: 10px;
     background: var(--accent);
     transform: rotate(45deg);
-    box-shadow: 0 0 10px 1px rgba(255, 180, 84, 0.55);
+    box-shadow: 0 0 10px 1px rgba(255, 210, 63, 0.55);
     flex-shrink: 0;
 }
+.logo-img {
+    height: 40px;
+    width: auto;
+    display: block;
+}
+.logo-img-sm { height: 26px; }
 
 .search-form {
     display: flex;
@@ -206,8 +212,8 @@ h1, h2, h3 { font-family: var(--font-display); font-weight: 700; letter-spacing:
     position: absolute;
     inset: 0;
     background:
-        linear-gradient(90deg, transparent 49.5%, rgba(255,180,84,0.14) 49.5%, rgba(255,180,84,0.14) 50.5%, transparent 50.5%),
-        linear-gradient(0deg, transparent 84%, rgba(86,224,193,0.10) 84%, rgba(86,224,193,0.10) 84.6%, transparent 84.6%);
+        linear-gradient(90deg, transparent 49.5%, rgba(255,210,63,0.14) 49.5%, rgba(255,210,63,0.14) 50.5%, transparent 50.5%),
+        linear-gradient(0deg, transparent 84%, rgba(41,182,246,0.12) 84%, rgba(41,182,246,0.12) 84.6%, transparent 84.6%);
     background-size: 100% 100%, 100% 100%;
     opacity: 0.5;
     pointer-events: none;
@@ -328,8 +334,8 @@ h1, h2, h3 { font-family: var(--font-display); font-weight: 700; letter-spacing:
     font-family: var(--font-mono);
     font-weight: 700;
     color: var(--accent);
-    background: rgba(255, 180, 84, 0.08);
-    border: 1px solid rgba(255, 180, 84, 0.22);
+    background: rgba(255, 210, 63, 0.08);
+    border: 1px solid rgba(255, 210, 63, 0.25);
     padding: 2px 8px;
     border-radius: 5px;
     font-size: 0.88rem;
@@ -341,7 +347,7 @@ h1, h2, h3 { font-family: var(--font-display); font-weight: 700; letter-spacing:
 .stock-badge.out::before { content: ""; width: 6px; height: 6px; border-radius: 50%; background: var(--danger); box-shadow: 0 0 6px 1px rgba(255,84,112,0.6); }
 
 .stock-dot { display: inline-flex; align-items: center; gap: 7px; }
-.stock-dot::before { content: ""; width: 7px; height: 7px; border-radius: 50%; background: var(--accent-2); box-shadow: 0 0 7px 1px rgba(86,224,193,0.6); }
+.stock-dot::before { content: ""; width: 7px; height: 7px; border-radius: 50%; background: var(--accent-2); box-shadow: 0 0 7px 1px rgba(41,182,246,0.6); }
 
 /* ==========================================================================
    Product detail
@@ -388,7 +394,7 @@ h1, h2, h3 { font-family: var(--font-display); font-weight: 700; letter-spacing:
 }
 .btn-primary:hover {
     background: var(--accent-dark);
-    box-shadow: 0 0 0 1px var(--accent), 0 6px 20px -6px rgba(255, 180, 84, 0.5);
+    box-shadow: 0 0 0 1px var(--accent), 0 6px 20px -6px rgba(255, 210, 63, 0.5);
     transform: translateY(-1px);
 }
 
@@ -447,7 +453,7 @@ h1, h2, h3 { font-family: var(--font-display); font-weight: 700; letter-spacing:
 .checkout-form input::placeholder, .checkout-form textarea::placeholder { color: var(--text-faint); }
 
 .info-note {
-    background: var(--success-bg); border: 1px solid rgba(86, 224, 193, 0.25);
+    background: var(--success-bg); border: 1px solid rgba(41, 182, 246, 0.25);
     color: var(--text); padding: 12px 16px; border-radius: var(--radius-sm); margin: 16px 0; font-size: 0.9rem;
 }
 .error-msg {
@@ -504,7 +510,7 @@ h1, h2, h3 { font-family: var(--font-display); font-weight: 700; letter-spacing:
 .status-badge { padding: 4px 11px; border-radius: 999px; font-size: 0.74rem; font-weight: 700; background: var(--surface-3); color: var(--text-muted); text-transform: capitalize; letter-spacing: 0.02em; }
 .status-badge.delivered { background: var(--success-bg); color: var(--accent-2); }
 .status-badge.cancelled { background: var(--danger-bg); color: var(--danger); }
-.status-badge.pending { background: rgba(255, 180, 84, 0.12); color: var(--accent); }
+.status-badge.pending { background: rgba(255, 210, 63, 0.12); color: var(--accent); }
 
 .order-detail-box { background: var(--surface); border: 1px solid var(--border-soft); border-radius: var(--radius); padding: 22px; margin: 20px 0; }
 .order-detail-box p { margin-bottom: 9px; color: var(--text-muted); }
@@ -523,7 +529,7 @@ h1, h2, h3 { font-family: var(--font-display); font-weight: 700; letter-spacing:
 .footer-divider::before {
     content: ""; position: absolute; left: 50%; top: 50%; transform: translate(-50%, -50%);
     width: 6px; height: 6px; border-radius: 50%; background: var(--accent-2);
-    box-shadow: 0 0 8px 1px rgba(86,224,193,0.5);
+    box-shadow: 0 0 8px 1px rgba(41,182,246,0.5);
 }
 .site-footer { text-align: center; padding: 28px 0 36px; color: var(--text-faint); font-size: 0.82rem; }
 
