@@ -1,5 +1,11 @@
 <%- include('partials/header') %>
 
+<section class="hero">
+    <p class="hero-eyebrow">// বিশ্বস্ত অনলাইন ইলেকট্রনিক্স শপ</p>
+    <h1 class="hero-title"><%= storeName %></h1>
+    <p class="hero-sub">অরিজিনাল পণ্য, সঠিক দাম এবং দ্রুত ডেলিভারি — আপনার প্রয়োজনীয় ইলেকট্রনিক্স এখন এক জায়গায়।</p>
+</section>
+
 <div class="category-bar">
     <a href="/" class="<%= activeCategory === '' ? 'active' : '' %>">সব প্রোডাক্ট</a>
     <% categories.forEach(c => { %>
@@ -17,7 +23,7 @@
         <a href="/product/<%= p.id %>" class="product-card">
             <div class="product-img">
                 <% if (p.image_url) { %>
-                    <img src="<%= p.image_url %>" alt="<%= p.name %>">
+                    <img src="<%= p.image_url %>" alt="<%= p.name %>" loading="lazy">
                 <% } else { %>
                     <div class="no-img">ছবি নেই</div>
                 <% } %>
