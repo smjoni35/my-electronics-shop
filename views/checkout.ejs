@@ -1,26 +1,26 @@
-<%- include('partials/header', { title: 'চেকআউট - ' + storeName }) %>
+<%- include('partials/header', { title: 'Checkout - ' + storeName }) %>
 
-<h1 class="page-title">চেকআউট</h1>
-<p class="info-note">পেমেন্ট মেথড: <strong>ক্যাশ অন ডেলিভারি (COD)</strong> — পণ্য হাতে পেয়ে টাকা পরিশোধ করুন।</p>
+<h1 class="page-title">Checkout</h1>
+<p class="info-note">Payment Method: <strong>Cash on delivery (COD)</strong> — Pay when you receive the product.</p>
 
 <% if (error) { %>
     <p class="error-msg"><%= error %></p>
 <% } %>
 
 <form action="/checkout" method="POST" class="checkout-form">
-    <label>পুরো নাম *
+    <label>Full name *
         <input type="text" name="customerName" required>
     </label>
-    <label>মোবাইল নম্বর *
+    <label>Mobile number *
         <input type="tel" name="phone" required placeholder="01XXXXXXXXX">
     </label>
-    <label>শহর
-        <input type="text" name="city" placeholder="ঢাকা, চট্টগ্রাম...">
+    <label>City
+        <input type="text" name="city" placeholder="Dhaka, Chittagong...">
     </label>
-    <label>সম্পূর্ণ ঠিকানা *
+    <label>Full address *
         <textarea name="address" required rows="3"></textarea>
     </label>
-    <button type="submit" class="btn-primary">অর্ডার নিশ্চিত করুন</button>
+    <button type="submit" class="btn-primary">Confirm order.</button>
 </form>
 
 <%- include('partials/footer') %>
