@@ -1,0 +1,11 @@
+<%- include('partials/header', { title: 'অর্ডার সফল - ' + storeName }) %>
+
+<div class="success-box">
+    <h1>✅ আপনার অর্ডার সফল হয়েছে!</h1>
+    <p>অর্ডার নম্বর: <strong>#<%= orderId %></strong></p>
+    <p>মোট: <strong>৳<%= parseFloat(total).toLocaleString('en-BD') %></strong></p>
+    <p>আমরা শীঘ্রই আপনার সাথে যোগাযোগ করব ডেলিভারি নিশ্চিত করতে।</p>
+    <a href="/" class="btn-primary">শপিং চালিয়ে যান</a>
+</div>
+
+<%- include('partials/footer') %>
