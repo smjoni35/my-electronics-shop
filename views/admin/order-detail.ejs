@@ -1,0 +1,51 @@
+<!DOCTYPE html>
+<html lang="bn">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>অর্ডার #<%= order.id %></title>
+    <link rel="stylesheet" href="/css/style.css">
+</head>
+<body>
+    <%- include('nav') %>
+    <div class="container">
+        <h1>অর্ডার #<%= order.id %></h1>
+        <div class="order-detail-box">
+            <p><strong>কাস্টমার:</strong> <%= order.customer_name %></p>
+            <p><strong>ফোন:</strong> <%= order.phone %></p>
+            <p><strong>ঠিকানা:</strong> <%= order.address %>, <%= order.city %></p>
+            <p><strong>মোট:</strong> ৳<%= parseFloat(order.total).toLocaleString('en-BD') %></p>
+            <p><strong>পেমেন্ট:</strong> Cash on Delivery</p>
+
+            <form action="/admin/orders/<%= order.id %>/status" method="POST" class="status-form">
+                <label>স্ট্যাটাস পরিবর্তন করুন:
+                    <select name="status">
+                        <option value="pending" <%= order.status === 'pending' ? 'selected' : '' %>>Pending</option>
+                        <option value="confirmed" <%= order.status === 'confirmed' ? 'selected' : '' %>>Confirmed</option>
+                        <option value="shipped" <%= order.status === 'shipped' ? 'selected' : '' %>>Shipped</option>
+                        <option value="delivered" <%= order.status === 'delivered' ? 'selected' : '' %>>Delivered</option>
+                        <option value="cancelled" <%= order.status === 'cancelled' ? 'selected' : '' %>>Cancelled</option>
+                    </select>
+                </label>
+                <button type="submit" class="btn-primary">আপডেট করুন</button>
+            </form>
+        </div>
+
+        <h2>প্রোডাক্টসমূহ</h2>
+        <table class="admin-table">
+            <thead><tr><th>প্রোডাক্ট</th><th>দাম</th><th>পরিমাণ</th><th>সাবটোটাল</th></tr></thead>
+            <tbody>
+                <% items.forEach(item => { %>
+                <tr>
+                    <td><%= item.product_name %></td>
+                    <td>৳<%= parseFloat(item.price).toLocaleString('en-BD') %></td>
+                    <td><%= item.quantity %></td>
+                    <td>৳<%= (item.price * item.quantity).toLocaleString('en-BD') %></td>
+                </tr>
+                <% }) %>
+            </tbody>
+        </table>
+        <a href="/admin/orders">← অর্ডার লিস্টে ফিরুন</a>
+    </div>
+</body>
+</html>
