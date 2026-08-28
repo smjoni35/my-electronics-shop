@@ -4,7 +4,7 @@
   "description": "Custom e-commerce website for electronics/gadgets business",
   "main": "server.js",
   "scripts": {
-    "start": "node server.js",
+    "start": "node db/migrate.js && node server.js",
     "migrate": "node db/migrate.js"
   },
   "dependencies": {
