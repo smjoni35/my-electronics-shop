@@ -206,7 +206,7 @@ h1, h2, h3 { font-family: var(--font-display); font-weight: 700; letter-spacing:
    Admin desktop bar (links shown directly, no dropdown, on wide screens)
    ========================================================================== */
 .admin-desktop-bar { display: none; }
-@media (min-width: 700px) {
+@media (min-width: 600px) {
     .admin-desktop-bar {
         display: flex;
         align-items: center;
