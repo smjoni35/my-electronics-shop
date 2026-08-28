@@ -75,14 +75,15 @@ const productImageUpload = upload.fields([
 router.post('/products/new', requireRole('admin', 'manager'), productImageUpload, async (req, res) => {
     try {
         const { name, description, price, stock, category } = req.body;
+        const discountPercent = parseInt(req.body.discountPercent, 10) || 0;
         const coverFile = req.files && req.files.image ? req.files.image[0] : null;
         const galleryFiles = (req.files && req.files.gallery) || [];
         const imageUrl = coverFile ? await uploadImageToR2(coverFile) : null;
 
         const { rows } = await pool.query(
-            `INSERT INTO products (name, description, price, stock, category, image_url)
-             VALUES ($1, $2, $3, $4, $5, $6) RETURNING id`,
-            [name, description, price, stock, category, imageUrl]
+            `INSERT INTO products (name, description, price, stock, category, image_url, discount_percent)
+             VALUES ($1, $2, $3, $4, $5, $6, $7) RETURNING id`,
+            [name, description, price, stock, category, imageUrl, discountPercent]
         );
         const productId = rows[0].id;
 
@@ -116,6 +117,7 @@ router.get('/products/:id/edit', requireAdmin, async (req, res) => {
 router.post('/products/:id/edit', requireAdmin, productImageUpload, async (req, res) => {
     try {
         const { name, description, price, stock, category } = req.body;
+        const discountPercent = parseInt(req.body.discountPercent, 10) || 0;
         const { rows } = await pool.query('SELECT * FROM products WHERE id = $1', [req.params.id]);
         if (rows.length === 0) return res.redirect('/admin/dashboard');
 
@@ -129,8 +131,8 @@ router.post('/products/:id/edit', requireAdmin, productImageUpload, async (req, 
         }
 
         await pool.query(
-            `UPDATE products SET name=$1, description=$2, price=$3, stock=$4, category=$5, image_url=$6 WHERE id=$7`,
-            [name, description, price, stock, category, imageUrl, req.params.id]
+            `UPDATE products SET name=$1, description=$2, price=$3, stock=$4, category=$5, image_url=$6, discount_percent=$7 WHERE id=$8`,
+            [name, description, price, stock, category, imageUrl, discountPercent, req.params.id]
         );
 
         if (galleryFiles.length > 0) {
