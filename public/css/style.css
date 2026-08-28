@@ -212,22 +212,32 @@ h1, h2, h3 { font-family: var(--font-display); font-weight: 700; letter-spacing:
         align-items: center;
         gap: 20px;
     }
-    .admin-desktop-links { display: flex; align-items: center; gap: 4px; }
+    .admin-desktop-links { display: flex; align-items: center; gap: 8px; }
     .admin-desktop-links a, .admin-desktop-links .link-btn {
+        display: inline-flex;
+        align-items: center;
         text-decoration: none;
         color: var(--text-muted);
-        background: none;
-        border: none;
+        background: var(--surface-2);
+        border: 1px solid var(--border);
         cursor: pointer;
-        font-size: 0.92rem;
-        font-weight: 500;
+        font-size: 0.88rem;
+        font-weight: 600;
         font-family: inherit;
-        padding: 6px 12px;
-        border-radius: var(--radius-sm);
-        transition: background 0.15s, color 0.15s;
+        padding: 8px 16px;
+        border-radius: 999px;
+        transition: background 0.15s, color 0.15s, border-color 0.15s, transform 0.15s;
     }
-    .admin-desktop-links a:hover, .admin-desktop-links .link-btn:hover { color: var(--accent); background: var(--surface-2); }
+    .admin-desktop-links a:hover, .admin-desktop-links .link-btn:hover {
+        color: var(--accent);
+        border-color: var(--accent-2);
+        background: var(--surface);
+        transform: translateY(-1px);
+    }
+    .admin-desktop-links a:active, .admin-desktop-links .link-btn:active { transform: translateY(0); }
     .admin-desktop-links form { margin: 0; display: inline-flex; }
+    .admin-desktop-links .link-btn { color: var(--danger); border-color: rgba(239, 83, 80, 0.35); }
+    .admin-desktop-links .link-btn:hover { color: var(--danger); border-color: var(--danger); background: var(--danger-bg); }
     .admin-desktop-user {
         display: inline-flex;
         align-items: center;
@@ -689,8 +699,32 @@ h1, h2, h3 { font-family: var(--font-display); font-weight: 700; letter-spacing:
     transform: translateY(-1px);
 }
 
-.btn-remove { background: none; border: none; color: var(--danger); cursor: pointer; text-decoration: underline; font-size: 0.85rem; }
-.btn-remove:hover { opacity: 0.8; }
+.btn-edit, .btn-details, .btn-remove {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    height: 32px;
+    min-width: 64px;
+    padding: 0 14px;
+    box-sizing: border-box;
+    border-radius: var(--radius-sm);
+    border: 1px solid var(--border);
+    background: var(--surface-2);
+    font-size: 0.8rem;
+    font-weight: 600;
+    font-family: inherit;
+    line-height: 1;
+    text-decoration: none;
+    white-space: nowrap;
+    cursor: pointer;
+    transition: border-color 0.15s, background 0.15s, color 0.15s;
+}
+.btn-edit { color: var(--accent-2); }
+.btn-edit:hover { border-color: var(--accent-2); background: var(--surface); }
+.btn-details { color: var(--text); }
+.btn-details:hover { border-color: var(--accent); color: var(--accent); background: var(--surface); }
+.btn-remove { color: var(--danger); }
+.btn-remove:hover { border-color: var(--danger); background: var(--danger-bg); opacity: 1; }
 
 /* ==========================================================================
    Cart
