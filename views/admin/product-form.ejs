@@ -31,6 +31,9 @@
             <label>Categories
                 <input type="text" name="category" value="<%= product ? product.category : '' %>" placeholder="যেমন: মোবাইল এক্সেসরিজ">
             </label>
+            <label>Discount (%) <span class="field-hint">০ দিলে কোনো ডিসকাউন্ট ব্যাজ দেখাবে না</span>
+                <input type="number" name="discountPercent" min="0" max="90" value="<%= product ? product.discount_percent : 0 %>">
+            </label>
             <label>Product Image <% if (product) { %>(Previous photos will remain.)<% } %>
                 <input type="file" name="image" accept="image/*">
             </label>
