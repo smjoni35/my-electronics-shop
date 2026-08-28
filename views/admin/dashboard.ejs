@@ -36,10 +36,12 @@
                     <td><%= p.stock %></td>
                     <td><%= p.category || '-' %></td>
                     <td class="actions">
-                        <a href="/admin/products/<%= p.id %>/edit">Edit</a>
-                        <form action="/admin/products/<%= p.id %>/delete" method="POST" onsubmit="return confirm('Confirm?')">
-                            <button type="submit" class="btn-remove">Delete</button>
-                        </form>
+                        <div class="actions-inner">
+                            <a href="/admin/products/<%= p.id %>/edit">Edit</a>
+                            <form action="/admin/products/<%= p.id %>/delete" method="POST" onsubmit="return confirm('Confirm?')">
+                                <button type="submit" class="btn-remove">Delete</button>
+                            </form>
+                        </div>
                     </td>
                 </tr>
                 <% }) %>
