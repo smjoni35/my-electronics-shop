@@ -99,12 +99,19 @@ h1, h2, h3 { font-family: var(--font-display); font-weight: 700; letter-spacing:
     flex-shrink: 0;
 }
 .logo-img {
-    height: 40px;
+    height: 46px;
     width: auto;
     display: block;
 }
-.logo-img-sm { height: 26px; }
-
+.logo-chip {
+    display: inline-flex;
+    align-items: center;
+    background: var(--surface-2);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: 4px 12px;
+}
+.logo-img-sm { height: 30px; }
 .search-form {
     display: flex;
     flex: 1;
