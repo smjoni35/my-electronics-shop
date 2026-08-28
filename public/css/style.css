@@ -203,7 +203,47 @@ h1, h2, h3 { font-family: var(--font-display); font-weight: 700; letter-spacing:
 .admin-nav .logo { color: var(--accent); }
 
 /* ==========================================================================
-   Admin profile dropdown
+   Admin desktop bar (links shown directly, no dropdown, on wide screens)
+   ========================================================================== */
+.admin-desktop-bar { display: none; }
+@media (min-width: 700px) {
+    .admin-desktop-bar {
+        display: flex;
+        align-items: center;
+        gap: 20px;
+    }
+    .admin-desktop-links { display: flex; align-items: center; gap: 4px; }
+    .admin-desktop-links a, .admin-desktop-links .link-btn {
+        text-decoration: none;
+        color: var(--text-muted);
+        background: none;
+        border: none;
+        cursor: pointer;
+        font-size: 0.92rem;
+        font-weight: 500;
+        font-family: inherit;
+        padding: 6px 12px;
+        border-radius: var(--radius-sm);
+        transition: background 0.15s, color 0.15s;
+    }
+    .admin-desktop-links a:hover, .admin-desktop-links .link-btn:hover { color: var(--accent); background: var(--surface-2); }
+    .admin-desktop-links form { margin: 0; display: inline-flex; }
+    .admin-desktop-user {
+        display: inline-flex;
+        align-items: center;
+        gap: 9px;
+        background: var(--surface-2);
+        border: 1px solid var(--border);
+        border-radius: 999px;
+        padding: 5px 14px 5px 5px;
+        color: var(--text);
+    }
+    /* Hide the mobile profile/dropdown button entirely on desktop */
+    .profile-menu { display: none; }
+}
+
+/* ==========================================================================
+   Admin profile dropdown (mobile)
    ========================================================================== */
 .profile-menu { position: relative; }
 .profile-btn {
