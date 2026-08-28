@@ -33,6 +33,17 @@ CREATE TABLE IF NOT EXISTS order_items (
     price NUMERIC(10, 2) NOT NULL
 );
 
+-- Extra product photos (a product can have several; products.image_url stays the main/cover photo)
+CREATE TABLE IF NOT EXISTS product_images (
+    id SERIAL PRIMARY KEY,
+    product_id INTEGER NOT NULL REFERENCES products(id) ON DELETE CASCADE,
+    image_url TEXT NOT NULL,
+    sort_order INTEGER NOT NULL DEFAULT 0,
+    created_at TIMESTAMP DEFAULT NOW()
+);
+
+CREATE INDEX IF NOT EXISTS idx_product_images_product_id ON product_images(product_id);
+
 -- Admin / staff table (admin, manager, moderator roles)
 CREATE TABLE IF NOT EXISTS admins (
     id SERIAL PRIMARY KEY,
