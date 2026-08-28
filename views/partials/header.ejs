@@ -13,13 +13,13 @@
 <body>
     <header class="site-header">
         <div class="container header-inner">
-            <a href="/" class="logo"><img src="/img/logo.png" alt="<%= storeName %>" class="logo-img"></a>
+            <a href="/" class="logo"><span class="logo-chip"><img src="/img/logo.png" alt="<%= storeName %>" class="logo-img"></span></a>
             <form action="/" method="GET" class="search-form">
                 <span class="search-prompt">&#10095;</span>
-                <input type="text" name="q" placeholder="প্রোডাক্ট খুঁজুন..." value="<%= typeof q !== 'undefined' ? q : '' %>">
-                <button type="submit">খুঁজুন</button>
+                <input type="text" name="q" placeholder="Find the product..." value="<%= typeof q !== 'undefined' ? q : '' %>">
+                <button type="submit">Search</button>
             </form>
-            <a href="/cart" class="cart-link">🛒 কার্ট <span class="cart-count"><%= cartCount %></span></a>
+            <a href="/cart" class="cart-link">🛒 Cart <span class="cart-count"><%= cartCount %></span></a>
         </div>
     </header>
     <main class="container">
