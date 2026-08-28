@@ -39,7 +39,7 @@
                     <td><%= p.category || '-' %></td>
                     <td class="actions">
                         <div class="actions-inner">
-                            <a href="/admin/products/<%= p.id %>/edit">Edit</a>
+                            <a href="/admin/products/<%= p.id %>/edit" class="btn-edit">Edit</a>
                             <% if (currentRole !== 'moderator') { %>
                             <form action="/admin/products/<%= p.id %>/delete" method="POST" onsubmit="return confirm('Confirm?')">
                                 <button type="submit" class="btn-remove">Delete</button>

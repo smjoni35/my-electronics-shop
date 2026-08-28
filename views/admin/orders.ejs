@@ -26,7 +26,7 @@
                     <td>৳<%= parseFloat(o.total).toLocaleString('en-BD') %></td>
                     <td><span class="status-badge <%= o.status %>"><%= o.status %></span></td>
                     <td><%= new Date(o.created_at).toLocaleDateString('en-BD') %></td>
-                    <td><a href="/admin/orders/<%= o.id %>">Details</a></td>
+                    <td><a href="/admin/orders/<%= o.id %>" class="btn-details">Details</a></td>
                 </tr>
                 <% }) %>
             </tbody>
