@@ -43,28 +43,62 @@ router.get('/dashboard', requireAdmin, async (req, res) => {
         SELECT COUNT(*) as total_orders, COALESCE(SUM(total), 0) as total_revenue
         FROM orders WHERE status != 'cancelled'
     `);
-    res.render('admin/dashboard', { products, stats: orderStats[0] });
+    // Best sellers — total quantity sold per product, cancelled orders excluded
+    const { rows: bestSellers } = await pool.query(`
+        SELECT
+            oi.product_id,
+            oi.product_name,
+            p.image_url,
+            SUM(oi.quantity) AS total_sold,
+            SUM(oi.quantity * oi.price) AS total_revenue
+        FROM order_items oi
+        JOIN orders o ON o.id = oi.order_id
+        LEFT JOIN products p ON p.id = oi.product_id
+        WHERE o.status != 'cancelled'
+        GROUP BY oi.product_id, oi.product_name, p.image_url
+        ORDER BY total_sold DESC
+        LIMIT 5
+    `);
+    res.render('admin/dashboard', { products, stats: orderStats[0], bestSellers });
 });
 
 // New product form
 router.get('/products/new', requireRole('admin', 'manager'), (req, res) => {
-    res.render('admin/product-form', { product: null, error: null });
+    res.render('admin/product-form', { product: null, galleryImages: [], error: null });
 });
 
-router.post('/products/new', requireRole('admin', 'manager'), upload.single('image'), async (req, res) => {
+const productImageUpload = upload.fields([
+    { name: 'image', maxCount: 1 },     // cover photo (shown in grid/dashboard)
+    { name: 'gallery', maxCount: 8 }    // extra photos for the product page gallery
+]);
+
+router.post('/products/new', requireRole('admin', 'manager'), productImageUpload, async (req, res) => {
     try {
         const { name, description, price, stock, category } = req.body;
-        const imageUrl = req.file ? await uploadImageToR2(req.file) : null;
+        const coverFile = req.files && req.files.image ? req.files.image[0] : null;
+        const galleryFiles = (req.files && req.files.gallery) || [];
+        const imageUrl = coverFile ? await uploadImageToR2(coverFile) : null;
 
-        await pool.query(
+        const { rows } = await pool.query(
             `INSERT INTO products (name, description, price, stock, category, image_url)
-             VALUES ($1, $2, $3, $4, $5, $6)`,
+             VALUES ($1, $2, $3, $4, $5, $6) RETURNING id`,
             [name, description, price, stock, category, imageUrl]
         );
+        const productId = rows[0].id;
+
+        let sortOrder = 0;
+        for (const file of galleryFiles) {
+            const url = await uploadImageToR2(file);
+            await pool.query(
+                'INSERT INTO product_images (product_id, image_url, sort_order) VALUES ($1, $2, $3)',
+                [productId, url, sortOrder++]
+            );
+        }
+
         res.redirect('/admin/dashboard');
     } catch (err) {
         console.error(err);
-        res.render('admin/product-form', { product: null, error: 'প্রোডাক্ট যোগ করা যায়নি' });
+        res.render('admin/product-form', { product: null, galleryImages: [], error: 'প্রোডাক্ট যোগ করা যায়নি' });
     }
 });
 
@@ -72,30 +106,66 @@ router.post('/products/new', requireRole('admin', 'manager'), upload.single('ima
 router.get('/products/:id/edit', requireAdmin, async (req, res) => {
     const { rows } = await pool.query('SELECT * FROM products WHERE id = $1', [req.params.id]);
     if (rows.length === 0) return res.redirect('/admin/dashboard');
-    res.render('admin/product-form', { product: rows[0], error: null });
+    const { rows: galleryImages } = await pool.query(
+        'SELECT * FROM product_images WHERE product_id = $1 ORDER BY sort_order ASC, id ASC',
+        [req.params.id]
+    );
+    res.render('admin/product-form', { product: rows[0], galleryImages, error: null });
 });
 
-router.post('/products/:id/edit', requireAdmin, upload.single('image'), async (req, res) => {
+router.post('/products/:id/edit', requireAdmin, productImageUpload, async (req, res) => {
     try {
         const { name, description, price, stock, category } = req.body;
         const { rows } = await pool.query('SELECT * FROM products WHERE id = $1', [req.params.id]);
         if (rows.length === 0) return res.redirect('/admin/dashboard');
 
+        const coverFile = req.files && req.files.image ? req.files.image[0] : null;
+        const galleryFiles = (req.files && req.files.gallery) || [];
+
         let imageUrl = rows[0].image_url;
-        if (req.file) {
+        if (coverFile) {
             await deleteImageFromR2(imageUrl);
-            imageUrl = await uploadImageToR2(req.file);
+            imageUrl = await uploadImageToR2(coverFile);
         }
 
         await pool.query(
             `UPDATE products SET name=$1, description=$2, price=$3, stock=$4, category=$5, image_url=$6 WHERE id=$7`,
             [name, description, price, stock, category, imageUrl, req.params.id]
         );
-        res.redirect('/admin/dashboard');
+
+        if (galleryFiles.length > 0) {
+            const { rows: countRows } = await pool.query(
+                'SELECT COALESCE(MAX(sort_order), -1) AS max_order FROM product_images WHERE product_id = $1',
+                [req.params.id]
+            );
+            let sortOrder = countRows[0].max_order + 1;
+            for (const file of galleryFiles) {
+                const url = await uploadImageToR2(file);
+                await pool.query(
+                    'INSERT INTO product_images (product_id, image_url, sort_order) VALUES ($1, $2, $3)',
+                    [req.params.id, url, sortOrder++]
+                );
+            }
+        }
+
+        res.redirect('/admin/products/' + req.params.id + '/edit');
     } catch (err) {
         console.error(err);
-        res.render('admin/product-form', { product: null, error: 'আপডেট করা যায়নি' });
+        res.render('admin/product-form', { product: null, galleryImages: [], error: 'আপডেট করা যায়নি' });
     }
+});
+
+// Delete one gallery photo (not the cover photo)
+router.post('/products/:id/images/:imageId/delete', requireAdmin, async (req, res) => {
+    const { rows } = await pool.query(
+        'SELECT * FROM product_images WHERE id = $1 AND product_id = $2',
+        [req.params.imageId, req.params.id]
+    );
+    if (rows.length > 0) {
+        await deleteImageFromR2(rows[0].image_url);
+        await pool.query('DELETE FROM product_images WHERE id = $1', [req.params.imageId]);
+    }
+    res.redirect('/admin/products/' + req.params.id + '/edit');
 });
 
 // Delete product
@@ -103,6 +173,10 @@ router.post('/products/:id/delete', requireRole('admin', 'manager'), async (req,
     const { rows } = await pool.query('SELECT * FROM products WHERE id = $1', [req.params.id]);
     if (rows.length > 0 && rows[0].image_url) {
         await deleteImageFromR2(rows[0].image_url);
+    }
+    const { rows: galleryRows } = await pool.query('SELECT * FROM product_images WHERE product_id = $1', [req.params.id]);
+    for (const img of galleryRows) {
+        await deleteImageFromR2(img.image_url);
     }
     await pool.query('DELETE FROM products WHERE id = $1', [req.params.id]);
     res.redirect('/admin/dashboard');
