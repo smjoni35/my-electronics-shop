@@ -85,19 +85,21 @@
     <form action="/product/<%= product.id %>/review" method="POST" class="review-form">
         <h3>আপনার রিভিউ দিন</h3>
         <% if (reviewError) { %><p class="error-msg"><%= reviewError %></p><% } %>
-        <label>আপনার নাম *
-            <input type="text" name="customerName" required>
-        </label>
-        <label>রেটিং *
-            <select name="rating" required>
-                <option value="">বেছে নিন</option>
-                <option value="5">★★★★★ চমৎকার</option>
-                <option value="4">★★★★☆ ভালো</option>
-                <option value="3">★★★☆☆ মোটামুটি</option>
-                <option value="2">★★☆☆☆ খারাপ</option>
-                <option value="1">★☆☆☆☆ খুবই খারাপ</option>
-            </select>
-        </label>
+        <div class="review-form-row">
+            <label>আপনার নাম *
+                <input type="text" name="customerName" required>
+            </label>
+            <label>রেটিং *
+                <select name="rating" required>
+                    <option value="">বেছে নিন</option>
+                    <option value="5">★★★★★ চমৎকার</option>
+                    <option value="4">★★★★☆ ভালো</option>
+                    <option value="3">★★★☆☆ মোটামুটি</option>
+                    <option value="2">★★☆☆☆ খারাপ</option>
+                    <option value="1">★☆☆☆☆ খুবই খারাপ</option>
+                </select>
+            </label>
+        </div>
         <label>মন্তব্য
             <textarea name="comment" rows="3" placeholder="প্রোডাক্ট নিয়ে আপনার অভিজ্ঞতা লিখুন..."></textarea>
         </label>
