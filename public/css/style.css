@@ -595,27 +595,39 @@ h1, h2, h3 { font-family: var(--font-display); font-weight: 700; letter-spacing:
     .stats-row { flex-direction: column; }
     .stat-box { min-width: 0; }
 
-    .admin-table td { vertical-align: middle; }
+.admin-table td { vertical-align: middle; }
+    .admin-table th:nth-child(4), .admin-table td:nth-child(4) { text-align: center; }
+    .admin-table th:last-child, .admin-table td:last-child { text-align: center; }
+    .admin-table .actions {
+        justify-content: center;
+        gap: 8px;
+        padding: 3px 0;
+    }
     .admin-table .actions a, .admin-table .actions .btn-remove {
         display: inline-flex;
         align-items: center;
         justify-content: center;
-        padding: 6px 12px;
+        height: 32px;
+        min-width: 64px;
+        padding: 0 12px;
+        margin: 0;
+        box-sizing: border-box;
         border-radius: var(--radius-sm);
         border: 1px solid var(--border);
         background: var(--surface-2);
         font-size: 0.78rem;
         font-weight: 600;
+        line-height: 1;
         text-decoration: none;
         white-space: nowrap;
+        -webkit-appearance: none;
+        appearance: none;
         transition: border-color 0.15s;
     }
     .admin-table .actions a { color: var(--accent-2); }
     .admin-table .actions .btn-remove { color: var(--danger); }
     .admin-table .actions a:hover { border-color: var(--accent-2); }
     .admin-table .actions .btn-remove:hover { border-color: var(--danger); }
-}
-
 /* ==========================================================================
    Responsive
    ========================================================================== */
