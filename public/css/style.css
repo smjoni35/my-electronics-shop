@@ -90,6 +90,7 @@ h1, h2, h3 { font-family: var(--font-display); font-weight: 700; letter-spacing:
     text-decoration: none;
     letter-spacing: -0.01em;
     white-space: nowrap;
+    flex-shrink: 0;
 }
 .logo-mark {
     width: 10px;
@@ -188,18 +189,6 @@ h1, h2, h3 { font-family: var(--font-display); font-weight: 700; letter-spacing:
     border-radius: 999px;
 }
 
-.admin-nav nav a, .admin-nav nav .link-btn {
-    margin-left: 16px;
-    text-decoration: none;
-    color: var(--text-muted);
-    background: none;
-    border: none;
-    cursor: pointer;
-    font-size: 0.92rem;
-    font-weight: 500;
-    transition: color 0.15s;
-}
-.admin-nav nav a:hover, .admin-nav nav .link-btn:hover { color: var(--accent); }
 .admin-nav .logo { color: var(--accent); }
 
 /* ==========================================================================
@@ -207,12 +196,20 @@ h1, h2, h3 { font-family: var(--font-display); font-weight: 700; letter-spacing:
    ========================================================================== */
 .admin-desktop-bar { display: none; }
 @media (min-width: 600px) {
+    .admin-nav .header-inner {
+        flex-wrap: nowrap;
+    }
     .admin-desktop-bar {
         display: flex;
         align-items: center;
-        gap: 20px;
+        gap: 14px;
+        flex-shrink: 1;
+        min-width: 0;
+        overflow-x: auto;
+        scrollbar-width: none;
     }
-    .admin-desktop-links { display: flex; align-items: center; gap: 8px; }
+    .admin-desktop-bar::-webkit-scrollbar { display: none; }
+    .admin-desktop-links { display: flex; align-items: center; gap: 6px; flex-shrink: 0; }
     .admin-desktop-links a, .admin-desktop-links .link-btn {
         display: inline-flex;
         align-items: center;
@@ -221,11 +218,12 @@ h1, h2, h3 { font-family: var(--font-display); font-weight: 700; letter-spacing:
         background: var(--surface-2);
         border: 1px solid var(--border);
         cursor: pointer;
-        font-size: 0.88rem;
+        font-size: 0.85rem;
         font-weight: 600;
         font-family: inherit;
-        padding: 8px 16px;
+        padding: 7px 13px;
         border-radius: 999px;
+        white-space: nowrap;
         transition: background 0.15s, color 0.15s, border-color 0.15s, transform 0.15s;
     }
     .admin-desktop-links a:hover, .admin-desktop-links .link-btn:hover {
@@ -982,8 +980,6 @@ h1, h2, h3 { font-family: var(--font-display); font-weight: 700; letter-spacing:
     .cart-text { display: none; }
 
     .admin-nav .header-inner { flex-wrap: wrap; }
-    .admin-nav nav { display: flex; flex-wrap: wrap; gap: 8px 14px; width: 100%; margin-top: 4px; }
-    .admin-nav nav a, .admin-nav nav .link-btn { margin-left: 0; }
 
     .stats-row { flex-direction: row; flex-wrap: nowrap; gap: 8px; }
     .stat-box { min-width: 0; flex: 1; padding: 12px 10px; font-size: 0.74rem; }
