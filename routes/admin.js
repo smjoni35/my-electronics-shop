@@ -2,7 +2,7 @@ const express = require('express');
 const router = express.Router();
 const bcrypt = require('bcryptjs');
 const pool = require('../db/pool');
-const { requireAdmin } = require('../middleware/auth');
+const { requireAdmin, requireRole, ROLE_LABELS } = require('../middleware/auth');
 const { upload, uploadImageToR2, deleteImageFromR2 } = require('../middleware/r2');
 
 // Login page
@@ -25,11 +25,14 @@ router.post('/login', async (req, res) => {
 
     req.session.isAdmin = true;
     req.session.adminUsername = username;
+    req.session.adminRole = rows[0].role || 'admin';
     res.redirect('/admin/dashboard');
 });
 
 router.post('/logout', (req, res) => {
     req.session.isAdmin = false;
+    req.session.adminRole = null;
+    req.session.adminUsername = null;
     res.redirect('/admin/login');
 });
 
@@ -44,11 +47,11 @@ router.get('/dashboard', requireAdmin, async (req, res) => {
 });
 
 // New product form
-router.get('/products/new', requireAdmin, (req, res) => {
+router.get('/products/new', requireRole('admin', 'manager'), (req, res) => {
     res.render('admin/product-form', { product: null, error: null });
 });
 
-router.post('/products/new', requireAdmin, upload.single('image'), async (req, res) => {
+router.post('/products/new', requireRole('admin', 'manager'), upload.single('image'), async (req, res) => {
     try {
         const { name, description, price, stock, category } = req.body;
         const imageUrl = req.file ? await uploadImageToR2(req.file) : null;
@@ -96,7 +99,7 @@ router.post('/products/:id/edit', requireAdmin, upload.single('image'), async (r
 });
 
 // Delete product
-router.post('/products/:id/delete', requireAdmin, async (req, res) => {
+router.post('/products/:id/delete', requireRole('admin', 'manager'), async (req, res) => {
     const { rows } = await pool.query('SELECT * FROM products WHERE id = $1', [req.params.id]);
     if (rows.length > 0 && rows[0].image_url) {
         await deleteImageFromR2(rows[0].image_url);
@@ -124,6 +127,60 @@ router.post('/orders/:id/status', requireAdmin, async (req, res) => {
     const { status } = req.body;
     await pool.query('UPDATE orders SET status = $1 WHERE id = $2', [status, req.params.id]);
     res.redirect(`/admin/orders/${req.params.id}`);
+});
+
+// ==========================================================================
+// Staff management (admin only) — create/edit/delete Manager & Moderator accounts
+// ==========================================================================
+
+router.get('/staff', requireRole('admin'), async (req, res) => {
+    const { rows: staff } = await pool.query('SELECT id, username, role FROM admins ORDER BY id ASC');
+    res.render('admin/staff', { staff, error: null, roleLabels: ROLE_LABELS, currentUsername: req.session.adminUsername });
+});
+
+router.get('/staff/new', requireRole('admin'), (req, res) => {
+    res.render('admin/staff-form', { error: null, roleLabels: ROLE_LABELS });
+});
+
+router.post('/staff/new', requireRole('admin'), async (req, res) => {
+    try {
+        const { username, password, role } = req.body;
+        if (!['admin', 'manager', 'moderator'].includes(role)) {
+            return res.render('admin/staff-form', { error: 'সঠিক রোল বেছে নিন।', roleLabels: ROLE_LABELS });
+        }
+        const existing = await pool.query('SELECT id FROM admins WHERE username = $1', [username]);
+        if (existing.rows.length > 0) {
+            return res.render('admin/staff-form', { error: 'এই ইউজারনেম আগে থেকেই আছে।', roleLabels: ROLE_LABELS });
+        }
+        const hash = await bcrypt.hash(password, 10);
+        await pool.query('INSERT INTO admins (username, password_hash, role) VALUES ($1, $2, $3)', [username, hash, role]);
+        res.redirect('/admin/staff');
+    } catch (err) {
+        console.error(err);
+        res.render('admin/staff-form', { error: 'অ্যাকাউন্ট তৈরি করা যায়নি।', roleLabels: ROLE_LABELS });
+    }
+});
+
+// Delete a staff account (can't delete your own account, or the last remaining admin)
+router.post('/staff/:id/delete', requireRole('admin'), async (req, res) => {
+    const { rows } = await pool.query('SELECT * FROM admins WHERE id = $1', [req.params.id]);
+    if (rows.length === 0) return res.redirect('/admin/staff');
+
+    if (rows[0].username === req.session.adminUsername) {
+        const { rows: staff } = await pool.query('SELECT id, username, role FROM admins ORDER BY id ASC');
+        return res.render('admin/staff', { staff, error: 'নিজের অ্যাকাউন্ট নিজে ডিলিট করা যাবে না।', roleLabels: ROLE_LABELS, currentUsername: req.session.adminUsername });
+    }
+
+    if (rows[0].role === 'admin') {
+        const { rows: adminCount } = await pool.query("SELECT COUNT(*) FROM admins WHERE role = 'admin'");
+        if (parseInt(adminCount[0].count, 10) <= 1) {
+            const { rows: staff } = await pool.query('SELECT id, username, role FROM admins ORDER BY id ASC');
+            return res.render('admin/staff', { staff, error: 'সিস্টেমে অন্তত একজন Admin থাকা আবশ্যক।', roleLabels: ROLE_LABELS, currentUsername: req.session.adminUsername });
+        }
+    }
+
+    await pool.query('DELETE FROM admins WHERE id = $1', [req.params.id]);
+    res.redirect('/admin/staff');
 });
 
 module.exports = router;
