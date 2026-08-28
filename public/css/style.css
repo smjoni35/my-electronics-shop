@@ -197,19 +197,15 @@ h1, h2, h3 { font-family: var(--font-display); font-weight: 700; letter-spacing:
 .admin-desktop-bar { display: none; }
 @media (min-width: 600px) {
     .admin-nav .header-inner {
-        flex-wrap: nowrap;
+        flex-wrap: wrap;
     }
     .admin-desktop-bar {
         display: flex;
         align-items: center;
-        gap: 14px;
-        flex-shrink: 1;
-        min-width: 0;
-        overflow-x: auto;
-        scrollbar-width: none;
+        flex-wrap: wrap;
+        gap: 10px 14px;
     }
-    .admin-desktop-bar::-webkit-scrollbar { display: none; }
-    .admin-desktop-links { display: flex; align-items: center; gap: 6px; flex-shrink: 0; }
+    .admin-desktop-links { display: flex; align-items: center; flex-wrap: wrap; gap: 6px; }
     .admin-desktop-links a, .admin-desktop-links .link-btn {
         display: inline-flex;
         align-items: center;
@@ -879,6 +875,8 @@ h1, h2, h3 { font-family: var(--font-display); font-weight: 700; letter-spacing:
 .admin-header-row { display: flex; justify-content: space-between; align-items: center; margin: 22px 0; flex-wrap: wrap; gap: 12px; }
 
 .admin-table { width: 100%; border-collapse: collapse; background: var(--surface); border: 1px solid var(--border-soft); border-radius: var(--radius); overflow: hidden; margin-bottom: 40px; }
+.table-scroll { width: 100%; overflow-x: auto; -webkit-overflow-scrolling: touch; margin-bottom: 40px; border-radius: var(--radius); }
+.table-scroll .admin-table { margin-bottom: 0; min-width: 720px; }
 .admin-table th, .admin-table td { padding: 11px 14px; border-bottom: 1px solid var(--border-soft); text-align: center; font-size: 0.88rem; vertical-align: middle; }
 .admin-table th { background: var(--surface-2); color: var(--text-muted); font-weight: 600; text-transform: uppercase; font-size: 0.75rem; letter-spacing: 0.03em; }
 .admin-table tr:last-child td { border-bottom: none; }
