@@ -613,14 +613,54 @@ h1, h2, h3 { font-family: var(--font-display); font-weight: 700; letter-spacing:
 /* ==========================================================================
    Admin
    ========================================================================== */
-.admin-login-box { max-width: 380px; margin: 90px auto; padding: 34px; background: var(--surface); border-radius: var(--radius-lg); border: 1px solid var(--border-soft); }
-.admin-login-box h1 { font-size: 1.3rem; }
-.admin-login-box form { display: flex; flex-direction: column; gap: 14px; margin-top: 18px; }
+.login-page { min-height: 100vh; }
+.login-wrap {
+    min-height: 100vh;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 24px 20px;
+    background:
+        radial-gradient(circle at 50% 0%, rgba(41,182,246,0.10), transparent 55%),
+        radial-gradient(circle at 1px 1px, var(--bg-grid) 1px, transparent 1px) 0 0 / 26px 26px,
+        var(--bg);
+}
+.admin-login-box {
+    position: relative;
+    max-width: 380px;
+    width: 100%;
+    margin: 0;
+    padding: 36px 32px;
+    background: var(--surface);
+    border-radius: var(--radius-lg);
+    border: 1px solid var(--border-soft);
+    box-shadow: 0 24px 60px rgba(0,0,0,0.45);
+}
+.admin-login-box::before {
+    content: "";
+    position: absolute;
+    top: 0; left: 20px; right: 20px;
+    height: 2px;
+    background: linear-gradient(90deg, transparent, var(--accent), transparent);
+    border-radius: 2px;
+}
+.login-brand { display: flex; flex-direction: column; align-items: center; gap: 10px; margin-bottom: 22px; }
+.login-logo { height: 52px; width: auto; }
+.login-brand-name { font-family: var(--font-display); font-weight: 700; color: var(--text); font-size: 1.05rem; letter-spacing: -0.01em; }
+.admin-login-box h1 { font-size: 1.15rem; text-align: center; color: var(--text-muted); font-weight: 600; margin-bottom: 4px; }
+.admin-login-box form { display: flex; flex-direction: column; gap: 16px; margin-top: 20px; }
+.admin-login-box label {
+    display: flex; flex-direction: column; gap: 6px;
+    font-size: 0.82rem; color: var(--text-muted); font-weight: 600;
+    text-transform: uppercase; letter-spacing: 0.03em;
+}
 .admin-login-box input {
-    padding: 11px; background: var(--surface-2); border: 1px solid var(--border);
+    padding: 12px 13px; background: var(--surface-2); border: 1px solid var(--border);
     border-radius: var(--radius-sm); color: var(--text); font-family: var(--font-body);
+    font-size: 0.95rem; font-weight: 400; text-transform: none; letter-spacing: normal;
 }
 .admin-login-box input:focus { border-color: var(--accent-2); outline: none; box-shadow: 0 0 0 1px var(--accent-2); }
+.admin-login-box .btn-primary { margin-top: 6px; text-align: center; }
 
 .stats-row { display: flex; gap: 16px; margin: 20px 0; flex-wrap: wrap; }
 .stat-box {
