@@ -532,11 +532,17 @@ h1, h2, h3 { font-family: var(--font-display); font-weight: 700; letter-spacing:
     background: var(--surface-2);
     border: 1px solid var(--border);
     color: var(--text);
-    padding: 7px 10px;
+    padding: 7px 30px 7px 10px;
     border-radius: var(--radius-sm);
     font-family: var(--font-body);
     font-size: 0.85rem;
     cursor: pointer;
+    appearance: none;
+    -webkit-appearance: none;
+    -moz-appearance: none;
+    background-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='10' height='6' viewBox='0 0 10 6'><path d='M1 1l4 4 4-4' stroke='%23a0a8b8' stroke-width='1.5' fill='none' fill-rule='evenodd'/></svg>");
+    background-repeat: no-repeat;
+    background-position: right 10px center;
 }
 
 /* ==========================================================================
