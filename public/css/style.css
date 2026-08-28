@@ -587,6 +587,33 @@ h1, h2, h3 { font-family: var(--font-display); font-weight: 700; letter-spacing:
     .search-form button { padding: 7px 10px; font-size: 0.72rem; }
     .cart-link { padding: 7px 9px; gap: 4px; font-size: 0.8rem; }
     .cart-text { display: none; }
+
+    .admin-nav .header-inner { flex-wrap: wrap; }
+    .admin-nav nav { display: flex; flex-wrap: wrap; gap: 8px 14px; width: 100%; margin-top: 4px; }
+    .admin-nav nav a, .admin-nav nav .link-btn { margin-left: 0; }
+
+    .stats-row { flex-direction: column; }
+    .stat-box { min-width: 0; }
+
+    .admin-table td { vertical-align: middle; }
+    .admin-table .actions a, .admin-table .actions .btn-remove {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        padding: 6px 12px;
+        border-radius: var(--radius-sm);
+        border: 1px solid var(--border);
+        background: var(--surface-2);
+        font-size: 0.78rem;
+        font-weight: 600;
+        text-decoration: none;
+        white-space: nowrap;
+        transition: border-color 0.15s;
+    }
+    .admin-table .actions a { color: var(--accent-2); }
+    .admin-table .actions .btn-remove { color: var(--danger); }
+    .admin-table .actions a:hover { border-color: var(--accent-2); }
+    .admin-table .actions .btn-remove:hover { border-color: var(--danger); }
 }
 
 /* ==========================================================================
