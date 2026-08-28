@@ -1,0 +1,63 @@
+<!DOCTYPE html>
+<html lang="bn">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title><%= product ? 'Product Edit' : 'New product' %></title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;600;700&family=Inter:wght@400;500;600&family=JetBrains+Mono:wght@400;500;600;700&family=Hind+Siliguri:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="/css/style.css">
+</head>
+<body>
+    <%- include('nav') %>
+    <div class="container admin-form-page">
+        <h1><%= product ? 'Edit product' : 'Add new product' %></h1>
+        <% if (error) { %><p class="error-msg"><%= error %></p><% } %>
+
+        <form action="<%= product ? '/admin/products/' + product.id + '/edit' : '/admin/products/new' %>" method="POST" enctype="multipart/form-data" class="admin-form">
+            <label>Product name *
+                <input type="text" name="name" value="<%= product ? product.name : '' %>" required>
+            </label>
+            <label>Description
+                <textarea name="description" rows="4"><%= product ? product.description : '' %></textarea>
+            </label>
+            <label>Price (৳) *
+                <input type="number" step="0.01" name="price" value="<%= product ? product.price : '' %>" required>
+            </label>
+            <label>Stock quantity *
+                <input type="number" name="stock" value="<%= product ? product.stock : 0 %>" required>
+            </label>
+            <label>Categories
+                <input type="text" name="category" value="<%= product ? product.category : '' %>" placeholder="যেমন: মোবাইল এক্সেসরিজ">
+            </label>
+            <label>Cover Photo <% if (product) { %>(shown in listings — previous photo stays if you don't pick a new one)<% } %>
+                <input type="file" name="image" accept="image/*">
+            </label>
+            <% if (product && product.image_url) { %>
+                <img src="<%= product.image_url %>" class="thumb-preview">
+            <% } %>
+
+            <label>Additional Photos (gallery — you can select several at once)
+                <input type="file" name="gallery" accept="image/*" multiple>
+            </label>
+
+            <button type="submit" class="btn-primary">Save</button>
+        </form>
+
+        <% if (galleryImages && galleryImages.length > 0) { %>
+        <h2>Gallery Photos</h2>
+        <div class="gallery-preview">
+            <% galleryImages.forEach(img => { %>
+                <div class="gallery-preview-item">
+                    <img src="<%= img.image_url %>" class="thumb-preview">
+                    <form action="/admin/products/<%= product.id %>/images/<%= img.id %>/delete" method="POST" onsubmit="return confirm('Delete this photo?')">
+                        <button type="submit" class="btn-remove">Delete</button>
+                    </form>
+                </div>
+            <% }) %>
+        </div>
+        <% } %>
+    </div>
+</body>
+</html>

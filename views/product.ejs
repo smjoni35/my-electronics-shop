@@ -2,8 +2,16 @@
 
 <div class="product-detail">
     <div class="product-detail-img">
-        <% if (product.image_url) { %>
-            <img src="<%= product.image_url %>" alt="<%= product.name %>" loading="lazy">
+        <% const allPhotos = [product.image_url, ...galleryImages.map(g => g.image_url)].filter(Boolean); %>
+        <% if (allPhotos.length > 0) { %>
+            <img id="main-product-photo" src="<%= allPhotos[0] %>" alt="<%= product.name %>" loading="lazy">
+            <% if (allPhotos.length > 1) { %>
+            <div class="gallery-thumbs">
+                <% allPhotos.forEach((url, i) => { %>
+                    <img src="<%= url %>" class="gallery-thumb <%= i === 0 ? 'active' : '' %>" onclick="document.getElementById('main-product-photo').src = this.src; document.querySelectorAll('.gallery-thumb').forEach(t => t.classList.remove('active')); this.classList.add('active');">
+                <% }) %>
+            </div>
+            <% } %>
         <% } else { %>
             <div class="no-img large">ছবি নেই</div>
         <% } %>

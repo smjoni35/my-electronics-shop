@@ -16,6 +16,9 @@
     <% products.forEach(p => { %>
         <a href="/product/<%= p.id %>" class="product-card">
             <div class="product-img">
+                <% if (bestSellerIds.includes(p.id)) { %>
+                    <span class="badge-bestseller">🏆 Best Seller</span>
+                <% } %>
                 <% if (p.image_url) { %>
                     <img src="<%= p.image_url %>" alt="<%= p.name %>" loading="lazy">
                 <% } else { %>
