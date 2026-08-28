@@ -3,21 +3,44 @@ const router = express.Router();
 const pool = require('../db/pool');
 const { notifyNewOrder } = require('../services/notify');
 
-// Home page — product grid, optional category filter
+// A product counts as "New" for this many days after it's created,
+// and shows a "মাত্র N টা বাকি" badge once stock drops to/below this amount.
+const NEW_PRODUCT_DAYS = 14;
+const LOW_STOCK_THRESHOLD = 5;
+
+const SORT_OPTIONS = {
+    newest: 'p.created_at DESC',
+    price_asc: 'effective_price ASC',
+    price_desc: 'effective_price DESC',
+};
+
+// Home page — product grid, optional category filter, sort
 router.get('/', async (req, res) => {
     const { category, q } = req.query;
-    let query = 'SELECT * FROM products WHERE 1=1';
+    const sort = SORT_OPTIONS[req.query.sort] ? req.query.sort : 'newest';
+    let query = `
+        SELECT p.*,
+            ROUND(p.price * (1 - p.discount_percent / 100.0), 2) AS effective_price,
+            COALESCE(r.avg_rating, 0) AS avg_rating,
+            COALESCE(r.review_count, 0) AS review_count
+        FROM products p
+        LEFT JOIN (
+            SELECT product_id, AVG(rating) AS avg_rating, COUNT(*) AS review_count
+            FROM product_reviews GROUP BY product_id
+        ) r ON r.product_id = p.id
+        WHERE 1=1
+    `;
     const params = [];
 
     if (category) {
         params.push(category);
-        query += ` AND category = $${params.length}`;
+        query += ` AND p.category = $${params.length}`;
     }
     if (q) {
         params.push(`%${q}%`);
-        query += ` AND name ILIKE $${params.length}`;
+        query += ` AND p.name ILIKE $${params.length}`;
     }
-    query += ' ORDER BY created_at DESC';
+    query += ` ORDER BY ${SORT_OPTIONS[sort]}`;
 
     const { rows: products } = await pool.query(query, params);
     const { rows: categories } = await pool.query('SELECT DISTINCT category FROM products WHERE category IS NOT NULL');
@@ -34,18 +57,81 @@ router.get('/', async (req, res) => {
     `);
     const bestSellerIds = bestSellerRows.map(r => r.product_id);
 
-    res.render('home', { products, categories, activeCategory: category || '', q: q || '', bestSellerIds });
+    res.render('home', {
+        products, categories, activeCategory: category || '', q: q || '', bestSellerIds,
+        sort, NEW_PRODUCT_DAYS, LOW_STOCK_THRESHOLD
+    });
 });
 
 // Product detail page
 router.get('/product/:id', async (req, res) => {
-    const { rows } = await pool.query('SELECT * FROM products WHERE id = $1', [req.params.id]);
+    const { rows } = await pool.query(
+        `SELECT *, ROUND(price * (1 - discount_percent / 100.0), 2) AS effective_price
+         FROM products WHERE id = $1`,
+        [req.params.id]
+    );
     if (rows.length === 0) return res.status(404).render('404');
     const { rows: galleryImages } = await pool.query(
         'SELECT * FROM product_images WHERE product_id = $1 ORDER BY sort_order ASC, id ASC',
         [req.params.id]
     );
-    res.render('product', { product: rows[0], galleryImages });
+    const { rows: reviews } = await pool.query(
+        'SELECT * FROM product_reviews WHERE product_id = $1 ORDER BY created_at DESC',
+        [req.params.id]
+    );
+    const { rows: ratingRows } = await pool.query(
+        'SELECT AVG(rating) AS avg_rating, COUNT(*) AS review_count FROM product_reviews WHERE product_id = $1',
+        [req.params.id]
+    );
+
+    res.render('product', {
+        product: rows[0], galleryImages, reviews,
+        avgRating: parseFloat(ratingRows[0].avg_rating) || 0,
+        reviewCount: parseInt(ratingRows[0].review_count, 10) || 0,
+        reviewError: null,
+        NEW_PRODUCT_DAYS, LOW_STOCK_THRESHOLD
+    });
+});
+
+// Submit a product review (no login needed — name + star rating + optional comment)
+router.post('/product/:id/review', async (req, res) => {
+    const { customerName, comment } = req.body;
+    const rating = parseInt(req.body.rating, 10);
+
+    const { rows } = await pool.query(
+        `SELECT *, ROUND(price * (1 - discount_percent / 100.0), 2) AS effective_price
+         FROM products WHERE id = $1`,
+        [req.params.id]
+    );
+    if (rows.length === 0) return res.status(404).render('404');
+
+    if (!customerName || !rating || rating < 1 || rating > 5) {
+        const { rows: galleryImages } = await pool.query(
+            'SELECT * FROM product_images WHERE product_id = $1 ORDER BY sort_order ASC, id ASC',
+            [req.params.id]
+        );
+        const { rows: reviews } = await pool.query(
+            'SELECT * FROM product_reviews WHERE product_id = $1 ORDER BY created_at DESC',
+            [req.params.id]
+        );
+        const { rows: ratingRows } = await pool.query(
+            'SELECT AVG(rating) AS avg_rating, COUNT(*) AS review_count FROM product_reviews WHERE product_id = $1',
+            [req.params.id]
+        );
+        return res.render('product', {
+            product: rows[0], galleryImages, reviews,
+            avgRating: parseFloat(ratingRows[0].avg_rating) || 0,
+            reviewCount: parseInt(ratingRows[0].review_count, 10) || 0,
+            reviewError: 'নাম ও রেটিং (১-৫) দিতে হবে / Name and a 1-5 rating are required',
+            NEW_PRODUCT_DAYS, LOW_STOCK_THRESHOLD
+        });
+    }
+
+    await pool.query(
+        'INSERT INTO product_reviews (product_id, customer_name, rating, comment) VALUES ($1, $2, $3, $4)',
+        [req.params.id, customerName, rating, comment || null]
+    );
+    res.redirect('/product/' + req.params.id + '#reviews');
 });
 
 // Add to cart (session-based cart)
