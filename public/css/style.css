@@ -879,7 +879,7 @@ h1, h2, h3 { font-family: var(--font-display); font-weight: 700; letter-spacing:
 .admin-header-row { display: flex; justify-content: space-between; align-items: center; margin: 22px 0; flex-wrap: wrap; gap: 12px; }
 
 .admin-table { width: 100%; border-collapse: collapse; background: var(--surface); border: 1px solid var(--border-soft); border-radius: var(--radius); overflow: hidden; margin-bottom: 40px; }
-.admin-table th, .admin-table td { padding: 11px 14px; border-bottom: 1px solid var(--border-soft); text-align: left; font-size: 0.88rem; vertical-align: middle; }
+.admin-table th, .admin-table td { padding: 11px 14px; border-bottom: 1px solid var(--border-soft); text-align: center; font-size: 0.88rem; vertical-align: middle; }
 .admin-table th { background: var(--surface-2); color: var(--text-muted); font-weight: 600; text-transform: uppercase; font-size: 0.75rem; letter-spacing: 0.03em; }
 .admin-table tr:last-child td { border-bottom: none; }
 .admin-table tr:hover td { background: rgba(255,255,255,0.015); }
@@ -888,7 +888,7 @@ h1, h2, h3 { font-family: var(--font-display); font-weight: 700; letter-spacing:
 .gallery-preview { display: flex; flex-wrap: wrap; gap: 14px; margin-top: -6px; }
 .gallery-preview-item { display: flex; flex-direction: column; align-items: center; gap: 6px; }
 .gallery-preview-item .thumb-preview { margin-top: 0; }
-.actions-inner { display: flex; gap: 12px; align-items: center; }
+.actions-inner { display: flex; gap: 12px; align-items: center; justify-content: center; }
 .actions-inner form { margin: 0; }
 .actions-inner a { color: var(--accent-2); text-decoration: none; font-weight: 500; font-size: 0.86rem; }
 .actions-inner a:hover { text-decoration: underline; }
