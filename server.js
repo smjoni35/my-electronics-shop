@@ -26,7 +26,7 @@ app.use(session({
 }));
 
 app.use((req, res, next) => {
-    res.locals.storeName = process.env.STORE_NAME || 'আমার ইলেকট্রনিক্স শপ';
+    res.locals.storeName = process.env.STORE_NAME || 'JM Gadget Zone';
     res.locals.cartCount = req.session.cart
         ? Object.values(req.session.cart).reduce((a, b) => a + b, 0)
         : 0;
