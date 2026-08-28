@@ -1,13 +1,41 @@
 <header class="admin-nav">
     <div class="container header-inner">
         <a href="/admin/dashboard" class="logo"><span class="logo-chip"><img src="/img/logo.png" alt="Admin" class="logo-img logo-img-sm"></span>Admin প্যানেল</a>
-        <nav>
-            <a href="/admin/dashboard">Product</a>
-            <a href="/admin/orders">Order</a>
-            <a href="/" target="_blank">Visit the site</a>
-            <form action="/admin/logout" method="POST" style="display:inline">
-                <button type="submit" class="link-btn">Logout</button>
-            </form>
-        </nav>
+
+        <div class="profile-menu">
+            <button type="button" class="profile-btn" id="profileBtn">
+                <span class="profile-avatar"><%= (currentUsername || 'A').charAt(0).toUpperCase() %></span>
+                <span class="profile-name"><%= currentUsername %></span>
+            </button>
+            <div class="profile-dropdown" id="profileDropdown">
+                <div class="profile-dropdown-head">
+                    <div class="profile-dropdown-user"><%= currentUsername %></div>
+                    <% if (currentRole) { %><span class="role-badge role-<%= currentRole %>"><%= currentRole.charAt(0).toUpperCase() + currentRole.slice(1) %></span><% } %>
+                </div>
+                <a href="/admin/dashboard">Product</a>
+                <a href="/admin/orders">Order</a>
+                <% if (currentRole === 'admin') { %><a href="/admin/staff">Staff</a><% } %>
+                <a href="/" target="_blank">Visit the site</a>
+                <form action="/admin/logout" method="POST">
+                    <button type="submit" class="link-btn">Logout</button>
+                </form>
+            </div>
+        </div>
     </div>
 </header>
+<script>
+    (function () {
+        var btn = document.getElementById('profileBtn');
+        var dropdown = document.getElementById('profileDropdown');
+        if (!btn || !dropdown) return;
+        btn.addEventListener('click', function (e) {
+            e.stopPropagation();
+            dropdown.classList.toggle('open');
+        });
+        document.addEventListener('click', function (e) {
+            if (!dropdown.contains(e.target) && e.target !== btn) {
+                dropdown.classList.remove('open');
+            }
+        });
+    })();
+</script>
