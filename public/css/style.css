@@ -399,6 +399,7 @@ h1, h2, h3 { font-family: var(--font-display); font-weight: 700; letter-spacing:
     display: grid;
     grid-template-columns: repeat(auto-fill, minmax(165px, 1fr));
     gap: 16px;
+    margin-top: 20px;
     margin-bottom: 40px;
 }
 
