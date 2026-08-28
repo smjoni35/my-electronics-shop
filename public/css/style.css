@@ -564,9 +564,8 @@ h1, h2, h3 { font-family: var(--font-display); font-weight: 700; letter-spacing:
 }
 @media (max-width: 560px) {
     .hero { padding: 32px 20px; }
-    .cart-item { grid-template-columns: 50px 1fr; grid-template-rows: auto auto; }
-    .cart-item-subtotal { grid-column: 2; }
-
+    .cart-item { grid-template-columns: 52px 1fr; grid-template-rows: auto auto; gap: 12px 14px; }
+    .cart-item-actions { grid-column: 1 / -1; flex-direction: row; flex-wrap: wrap; align-items: center; justify-content: space-between; min-width: 0; }
     .header-inner { flex-wrap: nowrap; gap: 8px; padding: 10px 14px; }
     .logo-chip { padding: 3px 8px; border-radius: 10px; }
     .logo-img { height: 30px; }
