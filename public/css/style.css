@@ -710,6 +710,36 @@ h1, h2, h3 { font-family: var(--font-display); font-weight: 700; letter-spacing:
 .site-footer { text-align: center; padding: 28px 0 36px; color: var(--text-faint); font-size: 0.82rem; }
 
 /* ==========================================================================
+   WhatsApp floating button
+   ========================================================================== */
+.whatsapp-float {
+    position: fixed;
+    right: 20px;
+    bottom: 20px;
+    width: 56px;
+    height: 56px;
+    border-radius: 50%;
+    background: #25D366;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    box-shadow: 0 6px 18px rgba(0,0,0,0.4), 0 0 0 4px rgba(37,211,102,0.18);
+    z-index: 40;
+    animation: waPulse 2.4s ease-in-out infinite;
+    transition: transform 0.15s ease;
+}
+.whatsapp-float:hover { transform: scale(1.08); }
+.whatsapp-float svg { width: 30px; height: 30px; color: #fff; }
+@keyframes waPulse {
+    0%, 100% { box-shadow: 0 6px 18px rgba(0,0,0,0.4), 0 0 0 4px rgba(37,211,102,0.18); }
+    50% { box-shadow: 0 6px 18px rgba(0,0,0,0.4), 0 0 0 9px rgba(37,211,102,0.05); }
+}
+@media (max-width: 560px) {
+    .whatsapp-float { right: 14px; bottom: 14px; width: 50px; height: 50px; }
+    .whatsapp-float svg { width: 26px; height: 26px; }
+}
+
+/* ==========================================================================
    404
    ========================================================================== */
 .page-404 { text-align: center; padding: 90px 20px; }
