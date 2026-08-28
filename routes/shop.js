@@ -1,6 +1,7 @@
 const express = require('express');
 const router = express.Router();
 const pool = require('../db/pool');
+const { notifyNewOrder } = require('../services/notify');
 
 // Home page — product grid, optional category filter
 router.get('/', async (req, res) => {
@@ -21,14 +22,30 @@ router.get('/', async (req, res) => {
     const { rows: products } = await pool.query(query, params);
     const { rows: categories } = await pool.query('SELECT DISTINCT category FROM products WHERE category IS NOT NULL');
 
-    res.render('home', { products, categories, activeCategory: category || '', q: q || '' });
+    // Top 3 best-selling product ids, used to show a "Best Seller" badge in the grid
+    const { rows: bestSellerRows } = await pool.query(`
+        SELECT oi.product_id
+        FROM order_items oi
+        JOIN orders o ON o.id = oi.order_id
+        WHERE o.status != 'cancelled'
+        GROUP BY oi.product_id
+        ORDER BY SUM(oi.quantity) DESC
+        LIMIT 3
+    `);
+    const bestSellerIds = bestSellerRows.map(r => r.product_id);
+
+    res.render('home', { products, categories, activeCategory: category || '', q: q || '', bestSellerIds });
 });
 
 // Product detail page
 router.get('/product/:id', async (req, res) => {
     const { rows } = await pool.query('SELECT * FROM products WHERE id = $1', [req.params.id]);
     if (rows.length === 0) return res.status(404).render('404');
-    res.render('product', { product: rows[0] });
+    const { rows: galleryImages } = await pool.query(
+        'SELECT * FROM product_images WHERE product_id = $1 ORDER BY sort_order ASC, id ASC',
+        [req.params.id]
+    );
+    res.render('product', { product: rows[0], galleryImages });
 });
 
 // Add to cart (session-based cart)
@@ -131,6 +148,13 @@ router.post('/checkout', async (req, res) => {
 
         await client.query('COMMIT');
         req.session.cart = {};
+
+        // Notify the shop owner (Email/WhatsApp). Fire-and-forget so a slow
+        // or misconfigured notification never delays the customer's page.
+        const orderForNotify = { id: orderId, customer_name: customerName, phone, address, city: city || '', total };
+        const itemsForNotify = orderItems.map(i => ({ product_name: i.product.name, quantity: i.quantity, price: i.product.price }));
+        notifyNewOrder(orderForNotify, itemsForNotify).catch(err => console.error('notifyNewOrder error:', err.message));
+
         res.render('order-success', { orderId, total });
     } catch (err) {
         await client.query('ROLLBACK');
