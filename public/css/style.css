@@ -477,6 +477,8 @@ h1, h2, h3 { font-family: var(--font-display); font-weight: 700; letter-spacing:
    Forms
    ========================================================================== */
 .checkout-form, .admin-form { display: flex; flex-direction: column; gap: 16px; max-width: 500px; margin: 20px 0 40px; }
+.admin-form-page.container { max-width: 560px; margin: 0 auto; }
+.admin-form-page .admin-form { max-width: none; }
 .checkout-form label, .admin-form label {
     display: flex; flex-direction: column; gap: 7px; font-weight: 600; font-size: 0.82rem;
     color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.03em;
