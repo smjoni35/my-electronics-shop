@@ -9,19 +9,27 @@
     <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;600;700&family=Inter:wght@400;500;600&family=JetBrains+Mono:wght@400;500;600;700&family=Hind+Siliguri:wght@400;500;600;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="/css/style.css">
 </head>
-<body>
-    <div class="admin-login-box">
-        <h1>Admin Log In</h1>
-        <% if (error) { %>
-            <p class="error-msg"><%= error %></p>
-        <% } %>
-        <form action="/admin/login" method="POST">
-            <label>Username:<input type="text" name="username" required>
-            </label>
-            <label>Password:<input type="password" name="password" required>
-            </label>
-            <button type="submit" class="btn-primary">Log In</button>
-        </form>
+<body class="login-page">
+    <div class="login-wrap">
+        <div class="admin-login-box">
+            <div class="login-brand">
+                <img src="/img/logo.png" alt="<%= storeName %>" class="login-logo">
+                <span class="login-brand-name"><%= storeName %></span>
+            </div>
+            <h1>Admin প্যানেল লগইন</h1>
+            <% if (error) { %>
+                <p class="error-msg"><%= error %></p>
+            <% } %>
+            <form action="/admin/login" method="POST">
+                <label>Username
+                    <input type="text" name="username" required autofocus>
+                </label>
+                <label>Password
+                    <input type="password" name="password" required>
+                </label>
+                <button type="submit" class="btn-primary">Log In</button>
+            </form>
+        </div>
     </div>
 </body>
 </html>
