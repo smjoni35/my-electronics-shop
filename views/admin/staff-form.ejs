@@ -1,0 +1,36 @@
+<!DOCTYPE html>
+<html lang="bn">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Add staff</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;600;700&family=Inter:wght@400;500;600&family=JetBrains+Mono:wght@400;500;600;700&family=Hind+Siliguri:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="/css/style.css">
+</head>
+<body>
+    <%- include('nav') %>
+    <div class="container admin-form-page">
+        <h1>Add new staff</h1>
+        <% if (error) { %><p class="error-msg"><%= error %></p><% } %>
+
+        <form action="/admin/staff/new" method="POST" class="admin-form">
+            <label>Username *
+                <input type="text" name="username" required>
+            </label>
+            <label>Password *
+                <input type="password" name="password" required minlength="6">
+            </label>
+            <label>Role *
+                <select name="role" required>
+                    <option value="moderator">Moderator — শুধু প্রোডাক্ট এডিট ও অর্ডার ম্যানেজ করতে পারবে</option>
+                    <option value="manager">Manager — প্রোডাক্ট ও অর্ডার ফুল অ্যাক্সেস</option>
+                    <option value="admin">Admin — সব কিছুর ফুল অ্যাক্সেস (স্টাফ ম্যানেজমেন্টসহ)</option>
+                </select>
+            </label>
+            <button type="submit" class="btn-primary">Save</button>
+        </form>
+    </div>
+</body>
+</html>
