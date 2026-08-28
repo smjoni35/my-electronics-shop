@@ -556,9 +556,20 @@ h1, h2, h3 { font-family: var(--font-display); font-weight: 700; letter-spacing:
     from { opacity: 0; transform: translateY(10px); }
     to { opacity: 1; transform: translateY(0); }
 }
-@media (prefers-reduced-motion: reduce) {
-    * { animation-duration: 0.001ms !important; animation-iteration-count: 1 !important; transition-duration: 0.001ms !important; scroll-behavior: auto !important; }
-    .product-card { opacity: 1; }
+@media (max-width: 560px) {
+    .hero { padding: 32px 20px; }
+    .cart-item { grid-template-columns: 50px 1fr; grid-template-rows: auto auto; }
+    .cart-item-subtotal { grid-column: 2; }
+
+    .header-inner { flex-wrap: nowrap; gap: 8px; padding: 10px 14px; }
+    .logo-chip { padding: 3px 8px; border-radius: 10px; }
+    .logo-img { height: 30px; }
+    .search-form { min-width: 0; }
+    .search-form input { padding: 7px 8px 7px 22px; font-size: 0.78rem; }
+    .search-form .search-prompt { left: 8px; font-size: 0.75rem; }
+    .search-form button { padding: 7px 10px; font-size: 0.72rem; }
+    .cart-link { padding: 7px 9px; gap: 4px; font-size: 0.8rem; }
+    .cart-text { display: none; }
 }
 
 /* ==========================================================================
