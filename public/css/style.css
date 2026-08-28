@@ -43,8 +43,9 @@ body {
     line-height: 1.65;
     -webkit-font-smoothing: antialiased;
 }
-
 a { color: inherit; }
+
+button, input, select, textarea { font-family: inherit; }
 
 :focus-visible {
     outline: 2px solid var(--accent-2);
