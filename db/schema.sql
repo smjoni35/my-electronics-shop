@@ -33,12 +33,16 @@ CREATE TABLE IF NOT EXISTS order_items (
     price NUMERIC(10, 2) NOT NULL
 );
 
--- Admin table (single admin login)
+-- Admin / staff table (admin, manager, moderator roles)
 CREATE TABLE IF NOT EXISTS admins (
     id SERIAL PRIMARY KEY,
     username VARCHAR(100) UNIQUE NOT NULL,
-    password_hash TEXT NOT NULL
+    password_hash TEXT NOT NULL,
+    role VARCHAR(20) NOT NULL DEFAULT 'admin'
 );
+
+-- Ensures the role column exists even on databases created before this feature
+ALTER TABLE admins ADD COLUMN IF NOT EXISTS role VARCHAR(20) NOT NULL DEFAULT 'admin';
 
 -- Session table (used by connect-pg-simple)
 CREATE TABLE IF NOT EXISTS "session" (
