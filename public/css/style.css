@@ -551,7 +551,7 @@ h1, h2, h3 { font-family: var(--font-display); font-weight: 700; letter-spacing:
 .review-comment { color: var(--text-muted); font-size: 0.88rem; line-height: 1.5; margin-bottom: 8px; }
 .review-date { color: var(--text-faint); font-size: 0.72rem; font-family: var(--font-mono); }
 .review-form {
-    max-width: 460px;
+    width: 100%;
     background: var(--surface);
     border: 1px solid var(--border-soft);
     border-radius: var(--radius);
@@ -573,6 +573,11 @@ h1, h2, h3 { font-family: var(--font-display); font-weight: 700; letter-spacing:
 }
 .review-form textarea { resize: vertical; }
 .review-form .btn-primary { align-self: flex-start; }
+.review-form-row { display: flex; flex-direction: column; gap: 14px; }
+@media (min-width: 700px) {
+    .review-form-row { flex-direction: row; }
+    .review-form-row label { flex: 1; }
+}
 
 .field-hint { display: block; color: var(--text-faint); font-size: 0.75rem; font-weight: 400; margin-top: 2px; }
 
