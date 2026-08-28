@@ -1,0 +1,110 @@
+<%- include('partials/header', { title: product.name + ' - ' + storeName }) %>
+
+<% const isNew = (Date.now() - new Date(product.created_at).getTime()) < NEW_PRODUCT_DAYS * 24 * 60 * 60 * 1000; %>
+<% const isLowStock = product.stock > 0 && product.stock <= LOW_STOCK_THRESHOLD; %>
+
+<div class="product-detail">
+    <div class="product-detail-img">
+        <div class="badge-stack">
+            <% if (isNew) { %><span class="badge-new">✨ New</span><% } %>
+            <% if (product.discount_percent > 0) { %><span class="badge-discount">সেভ <%= product.discount_percent %>%</span><% } %>
+        </div>
+        <% const allPhotos = [product.image_url, ...galleryImages.map(g => g.image_url)].filter(Boolean); %>
+        <% if (allPhotos.length > 0) { %>
+            <img id="main-product-photo" src="<%= allPhotos[0] %>" alt="<%= product.name %>" loading="lazy">
+            <% if (allPhotos.length > 1) { %>
+            <div class="gallery-thumbs">
+                <% allPhotos.forEach((url, i) => { %>
+                    <img src="<%= url %>" class="gallery-thumb <%= i === 0 ? 'active' : '' %>" onclick="document.getElementById('main-product-photo').src = this.src; document.querySelectorAll('.gallery-thumb').forEach(t => t.classList.remove('active')); this.classList.add('active');">
+                <% }) %>
+            </div>
+            <% } %>
+        <% } else { %>
+            <div class="no-img large">ছবি নেই</div>
+        <% } %>
+    </div>
+    <div class="product-detail-info">
+        <h1><%= product.name %></h1>
+
+        <% if (reviewCount > 0) { %>
+            <a href="#reviews" class="star-rating large" title="<%= avgRating.toFixed(1) %> / 5">
+                <% for (let i = 1; i <= 5; i++) { %><span class="star <%= i <= Math.round(avgRating) ? 'filled' : '' %>">★</span><% } %>
+                <span class="review-count"><%= avgRating.toFixed(1) %> (<%= reviewCount %> রিভিউ)</span>
+            </a>
+        <% } %>
+
+        <% if (product.discount_percent > 0) { %>
+            <p class="price-row">
+                <span class="price large">৳<%= parseFloat(product.effective_price).toLocaleString('en-BD') %></span>
+                <span class="price-original large">৳<%= parseFloat(product.price).toLocaleString('en-BD') %></span>
+            </p>
+        <% } else { %>
+            <p class="price large">৳<%= parseFloat(product.price).toLocaleString('en-BD') %></p>
+        <% } %>
+        <% if (product.category) { %><p class="category-tag"><%= product.category %></p><% } %>
+        <p class="description"><%= product.description %></p>
+
+        <% if (product.stock > 0) { %>
+            <p class="stock-info stock-dot">স্টকে আছে: <%= product.stock %> টি</p>
+            <% if (isLowStock) { %><span class="badge-lowstock">মাত্র <%= product.stock %>টা বাকি — তাড়াতাড়ি করুন!</span><% } %>
+            <form action="/cart/add" method="POST" class="add-cart-form">
+                <input type="hidden" name="productId" value="<%= product.id %>">
+                <label>পরিমাণ:
+                    <input type="number" name="quantity" value="1" min="1" max="<%= product.stock %>">
+                </label>
+                <button type="submit" class="btn-primary">কার্টে যোগ করুন</button>
+            </form>
+        <% } else { %>
+            <p class="stock-badge out">এই মুহূর্তে স্টক নেই</p>
+        <% } %>
+    </div>
+</div>
+
+<section class="reviews-section" id="reviews">
+    <h2 class="section-title">কাস্টমার রিভিউ <% if (reviewCount > 0) { %>(<%= reviewCount %>)<% } %></h2>
+
+    <% if (reviews.length === 0) { %>
+        <p class="empty-msg">এখনও কোনো রিভিউ নেই। প্রথম রিভিউ আপনিই দিন!</p>
+    <% } else { %>
+        <div class="review-list">
+            <% reviews.forEach(r => { %>
+                <div class="review-item">
+                    <div class="review-item-head">
+                        <span class="review-author"><%= r.customer_name %></span>
+                        <span class="star-rating small">
+                            <% for (let i = 1; i <= 5; i++) { %><span class="star <%= i <= r.rating ? 'filled' : '' %>">★</span><% } %>
+                        </span>
+                    </div>
+                    <% if (r.comment) { %><p class="review-comment"><%= r.comment %></p><% } %>
+                    <p class="review-date"><%= new Date(r.created_at).toLocaleDateString('en-GB') %></p>
+                </div>
+            <% }) %>
+        </div>
+    <% } %>
+
+    <form action="/product/<%= product.id %>/review" method="POST" class="review-form">
+        <h3>আপনার রিভিউ দিন</h3>
+        <% if (reviewError) { %><p class="error-msg"><%= reviewError %></p><% } %>
+        <div class="review-form-row">
+            <label>আপনার নাম *
+                <input type="text" name="customerName" required>
+            </label>
+            <label>রেটিং *
+                <select name="rating" required>
+                    <option value="">বেছে নিন</option>
+                    <option value="5">★★★★★ চমৎকার</option>
+                    <option value="4">★★★★☆ ভালো</option>
+                    <option value="3">★★★☆☆ মোটামুটি</option>
+                    <option value="2">★★☆☆☆ খারাপ</option>
+                    <option value="1">★☆☆☆☆ খুবই খারাপ</option>
+                </select>
+            </label>
+        </div>
+        <label>মন্তব্য
+            <textarea name="comment" rows="3" placeholder="প্রোডাক্ট নিয়ে আপনার অভিজ্ঞতা লিখুন..."></textarea>
+        </label>
+        <button type="submit" class="btn-primary">রিভিউ জমা দিন</button>
+    </form>
+</section>
+
+<%- include('partials/footer') %>
