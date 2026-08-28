@@ -343,7 +343,33 @@ h1, h2, h3 { font-family: var(--font-display); font-weight: 700; letter-spacing:
 /* ==========================================================================
    Category bar
    ========================================================================== */
-.category-bar { display: flex; gap: 10px; overflow-x: auto; padding: 18px 0 6px; }
+.category-bar-wrap {
+    position: relative;
+    margin: 0 -20px;
+    padding: 0 20px;
+}
+.category-bar-wrap::after {
+    /* fade hint on the right edge — signals there's more to scroll to */
+    content: "";
+    position: absolute;
+    top: 0; right: 0; bottom: 6px;
+    width: 34px;
+    background: linear-gradient(to right, transparent, var(--bg) 78%);
+    pointer-events: none;
+}
+.category-bar {
+    display: flex;
+    gap: 10px;
+    overflow-x: auto;
+    padding: 18px 4px 10px 0;
+    scroll-snap-type: x proximity;
+    -webkit-overflow-scrolling: touch;
+    scrollbar-width: thin;
+    scrollbar-color: var(--border) transparent;
+}
+.category-bar::-webkit-scrollbar { height: 5px; }
+.category-bar::-webkit-scrollbar-thumb { background: var(--border); border-radius: 999px; }
+.category-bar a { scroll-snap-align: start; }
 .category-bar a {
     padding: 7px 15px;
     background: var(--surface);
@@ -422,7 +448,19 @@ h1, h2, h3 { font-family: var(--font-display); font-weight: 700; letter-spacing:
 .product-card:hover::after { opacity: 1; transform: translate(0,0); }
 
 .product-img { position: relative; aspect-ratio: 1; background: var(--surface-2); display: flex; align-items: center; justify-content: center; overflow: hidden; }
-.badge-bestseller { position: absolute; top: 8px; left: 8px; z-index: 1; background: var(--accent); color: var(--accent-ink); font-size: 0.7rem; font-weight: 600; padding: 3px 8px; border-radius: var(--radius-sm); }
+.badge-stack { position: absolute; top: 8px; left: 8px; z-index: 1; display: flex; flex-direction: column; align-items: flex-start; gap: 5px; }
+.badge-bestseller, .badge-new { background: var(--accent); color: var(--accent-ink); font-size: 0.7rem; font-weight: 600; padding: 3px 8px; border-radius: var(--radius-sm); white-space: nowrap; }
+.badge-new { background: var(--accent-2); color: #04121a; }
+.badge-discount {
+    background: var(--danger); color: #fff;
+    font-size: 0.7rem; font-weight: 700; padding: 3px 8px;
+    border-radius: var(--radius-sm); white-space: nowrap;
+}
+.badge-lowstock {
+    display: inline-flex; align-items: center; gap: 6px;
+    color: var(--accent-dark); font-size: 0.76rem; font-weight: 600; margin-top: 8px;
+}
+.badge-lowstock::before { content: "⚠"; }
 .best-sellers-table { margin-bottom: 32px; }
 .product-img img { width: 100%; height: 100%; object-fit: cover; transition: transform 0.35s ease; }
 .product-card:hover .product-img img { transform: scale(1.05); }
@@ -430,6 +468,7 @@ h1, h2, h3 { font-family: var(--font-display); font-weight: 700; letter-spacing:
 .no-img.large { aspect-ratio: 1; display: flex; align-items: center; justify-content: center; background: var(--surface-2); border-radius: var(--radius); }
 
 .product-card { display: flex; flex-direction: column; height: 100%; }
+.product-card-link { display: flex; flex-direction: column; height: 100%; text-decoration: none; color: var(--text); }
 .product-info { padding: 12px 13px 14px; display: flex; flex-direction: column; flex: 1; }
 .product-info h3 {
     font-family: var(--font-body);
@@ -461,6 +500,82 @@ h1, h2, h3 { font-family: var(--font-display); font-weight: 700; letter-spacing:
 }
 .price.large { font-size: 1.5rem; padding: 6px 14px; margin: 12px 0; }
 
+.price-row { display: flex; align-items: baseline; gap: 8px; flex-wrap: wrap; margin: 0; }
+.price-row .price.large { margin: 12px 0; }
+.price-original {
+    font-family: var(--font-mono);
+    color: var(--text-faint);
+    text-decoration: line-through;
+    font-size: 0.85rem;
+}
+.price-original.large { font-size: 1.05rem; }
+
+/* ==========================================================================
+   Star rating
+   ========================================================================== */
+.star-rating { display: inline-flex; align-items: center; gap: 2px; margin: 4px 0 8px; text-decoration: none; }
+.star-rating .star { color: var(--border); font-size: 0.85rem; }
+.star-rating .star.filled { color: var(--accent); }
+.star-rating.large .star { font-size: 1.1rem; }
+.star-rating.small .star { font-size: 0.78rem; }
+.star-rating .review-count { color: var(--text-muted); font-size: 0.78rem; margin-left: 4px; }
+.star-rating.large .review-count { font-size: 0.85rem; }
+
+/* ==========================================================================
+   Sort / filter toolbar
+   ========================================================================== */
+.toolbar-row { display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 10px; }
+.toolbar-row .page-title { margin: 0; }
+.sort-form { margin: 0; }
+.sort-label { display: flex; align-items: center; gap: 8px; color: var(--text-muted); font-size: 0.85rem; }
+.sort-label select {
+    background: var(--surface-2);
+    border: 1px solid var(--border);
+    color: var(--text);
+    padding: 7px 10px;
+    border-radius: var(--radius-sm);
+    font-family: var(--font-body);
+    font-size: 0.85rem;
+    cursor: pointer;
+}
+
+/* ==========================================================================
+   Reviews
+   ========================================================================== */
+.reviews-section { margin: 20px 0 50px; }
+.section-title { font-size: 1.1rem; margin-bottom: 16px; }
+.review-list { display: flex; flex-direction: column; gap: 14px; margin-bottom: 28px; }
+.review-item { background: var(--surface); border: 1px solid var(--border-soft); border-radius: var(--radius); padding: 14px 16px; }
+.review-item-head { display: flex; align-items: center; justify-content: space-between; gap: 10px; margin-bottom: 6px; }
+.review-author { font-weight: 600; font-size: 0.9rem; }
+.review-comment { color: var(--text-muted); font-size: 0.88rem; line-height: 1.5; margin-bottom: 8px; }
+.review-date { color: var(--text-faint); font-size: 0.72rem; font-family: var(--font-mono); }
+.review-form {
+    max-width: 460px;
+    background: var(--surface);
+    border: 1px solid var(--border-soft);
+    border-radius: var(--radius);
+    padding: 20px;
+    display: flex;
+    flex-direction: column;
+    gap: 14px;
+}
+.review-form h3 { font-size: 0.98rem; margin: 0; }
+.review-form label { display: flex; flex-direction: column; gap: 6px; font-size: 0.85rem; color: var(--text-muted); }
+.review-form input, .review-form select, .review-form textarea {
+    background: var(--surface-2);
+    border: 1px solid var(--border);
+    color: var(--text);
+    padding: 9px 12px;
+    border-radius: var(--radius-sm);
+    font-family: var(--font-body);
+    font-size: 0.9rem;
+}
+.review-form textarea { resize: vertical; }
+.review-form .btn-primary { align-self: flex-start; }
+
+.field-hint { display: block; color: var(--text-faint); font-size: 0.75rem; font-weight: 400; margin-top: 2px; }
+
 .stock-badge.out { color: var(--danger); font-size: 0.78rem; font-weight: 600; margin-top: 8px; display: inline-flex; align-items: center; gap: 6px; }
 .stock-badge.out::before { content: ""; width: 6px; height: 6px; border-radius: 50%; background: var(--danger); box-shadow: 0 0 6px 1px rgba(255,84,112,0.6); }
 
@@ -472,7 +587,9 @@ h1, h2, h3 { font-family: var(--font-display); font-weight: 700; letter-spacing:
    ========================================================================== */
 .product-detail { display: grid; grid-template-columns: 1fr; gap: 30px; margin: 22px 0 44px; }
 @media (min-width: 700px) { .product-detail { grid-template-columns: 1fr 1fr; } }
+.product-detail-img { position: relative; }
 .product-detail-img img { width: 100%; border-radius: var(--radius); border: 1px solid var(--border-soft); }
+.product-detail-img .badge-stack { top: 8px; }
 .gallery-thumbs { display: flex; flex-wrap: wrap; gap: 10px; margin-top: 12px; }
 .gallery-thumb { width: 64px; height: 64px; object-fit: cover; border-radius: var(--radius-sm); border: 2px solid var(--border-soft); cursor: pointer; opacity: 0.7; transition: opacity 0.2s, border-color 0.2s; }
 .gallery-thumb:hover { opacity: 1; }
@@ -818,6 +935,7 @@ h1, h2, h3 { font-family: var(--font-display); font-weight: 700; letter-spacing:
     .admin-table .actions-inner .btn-remove { color: var(--danger); }
     .admin-table .actions-inner a:hover { border-color: var(--accent-2); }
     .admin-table .actions-inner .btn-remove:hover { border-color: var(--danger); }
+}
 /* ==========================================================================
    Responsive
    ========================================================================== */
