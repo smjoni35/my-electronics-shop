@@ -438,7 +438,18 @@ h1, h2, h3 { font-family: var(--font-display); font-weight: 700; letter-spacing:
 .qty-update-row input[type=number] { width: 58px; padding: 7px; background: var(--surface-2); border: 1px solid var(--border); border-radius: var(--radius-sm); color: var(--text); font-family: var(--font-mono); font-size: 0.85rem; text-align: center; }
 .qty-update-row button { font-size: 0.8rem; font-weight: 600; padding: 7px 14px; background: var(--surface-3); border: 1px solid var(--border); border-radius: var(--radius-sm); color: var(--text); cursor: pointer; white-space: nowrap; transition: border-color 0.15s; }
 .qty-update-row button:hover { border-color: var(--accent-2); }
-.cart-item-actions .btn-remove { font-size: 0.8rem; }
+.cart-item-actions .btn-remove {
+    font-size: 0.8rem;
+    font-weight: 600;
+    padding: 7px 14px;
+    background: var(--surface-3);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-sm);
+    color: var(--danger);
+    text-decoration: none;
+    transition: border-color 0.15s, background 0.15s;
+}
+.cart-item-actions .btn-remove:hover { border-color: var(--danger); background: var(--danger-bg); opacity: 1; }
 .cart-summary {
     display: flex; justify-content: space-between; align-items: center;
     padding: 22px; background: var(--surface); border: 1px solid var(--border-soft);
@@ -582,6 +593,6 @@ h1, h2, h3 { font-family: var(--font-display); font-weight: 700; letter-spacing:
    ========================================================================== */
 @media (max-width: 560px) {
     .hero { padding: 32px 20px; }
-    .cart-item { grid-template-columns: 50px 1fr; grid-template-rows: auto auto; }
+    .cart-item { grid-template-columns: 64px 1fr; grid-template-rows: auto auto; gap: 12px 14px; }
     .cart-item-subtotal { grid-column: 2; }
 }
