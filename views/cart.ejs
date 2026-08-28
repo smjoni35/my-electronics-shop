@@ -1,9 +1,9 @@
-<%- include('partials/header', { title: 'Cart - ' + storeName }) %>
+<%- include('partials/header', { title: 'কার্ট - ' + storeName }) %>
 
-<h1 class="page-title">Your cart</h1>
+<h1 class="page-title">আপনার কার্ট</h1>
 
 <% if (items.length === 0) { %>
-    <p class="empty-msg">Your cart is empty.<a href="/">Start shopping</a></p>
+    <p class="empty-msg">আপনার কার্ট খালি। <a href="/">শপিং শুরু করুন</a></p>
 <% } else { %>
     <div class="cart-list">
         <% items.forEach(item => { %>
@@ -12,7 +12,7 @@
                     <% if (item.image_url) { %>
                         <img src="<%= item.image_url %>" alt="<%= item.name %>" loading="lazy">
                     <% } else { %>
-                        <div class="no-img small">No picture.</div>
+                        <div class="no-img small">ছবি নেই</div>
                     <% } %>
                 </div>
                 <div class="cart-item-info">
@@ -20,23 +20,23 @@
                     <p>৳<%= parseFloat(item.price).toLocaleString('en-BD') %> x <%= item.quantity %></p>
                 </div>
                 <div class="cart-item-actions">
-                    <form action="/cart/update" method="POST">
+                    <p class="cart-item-subtotal">৳<%= item.subtotal.toLocaleString('en-BD') %></p>
+                    <form action="/cart/update" method="POST" class="qty-update-row">
                         <input type="hidden" name="productId" value="<%= item.id %>">
                         <input type="number" name="quantity" value="<%= item.quantity %>" min="0" max="<%= item.stock %>">
-                        <button type="submit">Update</button>
+                        <button type="submit">আপডেট</button>
                     </form>
                     <form action="/cart/remove" method="POST">
                         <input type="hidden" name="productId" value="<%= item.id %>">
-                        <button type="submit" class="btn-remove">Delete</button>
+                        <button type="submit" class="btn-remove">মুছুন</button>
                     </form>
                 </div>
-                <div class="cart-item-subtotal">৳<%= item.subtotal.toLocaleString('en-BD') %></div>
             </div>
         <% }) %>
     </div>
     <div class="cart-summary">
-        <p class="cart-total">Total: ৳<%= total.toLocaleString('en-BD') %></p>
-        <a href="/checkout" class="btn-primary">Checkout</a>
+        <p class="cart-total">মোট: ৳<%= total.toLocaleString('en-BD') %></p>
+        <a href="/checkout" class="btn-primary">চেকআউট করুন</a>
     </div>
 <% } %>
 
