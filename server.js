@@ -30,6 +30,8 @@ app.use((req, res, next) => {
     res.locals.cartCount = req.session.cart
         ? Object.values(req.session.cart).reduce((a, b) => a + b, 0)
         : 0;
+    res.locals.currentUsername = req.session.adminUsername || null;
+    res.locals.currentRole = req.session.adminRole || null;
     next();
 });
 
