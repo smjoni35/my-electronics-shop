@@ -32,6 +32,14 @@ app.use((req, res, next) => {
         : 0;
     res.locals.currentUsername = req.session.adminUsername || null;
     res.locals.currentRole = req.session.adminRole || null;
+    // Absolute site URL — needed so og:image/og:url work when a link is shared on
+    // WhatsApp/Facebook. Set BASE_URL in .env (e.g. https://jmgadgetzone.com) in
+    // production; falls back to whatever host the request came in on.
+    res.locals.baseUrl = process.env.BASE_URL || `${req.protocol}://${req.get('host')}`;
+    // Sensible defaults for pages that don't set their own OG tags
+    res.locals.ogTitle = res.locals.storeName;
+    res.locals.ogDescription = 'বাংলাদেশের সেরা অনলাইন ইলেকট্রনিক্স ও গ্যাজেট শপ — অরিজিনাল পণ্য, ক্যাশ অন ডেলিভারি।';
+    res.locals.ogImage = `${res.locals.baseUrl}/img/logo.png`;
     next();
 });
 
