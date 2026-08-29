@@ -45,12 +45,10 @@
         <% if (product.category) { %><p class="category-tag"><%= product.category %></p><% } %>
         <% if (product.warranty) { %><span class="badge-warranty">🛡️ <%= product.warranty %></span><% } %>
 
-        <% if (reviewCount > 0) { %>
-            <a href="#reviews" class="star-rating large" title="<%= avgRating.toFixed(1) %> / 5">
-                <% for (let i = 1; i <= 5; i++) { %><span class="star <%= i <= Math.round(avgRating) ? 'filled' : '' %>">★</span><% } %>
-                <span class="review-count"><%= avgRating.toFixed(1) %> (<%= reviewCount %> রিভিউ)</span>
-            </a>
-        <% } %>
+        <a href="#reviews" class="star-rating large" title="<%= avgRating.toFixed(1) %> / 5">
+            <% for (let i = 1; i <= 5; i++) { %><span class="star <%= i <= Math.round(avgRating) ? 'filled' : '' %>">★</span><% } %>
+            <span class="review-count"><%= avgRating.toFixed(1) %> (<%= reviewCount || 0 %> রিভিউ)</span>
+        </a>
 
         <% if (product.stock > 0) { %>
             <p class="stock-info stock-dot">স্টকে আছে: <%= product.stock %> টি</p>
