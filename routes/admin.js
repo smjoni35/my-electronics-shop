@@ -191,29 +191,39 @@ router.post('/products/:id/notify-requests/clear', requireAdmin, async (req, res
 
 // Delete one gallery photo (not the cover photo)
 router.post('/products/:id/images/:imageId/delete', requireAdmin, async (req, res) => {
-    const { rows } = await pool.query(
-        'SELECT * FROM product_images WHERE id = $1 AND product_id = $2',
-        [req.params.imageId, req.params.id]
-    );
-    if (rows.length > 0) {
-        await deleteImageFromR2(rows[0].image_url);
-        await pool.query('DELETE FROM product_images WHERE id = $1', [req.params.imageId]);
+    try {
+        const { rows } = await pool.query(
+            'SELECT * FROM product_images WHERE id = $1 AND product_id = $2',
+            [req.params.imageId, req.params.id]
+        );
+        if (rows.length > 0) {
+            await deleteImageFromR2(rows[0].image_url);
+            await pool.query('DELETE FROM product_images WHERE id = $1', [req.params.imageId]);
+        }
+        res.redirect('/admin/products/' + req.params.id + '/edit');
+    } catch (err) {
+        console.error('Image delete error:', err.message);
+        res.redirect('/admin/products/' + req.params.id + '/edit');
     }
-    res.redirect('/admin/products/' + req.params.id + '/edit');
 });
 
 // Delete product
 router.post('/products/:id/delete', requireRole('admin', 'manager'), async (req, res) => {
-    const { rows } = await pool.query('SELECT * FROM products WHERE id = $1', [req.params.id]);
-    if (rows.length > 0 && rows[0].image_url) {
-        await deleteImageFromR2(rows[0].image_url);
+    try {
+        const { rows } = await pool.query('SELECT * FROM products WHERE id = $1', [req.params.id]);
+        if (rows.length > 0 && rows[0].image_url) {
+            await deleteImageFromR2(rows[0].image_url);
+        }
+        const { rows: galleryRows } = await pool.query('SELECT * FROM product_images WHERE product_id = $1', [req.params.id]);
+        for (const img of galleryRows) {
+            await deleteImageFromR2(img.image_url);
+        }
+        await pool.query('DELETE FROM products WHERE id = $1', [req.params.id]);
+        res.redirect('/admin/dashboard');
+    } catch (err) {
+        console.error('Product delete error:', err.message);
+        res.redirect('/admin/dashboard');
     }
-    const { rows: galleryRows } = await pool.query('SELECT * FROM product_images WHERE product_id = $1', [req.params.id]);
-    for (const img of galleryRows) {
-        await deleteImageFromR2(img.image_url);
-    }
-    await pool.query('DELETE FROM products WHERE id = $1', [req.params.id]);
-    res.redirect('/admin/dashboard');
 });
 
 // Orders list
