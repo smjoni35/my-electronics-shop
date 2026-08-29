@@ -17,7 +17,8 @@
         <% } %>
         <div class="stats-row">
             <div class="stat-box">Total Order<strong><%= stats.total_orders %></strong></div>
-            <div class="stat-box">Total Sell<strong>৳<%= parseFloat(stats.total_revenue).toLocaleString('en-BD') %></strong></div>
+            <div class="stat-box">Total Sales<strong>৳<%= parseFloat(stats.total_revenue).toLocaleString('en-BD') %></strong></div>
+            <div class="stat-box">Pending Revenue<strong>৳<%= parseFloat(stats.pending_revenue).toLocaleString('en-BD') %></strong></div>
             <div class="stat-box">Total Product<strong><%= products.length %></strong></div>
         </div>
 
