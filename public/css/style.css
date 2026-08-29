@@ -32,7 +32,7 @@
 
 * { box-sizing: border-box; margin: 0; padding: 0; }
 
-html { scroll-behavior: smooth; }
+html { scroll-behavior: smooth; overflow-x: hidden; }
 
 body {
     font-family: var(--font-body);
@@ -42,6 +42,8 @@ body {
     color: var(--text);
     line-height: 1.65;
     -webkit-font-smoothing: antialiased;
+    overflow-x: hidden;
+    max-width: 100vw;
 }
 a { color: inherit; }
 
@@ -747,9 +749,9 @@ h1, h2, h3 { font-family: var(--font-display); font-weight: 700; letter-spacing:
 /* ==========================================================================
    Product detail
    ========================================================================== */
-.product-detail { display: grid; grid-template-columns: 1fr; gap: 30px; margin: 22px 0 44px; }
+.product-detail { display: grid; grid-template-columns: 1fr; gap: 30px; margin: 22px 0 44px; min-width: 0; }
 @media (min-width: 700px) { .product-detail { grid-template-columns: 1fr 1fr; } }
-.product-detail-img { position: relative; }
+.product-detail-img { position: relative; min-width: 0; }
 .product-detail-img > img {
     width: 100%;
     aspect-ratio: 1;
@@ -759,10 +761,11 @@ h1, h2, h3 { font-family: var(--font-display); font-weight: 700; letter-spacing:
     border: 1px solid var(--border-soft);
 }
 .product-detail-img .badge-stack { top: 8px; }
-.gallery-thumbs { display: flex; flex-wrap: nowrap; overflow-x: auto; gap: 10px; margin-top: 12px; padding-bottom: 4px; -webkit-overflow-scrolling: touch; scrollbar-width: thin; }
+.gallery-thumbs { display: flex; flex-wrap: nowrap; overflow-x: auto; max-width: 100%; gap: 10px; margin-top: 12px; padding-bottom: 4px; -webkit-overflow-scrolling: touch; scrollbar-width: thin; }
 .gallery-thumb { flex: 0 0 auto; width: 64px; height: 64px; aspect-ratio: 1; object-fit: cover; border-radius: var(--radius-sm); border: 2px solid var(--border-soft); cursor: pointer; opacity: 0.7; transition: opacity 0.2s, border-color 0.2s; }
 .gallery-thumb:hover { opacity: 1; }
 .gallery-thumb.active { border-color: var(--accent); opacity: 1; }
+.product-detail-info { min-width: 0; }
 .category-tag {
     display: inline-block;
     color: var(--accent-2);
