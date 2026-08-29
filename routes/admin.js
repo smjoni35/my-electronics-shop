@@ -75,7 +75,7 @@ router.get('/dashboard', requireAdmin, async (req, res) => {
         ORDER BY total_sold DESC
         LIMIT 5
     `);
-    res.render('admin/dashboard', { products, stats: orderStats[0], bestSellers });
+    res.render('admin/dashboard', { products, stats: orderStats[0], bestSellers, addedSuccess: req.query.added === '1' });
 });
 
 // New product form
@@ -113,7 +113,7 @@ router.post('/products/new', requireRole('admin', 'manager'), productImageUpload
             );
         }
 
-        res.redirect('/admin/dashboard');
+        res.redirect('/admin/dashboard?added=1');
     } catch (err) {
         console.error(err);
         res.render('admin/product-form', { product: null, galleryImages: [], error: 'প্রোডাক্ট যোগ করা যায়নি' });
@@ -133,7 +133,7 @@ router.get('/products/:id/edit', requireAdmin, async (req, res) => {
         [req.params.id]
     );
     const specsText = (rows[0].specs || []).map(s => `${s.label}: ${s.value}`).join('\n');
-    res.render('admin/product-form', { product: rows[0], galleryImages, notifyRequests, specsText, error: null });
+    res.render('admin/product-form', { product: rows[0], galleryImages, notifyRequests, specsText, error: null, savedSuccess: req.query.saved === '1' });
 });
 
 router.post('/products/:id/edit', requireAdmin, productImageUpload, async (req, res) => {
@@ -173,7 +173,7 @@ router.post('/products/:id/edit', requireAdmin, productImageUpload, async (req, 
             }
         }
 
-        res.redirect('/admin/products/' + req.params.id + '/edit');
+        res.redirect('/admin/products/' + req.params.id + '/edit?saved=1');
     } catch (err) {
         console.error(err);
         res.render('admin/product-form', { product: null, galleryImages: [], error: 'আপডেট করা যায়নি' });
