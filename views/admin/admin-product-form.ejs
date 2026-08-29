@@ -1,0 +1,96 @@
+<!DOCTYPE html>
+<html lang="bn">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title><%= product ? 'Product Edit' : 'New product' %></title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;600;700&family=Inter:wght@400;500;600&family=JetBrains+Mono:wght@400;500;600;700&family=Hind+Siliguri:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="/css/style.css">
+</head>
+<body>
+    <%- include('nav') %>
+    <div class="container admin-form-page">
+        <h1><%= product ? 'Edit product' : 'Add new product' %></h1>
+        <% if (error) { %><p class="error-msg"><%= error %></p><% } %>
+
+        <% if (typeof savedSuccess !== 'undefined' && savedSuccess) { %>
+            <p class="info-note">✅ প্রোডাক্ট সফলভাবে আপডেট হয়েছে।</p>
+        <% } %>
+
+        <% if (typeof restocked !== 'undefined' && restocked) { %>
+            <p class="info-note">✅ স্টক আপডেট হয়েছে। নিচে "নোটিফাই মি" রিকোয়েস্টের তালিকা আছে — চাইলে WhatsApp-এ জানিয়ে দিন।</p>
+        <% } %>
+
+        <% if (product && typeof notifyRequests !== 'undefined' && notifyRequests.length > 0) { %>
+        <div class="notify-requests-box">
+            <h3>🔔 স্টক নোটিফিকেশন রিকোয়েস্ট (<%= notifyRequests.length %>)</h3>
+            <p class="field-hint">এই ফোন নম্বরগুলো "স্টক এলে জানান" ফর্মে জমা দেওয়া হয়েছে। স্বয়ংক্রিয়ভাবে মেসেজ যায় না — নিচের WhatsApp লিংকে ক্লিক করে নিজে জানিয়ে দিন।</p>
+            <ul class="notify-requests-list">
+                <% notifyRequests.forEach(r => { %>
+                    <li>
+                        <span><%= r.phone %></span>
+                        <a href="https://wa.me/<%= r.phone.replace(/[^\d]/g, '') %>?text=<%= encodeURIComponent('আপনার আগ্রহের প্রোডাক্ট "' + product.name + '" এখন স্টকে এসেছে! অর্ডার করতে চাইলে জানাবেন।') %>" target="_blank" rel="noopener" class="btn-details">WhatsApp করুন</a>
+                    </li>
+                <% }) %>
+            </ul>
+            <form action="/admin/products/<%= product.id %>/notify-requests/clear" method="POST" onsubmit="return confirm('সবগুলো রিকোয়েস্ট হ্যান্ডল্ড হিসেবে চিহ্নিত করবেন?')">
+                <button type="submit" class="btn-remove">সব ক্লিয়ার করুন</button>
+            </form>
+        </div>
+        <% } %>
+
+        <form action="<%= product ? '/admin/products/' + product.id + '/edit' : '/admin/products/new' %>" method="POST" enctype="multipart/form-data" class="admin-form">
+            <label>Product name *
+                <input type="text" name="name" value="<%= product ? product.name : '' %>" required>
+            </label>
+            <label>Description
+                <textarea name="description" rows="4"><%= product ? product.description : '' %></textarea>
+            </label>
+            <label>Price (৳) *
+                <input type="number" step="0.01" name="price" value="<%= product ? product.price : '' %>" required>
+            </label>
+            <label>Stock quantity *
+                <input type="number" name="stock" value="<%= product ? product.stock : 0 %>" required>
+            </label>
+            <label>Categories
+                <input type="text" name="category" value="<%= product ? product.category : '' %>" placeholder="যেমন: মোবাইল এক্সেসরিজ">
+            </label>
+            <label>Discount (%) <span class="field-hint">০ দিলে কোনো ডিসকাউন্ট ব্যাজ দেখাবে না</span>
+                <input type="number" name="discountPercent" min="0" max="90" value="<%= product ? product.discount_percent : 0 %>">
+            </label>
+            <label>Warranty badge <span class="field-hint">যেমন: ৬ মাস অফিসিয়াল ওয়ারেন্টি। খালি রাখলে ব্যাজ দেখাবে না</span>
+                <input type="text" name="warranty" value="<%= product && product.warranty ? product.warranty : '' %>" placeholder="৬ মাস অফিসিয়াল ওয়ারেন্টি">
+            </label>
+            <label>Specification table <span class="field-hint">প্রতি লাইনে একটা করে "Label: Value" — যেমন Model: XYZ-100</span>
+                <textarea name="specsText" rows="5" placeholder="Model: XYZ-100&#10;Color: Black, White&#10;Warranty: 6 Months"><%= typeof specsText !== 'undefined' ? specsText : '' %></textarea>
+            </label>
+            <label>Product Image (Cover Photo) <% if (product) { %>(shown in listings — previous photo stays if you don't pick a new one)<% } %>
+                <input type="file" name="image" accept="image/*">
+            </label>
+            <% if (product && product.image_url) { %>
+                <img src="<%= product.image_url %>" class="thumb-preview">
+            <% } %>
+            <label>Additional Photos (gallery — you can select several at once) <span class="field-hint">এগুলো প্রোডাক্ট পেজে স্লাইড করে দেখা যাবে</span>
+                <input type="file" name="gallery" accept="image/*" multiple>
+            </label>
+            <button type="submit" class="btn-primary">Save</button>
+        </form>
+
+        <% if (product && galleryImages && galleryImages.length > 0) { %>
+        <h2>Gallery Photos</h2>
+        <div class="gallery-preview">
+            <% galleryImages.forEach(img => { %>
+                <div class="gallery-preview-item">
+                    <img src="<%= img.image_url %>" class="thumb-preview">
+                    <form action="/admin/products/<%= product.id %>/images/<%= img.id %>/delete" method="POST" onsubmit="return confirm('Delete this photo?')">
+                        <button type="submit" class="btn-remove">Delete</button>
+                    </form>
+                </div>
+            <% }) %>
+        </div>
+        <% } %>
+    </div>
+</body>
+</html>
