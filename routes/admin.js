@@ -5,6 +5,22 @@ const pool = require('../db/pool');
 const { requireAdmin, requireRole, ROLE_LABELS } = require('../middleware/auth');
 const { upload, uploadImageToR2, deleteImageFromR2 } = require('../middleware/r2');
 
+// Parses the admin's "Label: Value" specsText textarea into the
+// [{label, value}, ...] JSON shape the products.specs column stores.
+function parseSpecsText(specsText) {
+    if (!specsText) return [];
+    return specsText
+        .split('\n')
+        .map(line => line.trim())
+        .filter(Boolean)
+        .map(line => {
+            const idx = line.indexOf(':');
+            if (idx === -1) return { label: line, value: '' };
+            return { label: line.slice(0, idx).trim(), value: line.slice(idx + 1).trim() };
+        })
+        .filter(s => s.label);
+}
+
 // Login page
 router.get('/login', (req, res) => {
     res.render('admin/login', { error: null });
@@ -74,16 +90,17 @@ const productImageUpload = upload.fields([
 
 router.post('/products/new', requireRole('admin', 'manager'), productImageUpload, async (req, res) => {
     try {
-        const { name, description, price, stock, category } = req.body;
+        const { name, description, price, stock, category, warranty } = req.body;
         const discountPercent = parseInt(req.body.discountPercent, 10) || 0;
+        const specs = JSON.stringify(parseSpecsText(req.body.specsText));
         const coverFile = req.files && req.files.image ? req.files.image[0] : null;
         const galleryFiles = (req.files && req.files.gallery) || [];
         const imageUrl = coverFile ? await uploadImageToR2(coverFile) : null;
 
         const { rows } = await pool.query(
-            `INSERT INTO products (name, description, price, stock, category, image_url, discount_percent)
-             VALUES ($1, $2, $3, $4, $5, $6, $7) RETURNING id`,
-            [name, description, price, stock, category, imageUrl, discountPercent]
+            `INSERT INTO products (name, description, price, stock, category, image_url, discount_percent, warranty, specs)
+             VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9) RETURNING id`,
+            [name, description, price, stock, category, imageUrl, discountPercent, warranty || null, specs]
         );
         const productId = rows[0].id;
 
@@ -111,13 +128,19 @@ router.get('/products/:id/edit', requireAdmin, async (req, res) => {
         'SELECT * FROM product_images WHERE product_id = $1 ORDER BY sort_order ASC, id ASC',
         [req.params.id]
     );
-    res.render('admin/product-form', { product: rows[0], galleryImages, error: null });
+    const { rows: notifyRequests } = await pool.query(
+        'SELECT * FROM stock_notify_requests WHERE product_id = $1 AND notified = FALSE ORDER BY created_at ASC',
+        [req.params.id]
+    );
+    const specsText = (rows[0].specs || []).map(s => `${s.label}: ${s.value}`).join('\n');
+    res.render('admin/product-form', { product: rows[0], galleryImages, notifyRequests, specsText, error: null });
 });
 
 router.post('/products/:id/edit', requireAdmin, productImageUpload, async (req, res) => {
     try {
-        const { name, description, price, stock, category } = req.body;
+        const { name, description, price, stock, category, warranty } = req.body;
         const discountPercent = parseInt(req.body.discountPercent, 10) || 0;
+        const specs = JSON.stringify(parseSpecsText(req.body.specsText));
         const { rows } = await pool.query('SELECT * FROM products WHERE id = $1', [req.params.id]);
         if (rows.length === 0) return res.redirect('/admin/dashboard');
 
@@ -131,8 +154,8 @@ router.post('/products/:id/edit', requireAdmin, productImageUpload, async (req, 
         }
 
         await pool.query(
-            `UPDATE products SET name=$1, description=$2, price=$3, stock=$4, category=$5, image_url=$6, discount_percent=$7 WHERE id=$8`,
-            [name, description, price, stock, category, imageUrl, discountPercent, req.params.id]
+            `UPDATE products SET name=$1, description=$2, price=$3, stock=$4, category=$5, image_url=$6, discount_percent=$7, warranty=$8, specs=$9 WHERE id=$10`,
+            [name, description, price, stock, category, imageUrl, discountPercent, warranty || null, specs, req.params.id]
         );
 
         if (galleryFiles.length > 0) {
@@ -155,6 +178,15 @@ router.post('/products/:id/edit', requireAdmin, productImageUpload, async (req, 
         console.error(err);
         res.render('admin/product-form', { product: null, galleryImages: [], error: 'আপডেট করা যায়নি' });
     }
+});
+
+// Mark all pending stock-notify requests for this product as handled
+router.post('/products/:id/notify-requests/clear', requireAdmin, async (req, res) => {
+    await pool.query(
+        'UPDATE stock_notify_requests SET notified = TRUE WHERE product_id = $1',
+        [req.params.id]
+    );
+    res.redirect('/admin/products/' + req.params.id + '/edit');
 });
 
 // Delete one gallery photo (not the cover photo)
