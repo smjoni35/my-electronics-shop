@@ -56,10 +56,13 @@ router.post('/logout', (req, res) => {
 router.get('/dashboard', requireAdmin, async (req, res) => {
     const { rows: products } = await pool.query('SELECT * FROM products ORDER BY created_at DESC');
     const { rows: orderStats } = await pool.query(`
-        SELECT COUNT(*) as total_orders, COALESCE(SUM(total), 0) as total_revenue
-        FROM orders WHERE status != 'cancelled'
+        SELECT
+            COUNT(*) FILTER (WHERE status != 'cancelled') AS total_orders,
+            COALESCE(SUM(total) FILTER (WHERE status = 'delivered'), 0) AS total_revenue,
+            COALESCE(SUM(total) FILTER (WHERE status IN ('pending', 'confirmed', 'shipped')), 0) AS pending_revenue
+        FROM orders
     `);
-    // Best sellers — total quantity sold per product, cancelled orders excluded
+    // Best sellers — total quantity sold per product, only counting delivered orders
     const { rows: bestSellers } = await pool.query(`
         SELECT
             oi.product_id,
@@ -70,7 +73,7 @@ router.get('/dashboard', requireAdmin, async (req, res) => {
         FROM order_items oi
         JOIN orders o ON o.id = oi.order_id
         LEFT JOIN products p ON p.id = oi.product_id
-        WHERE o.status != 'cancelled'
+        WHERE o.status = 'delivered'
         GROUP BY oi.product_id, oi.product_name, p.image_url
         ORDER BY total_sold DESC
         LIMIT 5
