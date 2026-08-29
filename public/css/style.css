@@ -1180,9 +1180,9 @@ h1, h2, h3 { font-family: var(--font-display); font-weight: 700; letter-spacing:
 
     .admin-nav .header-inner { flex-wrap: wrap; }
 
-    .stats-row { flex-direction: row; flex-wrap: nowrap; gap: 8px; }
-    .stat-box { min-width: 0; flex: 1; padding: 12px 10px; font-size: 0.74rem; }
-    .stat-box strong { font-size: 1.05rem; margin-top: 4px; }
+    .stats-row { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+    .stat-box { min-width: 0; padding: 14px 12px; font-size: 0.78rem; }
+    .stat-box strong { font-size: 1.15rem; margin-top: 4px; }
 
 .admin-table th:nth-child(4), .admin-table td:nth-child(4) { text-align: center; }
     .admin-table th:last-child, .admin-table td:last-child { text-align: center; }
