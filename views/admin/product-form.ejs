@@ -15,6 +15,10 @@
         <h1><%= product ? 'Edit product' : 'Add new product' %></h1>
         <% if (error) { %><p class="error-msg"><%= error %></p><% } %>
 
+        <% if (typeof savedSuccess !== 'undefined' && savedSuccess) { %>
+            <p class="info-note">✅ প্রোডাক্ট সফলভাবে আপডেট হয়েছে।</p>
+        <% } %>
+
         <% if (typeof restocked !== 'undefined' && restocked) { %>
             <p class="info-note">✅ স্টক আপডেট হয়েছে। নিচে "নোটিফাই মি" রিকোয়েস্টের তালিকা আছে — চাইলে WhatsApp-এ জানিয়ে দিন।</p>
         <% } %>
