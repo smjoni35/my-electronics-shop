@@ -1,0 +1,51 @@
+<% products.forEach(p => {
+    const isNew = (Date.now() - new Date(p.created_at).getTime()) < NEW_PRODUCT_DAYS * 24 * 60 * 60 * 1000;
+    const isLowStock = p.stock > 0 && p.stock <= LOW_STOCK_THRESHOLD;
+    const rating = parseFloat(p.avg_rating) || 0;
+%>
+    <div class="product-card">
+        <a href="/product/<%= p.id %>" class="product-card-link">
+            <div class="product-img">
+                <div class="badge-stack">
+                    <% if (bestSellerIds.includes(p.id)) { %>
+                        <span class="badge-bestseller">🏆 Best Seller</span>
+                    <% } %>
+                    <% if (isNew) { %>
+                        <span class="badge-new">✨ New</span>
+                    <% } %>
+                    <% if (p.discount_percent > 0) { %>
+                        <span class="badge-discount"><%= p.discount_percent %>% OFF</span>
+                    <% } %>
+                </div>
+                <% if (p.image_url) { %>
+                    <img src="<%= p.image_url %>" alt="<%= p.name %>" loading="lazy">
+                <% } else { %>
+                    <div class="no-img">No picture.</div>
+                <% } %>
+            </div>
+            <div class="product-info">
+                <h3><%= p.name %></h3>
+                <% if (p.review_count > 0) { %>
+                    <div class="star-rating" title="<%= rating.toFixed(1) %> / 5">
+                        <% for (let i = 1; i <= 5; i++) { %><span class="star <%= i <= Math.round(rating) ? 'filled' : '' %>">★</span><% } %>
+                        <span class="review-count">(<%= p.review_count %>)</span>
+                    </div>
+                <% } %>
+                <% if (p.warranty) { %><span class="badge-warranty">🛡️ <%= p.warranty %></span><% } %>
+                <% if (p.discount_percent > 0) { %>
+                    <p class="price-row">
+                        <span class="price">৳<%= parseFloat(p.effective_price).toLocaleString('en-BD') %></span>
+                        <span class="price-original">৳<%= parseFloat(p.price).toLocaleString('en-BD') %></span>
+                    </p>
+                <% } else { %>
+                    <p class="price">৳<%= parseFloat(p.price).toLocaleString('en-BD') %></p>
+                <% } %>
+                <% if (p.stock <= 0) { %>
+                    <span class="stock-badge out">Not in stock</span>
+                <% } else if (isLowStock) { %>
+                    <span class="badge-lowstock">মাত্র <%= p.stock %>টা বাকি</span>
+                <% } %>
+            </div>
+        </a>
+    </div>
+<% }) %>

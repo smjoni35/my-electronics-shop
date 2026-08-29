@@ -4,6 +4,21 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title><%= typeof title !== 'undefined' ? title : storeName %></title>
+    <% const _ogTitle = typeof ogTitle !== 'undefined' ? ogTitle : storeName; %>
+    <% const _ogDesc = typeof ogDescription !== 'undefined' ? ogDescription : ''; %>
+    <% const _ogImage = typeof ogImage !== 'undefined' ? ogImage : ''; %>
+    <% const _ogUrl = typeof ogUrl !== 'undefined' ? ogUrl : (typeof baseUrl !== 'undefined' ? baseUrl + (typeof reqPath !== 'undefined' ? reqPath : '') : ''); %>
+    <% if (_ogDesc) { %><meta name="description" content="<%= _ogDesc %>"><% } %>
+    <meta property="og:site_name" content="<%= storeName %>">
+    <meta property="og:type" content="<%= typeof ogType !== 'undefined' ? ogType : 'website' %>">
+    <meta property="og:title" content="<%= _ogTitle %>">
+    <% if (_ogDesc) { %><meta property="og:description" content="<%= _ogDesc %>"><% } %>
+    <% if (_ogImage) { %><meta property="og:image" content="<%= _ogImage %>"><% } %>
+    <% if (_ogUrl) { %><meta property="og:url" content="<%= _ogUrl %>"><% } %>
+    <meta name="twitter:card" content="summary_large_image">
+    <meta name="twitter:title" content="<%= _ogTitle %>">
+    <% if (_ogDesc) { %><meta name="twitter:description" content="<%= _ogDesc %>"><% } %>
+    <% if (_ogImage) { %><meta name="twitter:image" content="<%= _ogImage %>"><% } %>
     <link rel="icon" type="image/png" href="/img/favicon.png">
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -19,6 +34,7 @@
                 <input type="text" name="q" placeholder="Find the product..." value="<%= typeof q !== 'undefined' ? q : '' %>">
                 <button type="submit">Search</button>
             </form>
+            <a href="/track-order" class="track-order-link">📦 <span class="cart-text">আমার অর্ডার</span></a>
             <a href="/cart" class="cart-link">🛒 <span class="cart-text">Cart</span> <span class="cart-count"><%= cartCount %></span></a>
         </div>
     </header>
