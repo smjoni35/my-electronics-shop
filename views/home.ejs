@@ -24,6 +24,8 @@
         <% }) %>
     </div>
     <% if (bestSellers.length > 1) { %>
+        <button type="button" class="hero-arrow hero-arrow-prev" id="heroPrev" aria-label="Previous slide">&#10094;</button>
+        <button type="button" class="hero-arrow hero-arrow-next" id="heroNext" aria-label="Next slide">&#10095;</button>
         <div class="hero-dots" id="heroDots">
             <% bestSellers.forEach((p, i) => { %>
                 <button type="button" class="hero-dot <%= i === 0 ? 'active' : '' %>" data-index="<%= i %>" aria-label="Slide <%= i + 1 %>"></button>
@@ -46,6 +48,11 @@
     }
     dots.forEach(d => d.addEventListener('click', () => { goTo(parseInt(d.dataset.index, 10)); resetAutoplay(); }));
 
+    const prevBtn = document.getElementById('heroPrev');
+    const nextBtn = document.getElementById('heroNext');
+    if (prevBtn) prevBtn.addEventListener('click', () => { goTo(index - 1); resetAutoplay(); });
+    if (nextBtn) nextBtn.addEventListener('click', () => { goTo(index + 1); resetAutoplay(); });
+
     let scrollTimeout;
     track.addEventListener('scroll', () => {
         clearTimeout(scrollTimeout);
@@ -65,6 +72,12 @@
 </script>
 <% } %>
 
+<% if (activeCategory) { %>
+<nav class="breadcrumb" aria-label="breadcrumb">
+    <a href="/">হোম</a> <span class="breadcrumb-sep">/</span> <span class="breadcrumb-current"><%= activeCategory %></span>
+</nav>
+<% } %>
+
 <div class="category-bar-wrap">
     <div class="category-bar">
         <a href="/" class="<%= activeCategory === '' ? 'active' : '' %>">All products</a>
@@ -79,6 +92,8 @@
     <form method="GET" class="sort-form">
         <% if (activeCategory) { %><input type="hidden" name="category" value="<%= activeCategory %>"><% } %>
         <% if (q) { %><input type="hidden" name="q" value="<%= q %>"><% } %>
+        <% if (minPrice) { %><input type="hidden" name="minPrice" value="<%= minPrice %>"><% } %>
+        <% if (maxPrice) { %><input type="hidden" name="maxPrice" value="<%= maxPrice %>"><% } %>
         <label class="sort-label">Sort:
             <select name="sort" onchange="this.form.submit()">
                 <option value="newest" <%= sort === 'newest' ? 'selected' : '' %>>নতুন প্রোডাক্ট আগে</option>
@@ -89,61 +104,109 @@
     </form>
 </div>
 
+<form method="GET" class="price-filter-bar" id="priceFilterForm">
+    <% if (activeCategory) { %><input type="hidden" name="category" value="<%= activeCategory %>"><% } %>
+    <% if (q) { %><input type="hidden" name="q" value="<%= q %>"><% } %>
+    <% if (sort && sort !== 'newest') { %><input type="hidden" name="sort" value="<%= sort %>"><% } %>
+    <span class="price-filter-label">প্রাইস রেঞ্জ:</span>
+    <div class="price-range-slider" data-min="<%= priceBounds.min %>" data-max="<%= priceBounds.max %>">
+        <div class="price-range-track"></div>
+        <div class="price-range-fill" id="priceRangeFill"></div>
+        <input type="range" id="priceMinRange" min="<%= priceBounds.min %>" max="<%= priceBounds.max %>" value="<%= minPrice || priceBounds.min %>" step="10">
+        <input type="range" id="priceMaxRange" min="<%= priceBounds.min %>" max="<%= priceBounds.max %>" value="<%= maxPrice || priceBounds.max %>" step="10">
+    </div>
+    <span class="price-range-values">৳<span id="priceMinLabel"><%= minPrice || priceBounds.min %></span> – ৳<span id="priceMaxLabel"><%= maxPrice || priceBounds.max %></span></span>
+    <input type="hidden" name="minPrice" id="minPriceInput" value="<%= minPrice || priceBounds.min %>">
+    <input type="hidden" name="maxPrice" id="maxPriceInput" value="<%= maxPrice || priceBounds.max %>">
+    <button type="submit" class="btn-price-filter">Apply</button>
+</form>
+<script>
+(function () {
+    const wrap = document.querySelector('.price-range-slider');
+    if (!wrap) return;
+    const minR = document.getElementById('priceMinRange');
+    const maxR = document.getElementById('priceMaxRange');
+    const fill = document.getElementById('priceRangeFill');
+    const minLabel = document.getElementById('priceMinLabel');
+    const maxLabel = document.getElementById('priceMaxLabel');
+    const minInput = document.getElementById('minPriceInput');
+    const maxInput = document.getElementById('maxPriceInput');
+    const bMin = parseFloat(wrap.dataset.min), bMax = parseFloat(wrap.dataset.max) || 1;
+
+    function update() {
+        let vMin = parseFloat(minR.value), vMax = parseFloat(maxR.value);
+        if (vMin > vMax) { [vMin, vMax] = [vMax, vMin]; }
+        minLabel.textContent = vMin.toLocaleString('en-BD');
+        maxLabel.textContent = vMax.toLocaleString('en-BD');
+        minInput.value = vMin;
+        maxInput.value = vMax;
+        const range = (bMax - bMin) || 1;
+        const left = ((vMin - bMin) / range) * 100;
+        const right = ((vMax - bMin) / range) * 100;
+        fill.style.left = left + '%';
+        fill.style.right = (100 - right) + '%';
+    }
+    minR.addEventListener('input', update);
+    maxR.addEventListener('input', update);
+    update();
+})();
+</script>
+
 <% if (products.length === 0) { %>
     <p class="empty-msg">No products found.</p>
 <% } else { %>
-<div class="product-grid">
-    <% products.forEach(p => {
-        const isNew = (Date.now() - new Date(p.created_at).getTime()) < NEW_PRODUCT_DAYS * 24 * 60 * 60 * 1000;
-        const isLowStock = p.stock > 0 && p.stock <= LOW_STOCK_THRESHOLD;
-        const rating = parseFloat(p.avg_rating) || 0;
-    %>
-        <div class="product-card">
-            <a href="/product/<%= p.id %>" class="product-card-link">
-                <div class="product-img">
-                    <div class="badge-stack">
-                        <% if (bestSellerIds.includes(p.id)) { %>
-                            <span class="badge-bestseller">🏆 Best Seller</span>
-                        <% } %>
-                        <% if (isNew) { %>
-                            <span class="badge-new">✨ New</span>
-                        <% } %>
-                        <% if (p.discount_percent > 0) { %>
-                            <span class="badge-discount"><%= p.discount_percent %>% OFF</span>
-                        <% } %>
-                    </div>
-                    <% if (p.image_url) { %>
-                        <img src="<%= p.image_url %>" alt="<%= p.name %>" loading="lazy">
-                    <% } else { %>
-                        <div class="no-img">No picture.</div>
-                    <% } %>
-                </div>
-                <div class="product-info">
-                    <h3><%= p.name %></h3>
-                    <% if (p.review_count > 0) { %>
-                        <div class="star-rating" title="<%= rating.toFixed(1) %> / 5">
-                            <% for (let i = 1; i <= 5; i++) { %><span class="star <%= i <= Math.round(rating) ? 'filled' : '' %>">★</span><% } %>
-                            <span class="review-count">(<%= p.review_count %>)</span>
-                        </div>
-                    <% } %>
-                    <% if (p.discount_percent > 0) { %>
-                        <p class="price-row">
-                            <span class="price">৳<%= parseFloat(p.effective_price).toLocaleString('en-BD') %></span>
-                            <span class="price-original">৳<%= parseFloat(p.price).toLocaleString('en-BD') %></span>
-                        </p>
-                    <% } else { %>
-                        <p class="price">৳<%= parseFloat(p.price).toLocaleString('en-BD') %></p>
-                    <% } %>
-                    <% if (p.stock <= 0) { %>
-                        <span class="stock-badge out">Not in stock</span>
-                    <% } else if (isLowStock) { %>
-                        <span class="badge-lowstock">মাত্র <%= p.stock %>টা বাকি</span>
-                    <% } %>
-                </div>
-            </a>
-        </div>
-    <% }) %>
+<div class="product-grid" id="productGrid">
+    <%- include('partials/product-cards', { products, bestSellerIds, NEW_PRODUCT_DAYS, LOW_STOCK_THRESHOLD }) %>
 </div>
+<% if (hasMore) { %>
+    <div class="load-more-wrap">
+        <button type="button" id="loadMoreBtn" class="btn-primary"
+            data-offset="<%= products.length %>"
+            data-category="<%= activeCategory %>"
+            data-q="<%= q %>"
+            data-sort="<%= sort %>"
+            data-minprice="<%= minPrice || '' %>"
+            data-maxprice="<%= maxPrice || '' %>">
+            আরও দেখুন (Load More)
+        </button>
+    </div>
+    <script>
+    (function () {
+        const btn = document.getElementById('loadMoreBtn');
+        const grid = document.getElementById('productGrid');
+        if (!btn || !grid) return;
+        btn.addEventListener('click', async function () {
+            btn.disabled = true;
+            btn.textContent = 'লোড হচ্ছে...';
+            const params = new URLSearchParams({
+                offset: btn.dataset.offset,
+                category: btn.dataset.category || '',
+                q: btn.dataset.q || '',
+                sort: btn.dataset.sort || '',
+                minPrice: btn.dataset.minprice || '',
+                maxPrice: btn.dataset.maxprice || ''
+            });
+            try {
+                const res = await fetch('/api/products/more?' + params.toString());
+                const html = await res.text();
+                grid.insertAdjacentHTML('beforeend', html);
+                const hasMoreHeader = res.headers.get('X-Has-More');
+                const nextOffset = res.headers.get('X-Next-Offset');
+                if (nextOffset) btn.dataset.offset = nextOffset;
+                if (hasMoreHeader === '1') {
+                    btn.disabled = false;
+                    btn.textContent = 'আরও দেখুন (Load More)';
+                } else {
+                    btn.remove();
+                }
+            } catch (err) {
+                btn.disabled = false;
+                btn.textContent = 'আবার চেষ্টা করুন';
+            }
+        });
+    })();
+    </script>
+<% } %>
 <% } %>
 
 <%- include('partials/footer') %>
