@@ -57,8 +57,21 @@ router.get('/', async (req, res) => {
     `);
     const bestSellerIds = bestSellerRows.map(r => r.product_id);
 
+    // Full product rows for the best sellers, used to build the homepage hero slider
+    let bestSellers = [];
+    if (bestSellerIds.length > 0) {
+        const { rows } = await pool.query(
+            `SELECT p.*, ROUND(p.price * (1 - p.discount_percent / 100.0), 2) AS effective_price
+             FROM products p
+             WHERE p.id = ANY($1::int[])
+             ORDER BY array_position($1::int[], p.id)`,
+            [bestSellerIds]
+        );
+        bestSellers = rows;
+    }
+
     res.render('home', {
-        products, categories, activeCategory: category || '', q: q || '', bestSellerIds,
+        products, categories, activeCategory: category || '', q: q || '', bestSellerIds, bestSellers,
         sort, NEW_PRODUCT_DAYS, LOW_STOCK_THRESHOLD
     });
 });
