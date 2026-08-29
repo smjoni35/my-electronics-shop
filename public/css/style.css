@@ -750,7 +750,7 @@ h1, h2, h3 { font-family: var(--font-display); font-weight: 700; letter-spacing:
 .product-detail { display: grid; grid-template-columns: 1fr; gap: 30px; margin: 22px 0 44px; }
 @media (min-width: 700px) { .product-detail { grid-template-columns: 1fr 1fr; } }
 .product-detail-img { position: relative; }
-.product-detail-img img {
+.product-detail-img > img {
     width: 100%;
     aspect-ratio: 1;
     object-fit: contain;
@@ -759,8 +759,8 @@ h1, h2, h3 { font-family: var(--font-display); font-weight: 700; letter-spacing:
     border: 1px solid var(--border-soft);
 }
 .product-detail-img .badge-stack { top: 8px; }
-.gallery-thumbs { display: flex; flex-wrap: wrap; gap: 10px; margin-top: 12px; }
-.gallery-thumb { width: 64px; height: 64px; object-fit: cover; border-radius: var(--radius-sm); border: 2px solid var(--border-soft); cursor: pointer; opacity: 0.7; transition: opacity 0.2s, border-color 0.2s; }
+.gallery-thumbs { display: flex; flex-wrap: nowrap; overflow-x: auto; gap: 10px; margin-top: 12px; padding-bottom: 4px; -webkit-overflow-scrolling: touch; scrollbar-width: thin; }
+.gallery-thumb { flex: 0 0 auto; width: 64px; height: 64px; aspect-ratio: 1; object-fit: cover; border-radius: var(--radius-sm); border: 2px solid var(--border-soft); cursor: pointer; opacity: 0.7; transition: opacity 0.2s, border-color 0.2s; }
 .gallery-thumb:hover { opacity: 1; }
 .gallery-thumb.active { border-color: var(--accent); opacity: 1; }
 .category-tag {
@@ -1010,7 +1010,7 @@ h1, h2, h3 { font-family: var(--font-display); font-weight: 700; letter-spacing:
 .admin-table tr:hover td { background: rgba(255,255,255,0.015); }
 .thumb { width: 42px; height: 42px; object-fit: cover; border-radius: 5px; }
 .thumb-preview { width: 130px; border-radius: var(--radius-sm); margin-top: -6px; border: 1px solid var(--border); }
-.gallery-preview { display: flex; flex-wrap: wrap; gap: 14px; margin-top: -6px; }
+.gallery-preview { display: flex; flex-wrap: wrap; row-gap: 28px; column-gap: 14px; margin-top: -6px; }
 .gallery-preview-item { display: flex; flex-direction: column; align-items: center; gap: 6px; }
 .gallery-preview-item .thumb-preview { margin-top: 0; }
 .actions-inner { display: flex; gap: 12px; align-items: center; justify-content: center; }
