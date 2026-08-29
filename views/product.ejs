@@ -52,8 +52,6 @@
             </a>
         <% } %>
 
-        <p class="description"><%= product.description %></p>
-
         <% if (product.stock > 0) { %>
             <p class="stock-info stock-dot">স্টকে আছে: <%= product.stock %> টি</p>
             <% if (isLowStock) { %><span class="badge-lowstock">মাত্র <%= product.stock %>টা বাকি — তাড়াতাড়ি করুন!</span><% } %>
@@ -94,6 +92,13 @@
         <% } %>
     </div>
 </div>
+
+<% if (product.description) { %>
+<section class="description-section">
+    <h2 class="section-title">বিবরণ</h2>
+    <p class="description"><%= product.description %></p>
+</section>
+<% } %>
 
 <% if (product.specs && product.specs.length > 0) { %>
 <section class="spec-section">
