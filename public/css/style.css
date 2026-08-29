@@ -1044,9 +1044,9 @@ h1, h2, h3 { font-family: var(--font-display); font-weight: 700; letter-spacing:
 @media (min-width: 700px) {
     .order-actions-row { flex-direction: row; align-items: center; gap: 20px; flex-wrap: wrap; }
     .order-actions-row .status-form { margin-top: 0; width: auto; }
-    .order-actions-row .status-form select { height: auto; }
+    .order-actions-row .status-form select { height: 44px; }
     .order-actions-row .status-form .btn-primary,
-    .order-actions-row .status-form .btn-remove { width: auto; height: auto; font-size: 0.92rem; }
+    .order-actions-row .status-form .btn-remove { width: auto; height: 44px; padding: 0 20px; font-size: 0.92rem; }
 }
 
 /* ==========================================================================
