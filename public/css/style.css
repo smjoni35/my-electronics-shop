@@ -750,7 +750,14 @@ h1, h2, h3 { font-family: var(--font-display); font-weight: 700; letter-spacing:
 .product-detail { display: grid; grid-template-columns: 1fr; gap: 30px; margin: 22px 0 44px; }
 @media (min-width: 700px) { .product-detail { grid-template-columns: 1fr 1fr; } }
 .product-detail-img { position: relative; }
-.product-detail-img img { width: 100%; border-radius: var(--radius); border: 1px solid var(--border-soft); }
+.product-detail-img img {
+    width: 100%;
+    aspect-ratio: 1;
+    object-fit: contain;
+    background: var(--surface-2);
+    border-radius: var(--radius);
+    border: 1px solid var(--border-soft);
+}
 .product-detail-img .badge-stack { top: 8px; }
 .gallery-thumbs { display: flex; flex-wrap: wrap; gap: 10px; margin-top: 12px; }
 .gallery-thumb { width: 64px; height: 64px; object-fit: cover; border-radius: var(--radius-sm); border: 2px solid var(--border-soft); cursor: pointer; opacity: 0.7; transition: opacity 0.2s, border-color 0.2s; }
