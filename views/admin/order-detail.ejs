@@ -11,21 +11,41 @@
 </head>
 <body>
     <%- include('nav') %>
-    <div class="container">
-        <h1>Order #<%= order.id %></h1>
+    <div class="container order-detail-page">
+        <div class="order-detail-header">
+            <h1>Order #<%= order.id %></h1>
+            <span class="status-badge <%= order.status %>"><%= order.status %></span>
+        </div>
         <% if (typeof updatedSuccess !== 'undefined' && updatedSuccess) { %>
             <p class="info-note">✅ অর্ডার স্ট্যাটাস সফলভাবে আপডেট হয়েছে।</p>
         <% } %>
         <div class="order-detail-box">
-            <p><strong>Customer:</strong> <%= order.customer_name %></p>
-            <p><strong>Phone:</strong> <%= order.phone %></p>
-            <p><strong>Address:</strong> <%= order.address %>, <%= order.city %></p>
-            <p><strong>Total:</strong> ৳<%= parseFloat(order.total).toLocaleString('en-BD') %></p>
-            <p><strong>Payment:</strong> Cash on Delivery</p>
+            <div class="order-info-grid">
+                <div class="order-info-item">
+                    <span class="order-info-label">👤 Customer</span>
+                    <span class="order-info-value"><%= order.customer_name %></span>
+                </div>
+                <div class="order-info-item">
+                    <span class="order-info-label">📞 Phone</span>
+                    <span class="order-info-value"><%= order.phone %></span>
+                </div>
+                <div class="order-info-item order-info-item-wide">
+                    <span class="order-info-label">📍 Address</span>
+                    <span class="order-info-value"><%= order.address %>, <%= order.city %></span>
+                </div>
+                <div class="order-info-item">
+                    <span class="order-info-label">💰 Total</span>
+                    <span class="order-info-value order-info-total">৳<%= parseFloat(order.total).toLocaleString('en-BD') %></span>
+                </div>
+                <div class="order-info-item">
+                    <span class="order-info-label">💳 Payment</span>
+                    <span class="order-info-value">Cash on Delivery</span>
+                </div>
+            </div>
 
             <div class="order-actions-row">
                 <form action="/admin/orders/<%= order.id %>/status" method="POST" class="status-form">
-                    <label>:
+                    <label>স্ট্যাটাস:
                         <select name="status">
                             <option value="pending" <%= order.status === 'pending' ? 'selected' : '' %>>Pending</option>
                             <option value="confirmed" <%= order.status === 'confirmed' ? 'selected' : '' %>>Confirmed</option>
@@ -59,7 +79,7 @@
             </tbody>
         </table>
         </div>
-        <a href="/admin/orders">← Return to order list</a>
+        <a href="/admin/orders" class="back-link">← Return to order list</a>
     </div>
 </body>
 </html>
