@@ -14,6 +14,11 @@ const SORT_OPTIONS = {
     price_desc: 'effective_price DESC',
 };
 
+// Static info page — return / exchange policy
+router.get('/return-policy', (req, res) => {
+    res.render('return-policy', { title: 'রিটার্ন ও এক্সচেঞ্জ পলিসি' });
+});
+
 // Home page — product grid, optional category filter, sort
 router.get('/', async (req, res) => {
     const { category, q } = req.query;
@@ -108,7 +113,7 @@ router.get('/product/:id', async (req, res) => {
 
 // Submit a product review (no login needed — name + star rating + optional comment)
 router.post('/product/:id/review', async (req, res) => {
-    const { customerName, comment } = req.body;
+    const { customerName, comment, phone } = req.body;
     const rating = parseInt(req.body.rating, 10);
 
     const { rows } = await pool.query(
@@ -140,9 +145,22 @@ router.post('/product/:id/review', async (req, res) => {
         });
     }
 
+    // Verified purchase: matches if this phone has a non-cancelled order that included this product
+    let verifiedPurchase = false;
+    if (phone) {
+        const { rows: purchaseCheck } = await pool.query(
+            `SELECT 1 FROM orders o
+             JOIN order_items oi ON oi.order_id = o.id
+             WHERE o.phone = $1 AND oi.product_id = $2 AND o.status != 'cancelled'
+             LIMIT 1`,
+            [phone.trim(), req.params.id]
+        );
+        verifiedPurchase = purchaseCheck.length > 0;
+    }
+
     await pool.query(
-        'INSERT INTO product_reviews (product_id, customer_name, rating, comment) VALUES ($1, $2, $3, $4)',
-        [req.params.id, customerName, rating, comment || null]
+        'INSERT INTO product_reviews (product_id, customer_name, rating, comment, phone, verified_purchase) VALUES ($1, $2, $3, $4, $5, $6)',
+        [req.params.id, customerName, rating, comment || null, phone ? phone.trim() : null, verifiedPurchase]
     );
     res.redirect('/product/' + req.params.id + '#reviews');
 });
