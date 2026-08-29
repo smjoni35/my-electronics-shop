@@ -48,6 +48,8 @@
         <% if (product.stock > 0) { %>
             <p class="stock-info stock-dot">স্টকে আছে: <%= product.stock %> টি</p>
             <% if (isLowStock) { %><span class="badge-lowstock">মাত্র <%= product.stock %>টা বাকি — তাড়াতাড়ি করুন!</span><% } %>
+            <p class="delivery-estimate">🚚 <strong>২-৩ দিনের মধ্যে ডেলিভারি</strong> (ঢাকার ভিতরে) &nbsp;•&nbsp; ক্যাশ অন ডেলিভারি উপলব্ধ</p>
+            <p class="return-policy-note">🔁 ৭ দিনের মধ্যে রিটার্ন/এক্সচেঞ্জ সুবিধা — <a href="/return-policy">বিস্তারিত জানুন</a></p>
             <form action="/cart/add" method="POST" class="add-cart-form">
                 <input type="hidden" name="productId" value="<%= product.id %>">
                 <label>পরিমাণ:
@@ -72,6 +74,7 @@
                 <div class="review-item">
                     <div class="review-item-head">
                         <span class="review-author"><%= r.customer_name %></span>
+                        <% if (r.verified_purchase) { %><span class="badge-verified" title="যাচাইকৃত ক্রেতা — এই ফোন নম্বর দিয়ে অর্ডার করা হয়েছে">✅ যাচাইকৃত ক্রেতা</span><% } %>
                         <span class="star-rating small">
                             <% for (let i = 1; i <= 5; i++) { %><span class="star <%= i <= r.rating ? 'filled' : '' %>">★</span><% } %>
                         </span>
@@ -101,6 +104,9 @@
                 </select>
             </label>
         </div>
+        <label>ফোন নম্বর <span class="field-hint">(ঐচ্ছিক — আপনি যদি এই নম্বর দিয়ে অর্ডার করে থাকেন, রিভিউতে "যাচাইকৃত ক্রেতা" ব্যাজ দেখাবে। নম্বরটি প্রকাশ্যে দেখানো হবে না।)</span>
+            <input type="tel" name="phone" placeholder="01XXXXXXXXX">
+        </label>
         <label>মন্তব্য
             <textarea name="comment" rows="3" placeholder="প্রোডাক্ট নিয়ে আপনার অভিজ্ঞতা লিখুন..."></textarea>
         </label>
