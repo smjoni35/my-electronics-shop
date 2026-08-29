@@ -1040,9 +1040,9 @@ h1, h2, h3 { font-family: var(--font-display); font-weight: 700; letter-spacing:
 .status-form select { padding: 9px; background: var(--surface-2); border: 1px solid var(--border); border-radius: var(--radius-sm); color: var(--text); }
 .order-actions-row { display: flex; flex-direction: column; margin-top: 22px; padding-top: 18px; border-top: 1px solid var(--border-soft); gap: 14px; }
 .order-actions-row .status-form { margin-top: 0; width: 100%; }
-.order-actions-row .status-form select { flex: 1; min-width: 0; }
+.order-actions-row .status-form select { flex: 1; min-width: 0; height: 46px; box-sizing: border-box; }
 .order-actions-row .status-form .btn-primary,
-.order-actions-row .status-form .btn-remove { width: 100%; text-align: center; justify-content: center; }
+.order-actions-row .status-form .btn-remove { width: 100%; text-align: center; justify-content: center; height: 46px; box-sizing: border-box; font-size: 0.92rem; }
 @media (max-width: 480px) {
     .order-actions-row .status-form { flex-direction: column; align-items: stretch; gap: 8px; }
     .order-actions-row .status-form label { display: flex; flex-direction: column; gap: 6px; }
@@ -1050,8 +1050,9 @@ h1, h2, h3 { font-family: var(--font-display); font-weight: 700; letter-spacing:
 @media (min-width: 700px) {
     .order-actions-row { flex-direction: row; align-items: center; gap: 20px; flex-wrap: wrap; }
     .order-actions-row .status-form { margin-top: 0; width: auto; }
+    .order-actions-row .status-form select { height: auto; }
     .order-actions-row .status-form .btn-primary,
-    .order-actions-row .status-form .btn-remove { width: auto; }
+    .order-actions-row .status-form .btn-remove { width: auto; height: auto; font-size: 0.92rem; }
 }
 
 /* ==========================================================================
