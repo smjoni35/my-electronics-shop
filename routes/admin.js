@@ -247,6 +247,18 @@ router.post('/orders/:id/status', requireAdmin, async (req, res) => {
     res.redirect(`/admin/orders/${req.params.id}`);
 });
 
+// Delete order (also removes its order_items via ON DELETE CASCADE) —
+// mainly for clearing out test/dummy orders so they don't skew dashboard stats.
+router.post('/orders/:id/delete', requireRole('admin', 'manager'), async (req, res) => {
+    try {
+        await pool.query('DELETE FROM orders WHERE id = $1', [req.params.id]);
+        res.redirect('/admin/orders');
+    } catch (err) {
+        console.error('Order delete error:', err.message);
+        res.redirect('/admin/orders');
+    }
+});
+
 // ==========================================================================
 // Staff management (admin only) — create/edit/delete Manager & Moderator accounts
 // ==========================================================================
