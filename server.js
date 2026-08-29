@@ -50,6 +50,23 @@ app.use((req, res) => {
     res.status(404).render('404');
 });
 
+// Global error handler — catches anything that slips through a route's own
+// try/catch so one bad request can't take down the whole server.
+app.use((err, req, res, next) => {
+    console.error('Unhandled error:', err);
+    if (res.headersSent) return next(err);
+    res.status(500).send('কিছু একটা সমস্যা হয়েছে, একটু পর আবার চেষ্টা করুন।');
+});
+
+// Last-resort safety net — log unexpected errors instead of letting Node crash
+// the whole process (which would show visitors a 502 until Render restarts it).
+process.on('unhandledRejection', (err) => {
+    console.error('Unhandled promise rejection:', err);
+});
+process.on('uncaughtException', (err) => {
+    console.error('Uncaught exception:', err);
+});
+
 const PORT = process.env.PORT || 3000;
 app.listen(PORT, () => {
     console.log(`Server running on port ${PORT}`);
