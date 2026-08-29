@@ -13,6 +13,12 @@ CREATE TABLE IF NOT EXISTS products (
 -- Ensures the discount column exists even on databases created before this feature
 ALTER TABLE products ADD COLUMN IF NOT EXISTS discount_percent INTEGER NOT NULL DEFAULT 0;
 
+-- Warranty text shown as a badge (e.g. "৬ মাস অফিসিয়াল ওয়ারেন্টি")
+ALTER TABLE products ADD COLUMN IF NOT EXISTS warranty VARCHAR(255);
+
+-- Structured spec sheet: JSON array of {"label": "...", "value": "..."} pairs, in display order
+ALTER TABLE products ADD COLUMN IF NOT EXISTS specs JSONB NOT NULL DEFAULT '[]'::jsonb;
+
 -- Orders table
 CREATE TABLE IF NOT EXISTS orders (
     id SERIAL PRIMARY KEY,
@@ -62,6 +68,19 @@ CREATE INDEX IF NOT EXISTS idx_product_reviews_product_id ON product_reviews(pro
 -- Ensures verified-purchase columns exist even on databases created before this feature
 ALTER TABLE product_reviews ADD COLUMN IF NOT EXISTS phone VARCHAR(50);
 ALTER TABLE product_reviews ADD COLUMN IF NOT EXISTS verified_purchase BOOLEAN NOT NULL DEFAULT FALSE;
+
+-- "Notify me when back in stock" requests — phone numbers left against an out-of-stock product.
+-- No automatic SMS/WhatsApp sending is wired up (that needs a paid provider); the admin panel
+-- lists these so staff can message people manually via WhatsApp once restocked.
+CREATE TABLE IF NOT EXISTS stock_notify_requests (
+    id SERIAL PRIMARY KEY,
+    product_id INTEGER NOT NULL REFERENCES products(id) ON DELETE CASCADE,
+    phone VARCHAR(50) NOT NULL,
+    notified BOOLEAN NOT NULL DEFAULT FALSE,
+    created_at TIMESTAMP DEFAULT NOW()
+);
+
+CREATE INDEX IF NOT EXISTS idx_stock_notify_product_id ON stock_notify_requests(product_id);
 
 -- Admin / staff table (admin, manager, moderator roles)
 CREATE TABLE IF NOT EXISTS admins (
