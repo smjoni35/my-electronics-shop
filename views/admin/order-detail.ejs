@@ -13,6 +13,9 @@
     <%- include('nav') %>
     <div class="container">
         <h1>Order #<%= order.id %></h1>
+        <% if (typeof updatedSuccess !== 'undefined' && updatedSuccess) { %>
+            <p class="info-note">✅ অর্ডার স্ট্যাটাস সফলভাবে আপডেট হয়েছে।</p>
+        <% } %>
         <div class="order-detail-box">
             <p><strong>Customer:</strong> <%= order.customer_name %></p>
             <p><strong>Phone:</strong> <%= order.phone %></p>
@@ -20,22 +23,24 @@
             <p><strong>Total:</strong> ৳<%= parseFloat(order.total).toLocaleString('en-BD') %></p>
             <p><strong>Payment:</strong> Cash on Delivery</p>
 
-            <form action="/admin/orders/<%= order.id %>/status" method="POST" class="status-form">
-                <label>:
-                    <select name="status">
-                        <option value="pending" <%= order.status === 'pending' ? 'selected' : '' %>>Pending</option>
-                        <option value="confirmed" <%= order.status === 'confirmed' ? 'selected' : '' %>>Confirmed</option>
-                        <option value="shipped" <%= order.status === 'shipped' ? 'selected' : '' %>>Shipped</option>
-                        <option value="delivered" <%= order.status === 'delivered' ? 'selected' : '' %>>Delivered</option>
-                        <option value="cancelled" <%= order.status === 'cancelled' ? 'selected' : '' %>>Cancelled</option>
-                    </select>
-                </label>
-                <button type="submit" class="btn-primary">Update</button>
-            </form>
+            <div class="order-actions-row">
+                <form action="/admin/orders/<%= order.id %>/status" method="POST" class="status-form">
+                    <label>:
+                        <select name="status">
+                            <option value="pending" <%= order.status === 'pending' ? 'selected' : '' %>>Pending</option>
+                            <option value="confirmed" <%= order.status === 'confirmed' ? 'selected' : '' %>>Confirmed</option>
+                            <option value="shipped" <%= order.status === 'shipped' ? 'selected' : '' %>>Shipped</option>
+                            <option value="delivered" <%= order.status === 'delivered' ? 'selected' : '' %>>Delivered</option>
+                            <option value="cancelled" <%= order.status === 'cancelled' ? 'selected' : '' %>>Cancelled</option>
+                        </select>
+                    </label>
+                    <button type="submit" class="btn-primary">Update</button>
+                </form>
 
-            <form action="/admin/orders/<%= order.id %>/delete" method="POST" class="status-form" onsubmit="return confirm('এই অর্ডারটি স্থায়ীভাবে মুছে ফেলা হবে, এটা আর ফেরত আনা যাবে না। আপনি কি নিশ্চিত?')" style="margin-top: 10px;">
-                <button type="submit" class="btn-remove">🗑️ Delete Order</button>
-            </form>
+                <form action="/admin/orders/<%= order.id %>/delete" method="POST" class="status-form" onsubmit="return confirm('এই অর্ডারটি স্থায়ীভাবে মুছে ফেলা হবে, এটা আর ফেরত আনা যাবে না। আপনি কি নিশ্চিত?')">
+                    <button type="submit" class="btn-remove">🗑️ Delete Order</button>
+                </form>
+            </div>
         </div>
 
         <h2>প্রোডাক্টসমূহ</h2>
