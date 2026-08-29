@@ -38,7 +38,7 @@ function buildProductQuery({ category, q, minPrice, maxPrice }) {
     }
     if (q) {
         params.push(`%${q}%`);
-        query += ` AND p.name ILIKE $${params.length}`;
+        query += ` AND (p.name ILIKE $${params.length} OR p.category ILIKE $${params.length})`;
     }
     if (minPrice) {
         params.push(minPrice);
