@@ -1017,17 +1017,32 @@ h1, h2, h3 { font-family: var(--font-display); font-weight: 700; letter-spacing:
 .status-badge.delivered { background: var(--success-bg); color: var(--accent-2); }
 .status-badge.cancelled { background: var(--danger-bg); color: var(--danger); }
 .status-badge.pending { background: rgba(255, 210, 63, 0.12); color: var(--accent); }
+.status-badge.confirmed { background: rgba(41, 182, 246, 0.12); color: var(--accent-2); }
+.status-badge.shipped { background: rgba(155, 140, 255, 0.14); color: #b7a8ff; }
 
 .order-detail-box { background: var(--surface); border: 1px solid var(--border-soft); border-radius: var(--radius); padding: 22px; margin: 20px 0; }
 .order-detail-box p { margin-bottom: 9px; color: var(--text-muted); }
 .order-detail-box strong { color: var(--text); }
+.order-detail-header { display: flex; align-items: center; gap: 12px; flex-wrap: wrap; }
+.order-detail-header h1 { margin: 0; }
+.order-info-grid { display: grid; grid-template-columns: 1fr; gap: 16px; }
+.order-info-item { display: flex; flex-direction: column; gap: 4px; }
+.order-info-label { font-size: 0.78rem; color: var(--text-faint); text-transform: uppercase; letter-spacing: 0.04em; }
+.order-info-value { color: var(--text); font-weight: 500; }
+.order-info-total { color: var(--accent); font-size: 1.15rem; font-weight: 700; }
+.back-link { display: inline-block; margin-top: 6px; color: var(--accent-2); text-decoration: none; }
+.back-link:hover { text-decoration: underline; }
+@media (min-width: 700px) {
+    .order-info-grid { grid-template-columns: repeat(3, 1fr); }
+    .order-info-item-wide { grid-column: span 2; }
+}
 .status-form { display: flex; align-items: center; gap: 12px; margin-top: 18px; flex-wrap: wrap; }
 .status-form select { padding: 9px; background: var(--surface-2); border: 1px solid var(--border); border-radius: var(--radius-sm); color: var(--text); }
-.order-actions-row { display: flex; flex-direction: column; }
-.order-actions-row .status-form { margin-top: 18px; }
+.order-actions-row { display: flex; flex-direction: column; margin-top: 22px; padding-top: 18px; border-top: 1px solid var(--border-soft); }
+.order-actions-row .status-form { margin-top: 0; }
 @media (min-width: 700px) {
     .order-actions-row { flex-direction: row; align-items: center; gap: 20px; flex-wrap: wrap; }
-    .order-actions-row .status-form { margin-top: 18px; }
+    .order-actions-row .status-form { margin-top: 0; }
 }
 
 /* ==========================================================================
