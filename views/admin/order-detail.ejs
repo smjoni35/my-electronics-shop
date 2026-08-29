@@ -32,6 +32,10 @@
                 </label>
                 <button type="submit" class="btn-primary">Update</button>
             </form>
+
+            <form action="/admin/orders/<%= order.id %>/delete" method="POST" class="status-form" onsubmit="return confirm('এই অর্ডারটি স্থায়ীভাবে মুছে ফেলা হবে, এটা আর ফেরত আনা যাবে না। আপনি কি নিশ্চিত?')" style="margin-top: 10px;">
+                <button type="submit" class="btn-remove">🗑️ Delete Order</button>
+            </form>
         </div>
 
         <h2>প্রোডাক্টসমূহ</h2>
