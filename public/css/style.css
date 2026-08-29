@@ -1197,14 +1197,21 @@ h1, h2, h3 { font-family: var(--font-display); font-weight: 700; letter-spacing:
     display: inline-flex;
     align-items: center;
     gap: 6px;
+    height: 42px;
+    box-sizing: border-box;
     text-decoration: none;
-    color: var(--text-muted);
+    color: var(--text);
     font-weight: 600;
     font-size: 0.85rem;
     white-space: nowrap;
+    padding: 0 14px;
+    background: var(--surface-2);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-sm);
+    transition: border-color 0.15s, transform 0.15s;
 }
-.track-order-link:hover { color: var(--accent-2); }
-@media (max-width: 640px) { .track-order-link .cart-text { display: none; } }
+.track-order-link:hover { border-color: var(--accent); transform: translateY(-1px); color: var(--accent-2); }
+@media (max-width: 640px) { .track-order-link .cart-text { display: none; } .track-order-link { padding: 0 10px; } }
 
 /* ==========================================================================
    Breadcrumb
