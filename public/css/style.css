@@ -753,7 +753,8 @@ h1, h2, h3 { font-family: var(--font-display); font-weight: 700; letter-spacing:
 .product-detail-img img {
     width: 100%;
     aspect-ratio: 1;
-    object-fit: cover;
+    object-fit: contain;
+    background: #f0f0f0;
     border-radius: var(--radius);
     border: 1px solid var(--border-soft);
 }
