@@ -1,5 +1,70 @@
 <%- include('partials/header') %>
 
+<% if (typeof bestSellers !== 'undefined' && bestSellers.length > 0) { %>
+<div class="hero-slider" id="heroSlider">
+    <div class="hero-track" id="heroTrack">
+        <% bestSellers.forEach(p => { %>
+            <a href="/product/<%= p.id %>" class="hero-slide">
+                <% if (p.image_url) { %>
+                    <img src="<%= p.image_url %>" alt="<%= p.name %>">
+                <% } %>
+                <div class="hero-slide-overlay">
+                    <span class="hero-tag">🏆 Best Seller</span>
+                    <h2 class="hero-slide-title"><%= p.name %></h2>
+                    <p class="hero-slide-price">
+                        <% if (p.discount_percent > 0) { %>
+                            ৳<%= parseFloat(p.effective_price).toLocaleString('en-BD') %>
+                            <span class="hero-slide-price-original">৳<%= parseFloat(p.price).toLocaleString('en-BD') %></span>
+                        <% } else { %>
+                            ৳<%= parseFloat(p.price).toLocaleString('en-BD') %>
+                        <% } %>
+                    </p>
+                </div>
+            </a>
+        <% }) %>
+    </div>
+    <% if (bestSellers.length > 1) { %>
+        <div class="hero-dots" id="heroDots">
+            <% bestSellers.forEach((p, i) => { %>
+                <button type="button" class="hero-dot <%= i === 0 ? 'active' : '' %>" data-index="<%= i %>" aria-label="Slide <%= i + 1 %>"></button>
+            <% }) %>
+        </div>
+    <% } %>
+</div>
+<script>
+(function () {
+    const track = document.getElementById('heroTrack');
+    const dots = document.querySelectorAll('#heroDots .hero-dot');
+    if (!track || dots.length === 0) return;
+    let index = 0;
+    let autoplay;
+
+    function goTo(i) {
+        index = (i + dots.length) % dots.length;
+        track.scrollTo({ left: track.clientWidth * index, behavior: 'smooth' });
+        dots.forEach((d, di) => d.classList.toggle('active', di === index));
+    }
+    dots.forEach(d => d.addEventListener('click', () => { goTo(parseInt(d.dataset.index, 10)); resetAutoplay(); }));
+
+    let scrollTimeout;
+    track.addEventListener('scroll', () => {
+        clearTimeout(scrollTimeout);
+        scrollTimeout = setTimeout(() => {
+            const i = Math.round(track.scrollLeft / track.clientWidth);
+            index = i;
+            dots.forEach((d, di) => d.classList.toggle('active', di === index));
+        }, 100);
+    });
+
+    function resetAutoplay() {
+        clearInterval(autoplay);
+        autoplay = setInterval(() => goTo(index + 1), 4000);
+    }
+    resetAutoplay();
+})();
+</script>
+<% } %>
+
 <div class="category-bar-wrap">
     <div class="category-bar">
         <a href="/" class="<%= activeCategory === '' ? 'active' : '' %>">All products</a>
