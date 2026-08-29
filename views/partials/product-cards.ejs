@@ -31,7 +31,6 @@
                         <span class="review-count">(<%= p.review_count %>)</span>
                     </div>
                 <% } %>
-                <% if (p.warranty) { %><span class="badge-warranty">🛡️ <%= p.warranty %></span><% } %>
                 <% if (p.discount_percent > 0) { %>
                     <p class="price-row">
                         <span class="price">৳<%= parseFloat(p.effective_price).toLocaleString('en-BD') %></span>
