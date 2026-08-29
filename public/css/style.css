@@ -116,6 +116,12 @@ h1, h2, h3 { font-family: var(--font-display); font-weight: 700; letter-spacing:
     padding: 0 12px;
 }
 .logo-img-sm { height: 30px; }
+.logo-text {
+    display: none;
+}
+@media (min-width: 900px) {
+    .logo-text { display: inline; }
+}
 .search-form {
     display: flex;
     flex: 1;
