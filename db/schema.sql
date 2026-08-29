@@ -59,6 +59,10 @@ CREATE TABLE IF NOT EXISTS product_reviews (
 
 CREATE INDEX IF NOT EXISTS idx_product_reviews_product_id ON product_reviews(product_id);
 
+-- Ensures verified-purchase columns exist even on databases created before this feature
+ALTER TABLE product_reviews ADD COLUMN IF NOT EXISTS phone VARCHAR(50);
+ALTER TABLE product_reviews ADD COLUMN IF NOT EXISTS verified_purchase BOOLEAN NOT NULL DEFAULT FALSE;
+
 -- Admin / staff table (admin, manager, moderator roles)
 CREATE TABLE IF NOT EXISTS admins (
     id SERIAL PRIMARY KEY,
