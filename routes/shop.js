@@ -7,6 +7,7 @@ const { notifyNewOrder } = require('../services/notify');
 // and shows a "মাত্র N টা বাকি" badge once stock drops to/below this amount.
 const NEW_PRODUCT_DAYS = 14;
 const LOW_STOCK_THRESHOLD = 5;
+const PAGE_SIZE = 12;
 
 const SORT_OPTIONS = {
     newest: 'p.created_at DESC',
@@ -14,15 +15,9 @@ const SORT_OPTIONS = {
     price_desc: 'effective_price DESC',
 };
 
-// Static info page — return / exchange policy
-router.get('/return-policy', (req, res) => {
-    res.render('return-policy', { title: 'রিটার্ন ও এক্সচেঞ্জ পলিসি' });
-});
-
-// Home page — product grid, optional category filter, sort
-router.get('/', async (req, res) => {
-    const { category, q } = req.query;
-    const sort = SORT_OPTIONS[req.query.sort] ? req.query.sort : 'newest';
+// Shared WHERE-clause builder for the home grid and the load-more/AJAX endpoint,
+// so both stay in sync (category, search, and price-range filters).
+function buildProductQuery({ category, q, minPrice, maxPrice }) {
     let query = `
         SELECT p.*,
             ROUND(p.price * (1 - p.discount_percent / 100.0), 2) AS effective_price,
@@ -45,10 +40,49 @@ router.get('/', async (req, res) => {
         params.push(`%${q}%`);
         query += ` AND p.name ILIKE $${params.length}`;
     }
-    query += ` ORDER BY ${SORT_OPTIONS[sort]}`;
+    if (minPrice) {
+        params.push(minPrice);
+        query += ` AND ROUND(p.price * (1 - p.discount_percent / 100.0), 2) >= $${params.length}`;
+    }
+    if (maxPrice) {
+        params.push(maxPrice);
+        query += ` AND ROUND(p.price * (1 - p.discount_percent / 100.0), 2) <= $${params.length}`;
+    }
+    return { query, params };
+}
 
-    const { rows: products } = await pool.query(query, params);
+// Static info page — return / exchange policy
+router.get('/return-policy', (req, res) => {
+    res.render('return-policy', { title: 'রিটার্ন ও এক্সচেঞ্জ পলিসি' });
+});
+
+// Home page — product grid, optional category/search/price filters, sort, pagination
+router.get('/', async (req, res) => {
+    const { category, q } = req.query;
+    const sort = SORT_OPTIONS[req.query.sort] ? req.query.sort : 'newest';
+    const minPrice = parseFloat(req.query.minPrice) || null;
+    const maxPrice = parseFloat(req.query.maxPrice) || null;
+
+    const { query, params } = buildProductQuery({ category, q, minPrice, maxPrice });
+    const pagedQuery = `${query} ORDER BY ${SORT_OPTIONS[sort]} LIMIT ${PAGE_SIZE + 1} OFFSET 0`;
+
+    const { rows: pageRows } = await pool.query(pagedQuery, params);
+    const hasMore = pageRows.length > PAGE_SIZE;
+    const products = pageRows.slice(0, PAGE_SIZE);
+
     const { rows: categories } = await pool.query('SELECT DISTINCT category FROM products WHERE category IS NOT NULL');
+
+    // Overall min/max effective price across all products — used to size the price slider
+    const { rows: boundsRows } = await pool.query(`
+        SELECT
+            COALESCE(MIN(ROUND(price * (1 - discount_percent / 100.0), 2)), 0) AS min,
+            COALESCE(MAX(ROUND(price * (1 - discount_percent / 100.0), 2)), 0) AS max
+        FROM products
+    `);
+    const priceBounds = {
+        min: Math.floor(parseFloat(boundsRows[0].min) || 0),
+        max: Math.ceil(parseFloat(boundsRows[0].max) || 0) || 1000
+    };
 
     // Top 3 best-selling product ids, used to show a "Best Seller" badge in the grid
     const { rows: bestSellerRows } = await pool.query(`
@@ -77,7 +111,39 @@ router.get('/', async (req, res) => {
 
     res.render('home', {
         products, categories, activeCategory: category || '', q: q || '', bestSellerIds, bestSellers,
-        sort, NEW_PRODUCT_DAYS, LOW_STOCK_THRESHOLD
+        sort, NEW_PRODUCT_DAYS, LOW_STOCK_THRESHOLD, hasMore, priceBounds,
+        minPrice: minPrice || '', maxPrice: maxPrice || ''
+    });
+});
+
+// Load-more endpoint — returns just the extra <div class="product-card"> markup
+// (same filters/sort as the page the user is on) for the homepage's "Load More" button.
+router.get('/api/products/more', async (req, res) => {
+    const { category, q } = req.query;
+    const sort = SORT_OPTIONS[req.query.sort] ? req.query.sort : 'newest';
+    const minPrice = parseFloat(req.query.minPrice) || null;
+    const maxPrice = parseFloat(req.query.maxPrice) || null;
+    const offset = Math.max(parseInt(req.query.offset, 10) || 0, 0);
+
+    const { query, params } = buildProductQuery({ category, q, minPrice, maxPrice });
+    const pagedQuery = `${query} ORDER BY ${SORT_OPTIONS[sort]} LIMIT ${PAGE_SIZE + 1} OFFSET ${offset}`;
+    const { rows: pageRows } = await pool.query(pagedQuery, params);
+    const hasMore = pageRows.length > PAGE_SIZE;
+    const products = pageRows.slice(0, PAGE_SIZE);
+
+    const { rows: bestSellerRows } = await pool.query(`
+        SELECT oi.product_id FROM order_items oi
+        JOIN orders o ON o.id = oi.order_id
+        WHERE o.status != 'cancelled'
+        GROUP BY oi.product_id ORDER BY SUM(oi.quantity) DESC LIMIT 3
+    `);
+    const bestSellerIds = bestSellerRows.map(r => r.product_id);
+
+    res.set('X-Has-More', hasMore ? '1' : '0');
+    res.set('X-Next-Offset', String(offset + products.length));
+    res.render('partials/product-cards', { products, bestSellerIds, NEW_PRODUCT_DAYS, LOW_STOCK_THRESHOLD }, (err, html) => {
+        if (err) { console.error(err); return res.status(500).send(''); }
+        res.send(html);
     });
 });
 
@@ -102,13 +168,40 @@ router.get('/product/:id', async (req, res) => {
         [req.params.id]
     );
 
+    const product = rows[0];
+    const storeName = process.env.STORE_NAME || 'JM Gadget Zone';
+    const plainDescription = (product.description || '').replace(/\s+/g, ' ').trim().slice(0, 160);
+    const baseUrl = process.env.BASE_URL || `${req.protocol}://${req.get('host')}`;
+
     res.render('product', {
-        product: rows[0], galleryImages, reviews,
+        product, galleryImages, reviews,
         avgRating: parseFloat(ratingRows[0].avg_rating) || 0,
         reviewCount: parseInt(ratingRows[0].review_count, 10) || 0,
         reviewError: null,
-        NEW_PRODUCT_DAYS, LOW_STOCK_THRESHOLD
+        notifyMeSuccess: req.query.notified === '1',
+        NEW_PRODUCT_DAYS, LOW_STOCK_THRESHOLD,
+        // SEO / social share preview tags
+        title: `${product.name} - ${storeName}`,
+        ogTitle: product.name,
+        ogDescription: plainDescription || `${product.name} — ${storeName}-তে অর্ডার করুন। ক্যাশ অন ডেলিভারি উপলব্ধ।`,
+        ogImage: product.image_url || `${baseUrl}/img/logo.png`,
+        ogUrl: `${baseUrl}/product/${product.id}`,
+        ogType: 'product'
     });
+});
+
+// "Notify me when back in stock" — stores the phone number against the product.
+// No automatic message is sent (that needs a paid SMS/WhatsApp API); staff see
+// the list of numbers in the admin product-edit page and message people manually.
+router.post('/product/:id/notify-me', async (req, res) => {
+    const { phone } = req.body;
+    if (phone && phone.trim()) {
+        await pool.query(
+            'INSERT INTO stock_notify_requests (product_id, phone) VALUES ($1, $2)',
+            [req.params.id, phone.trim()]
+        );
+    }
+    res.redirect('/product/' + req.params.id + '?notified=1#notify-me');
 });
 
 // Submit a product review (no login needed — name + star rating + optional comment)
@@ -136,12 +229,16 @@ router.post('/product/:id/review', async (req, res) => {
             'SELECT AVG(rating) AS avg_rating, COUNT(*) AS review_count FROM product_reviews WHERE product_id = $1',
             [req.params.id]
         );
+        const storeName = process.env.STORE_NAME || 'JM Gadget Zone';
         return res.render('product', {
             product: rows[0], galleryImages, reviews,
             avgRating: parseFloat(ratingRows[0].avg_rating) || 0,
             reviewCount: parseInt(ratingRows[0].review_count, 10) || 0,
             reviewError: 'নাম ও রেটিং (১-৫) দিতে হবে / Name and a 1-5 rating are required',
-            NEW_PRODUCT_DAYS, LOW_STOCK_THRESHOLD
+            notifyMeSuccess: false,
+            NEW_PRODUCT_DAYS, LOW_STOCK_THRESHOLD,
+            title: `${rows[0].name} - ${storeName}`,
+            ogTitle: rows[0].name, ogDescription: '', ogImage: rows[0].image_url || '', ogUrl: '', ogType: 'product'
         });
     }
 
@@ -280,6 +377,31 @@ router.post('/checkout', async (req, res) => {
     } finally {
         client.release();
     }
+});
+
+// Order tracking — look up past orders by phone number, no account needed
+router.get('/track-order', (req, res) => {
+    res.render('track-order', { phone: '', orders: null, orderItemsById: {} });
+});
+
+router.post('/track-order', async (req, res) => {
+    const phone = (req.body.phone || '').trim();
+    if (!phone) {
+        return res.render('track-order', { phone: '', orders: null, orderItemsById: {} });
+    }
+
+    const { rows: orders } = await pool.query(
+        'SELECT * FROM orders WHERE phone = $1 ORDER BY created_at DESC',
+        [phone]
+    );
+
+    const orderItemsById = {};
+    for (const order of orders) {
+        const { rows: items } = await pool.query('SELECT * FROM order_items WHERE order_id = $1', [order.id]);
+        orderItemsById[order.id] = items;
+    }
+
+    res.render('track-order', { phone, orders, orderItemsById });
 });
 
 module.exports = router;
