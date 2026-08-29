@@ -21,6 +21,11 @@ function parseSpecsText(specsText) {
         .filter(s => s.label);
 }
 
+// Bare /admin — send to dashboard if already logged in, otherwise to login
+router.get('/', (req, res) => {
+    res.redirect(req.session && req.session.isAdmin ? '/admin/dashboard' : '/admin/login');
+});
+
 // Login page
 router.get('/login', (req, res) => {
     res.render('admin/login', { error: null });
@@ -240,14 +245,14 @@ router.get('/orders/:id', requireAdmin, async (req, res) => {
     const { rows: orderRows } = await pool.query('SELECT * FROM orders WHERE id = $1', [req.params.id]);
     if (orderRows.length === 0) return res.redirect('/admin/orders');
     const { rows: items } = await pool.query('SELECT * FROM order_items WHERE order_id = $1', [req.params.id]);
-    res.render('admin/order-detail', { order: orderRows[0], items });
+    res.render('admin/order-detail', { order: orderRows[0], items, updatedSuccess: req.query.updated === '1' });
 });
 
 // Update order status
 router.post('/orders/:id/status', requireAdmin, async (req, res) => {
     const { status } = req.body;
     await pool.query('UPDATE orders SET status = $1 WHERE id = $2', [status, req.params.id]);
-    res.redirect(`/admin/orders/${req.params.id}`);
+    res.redirect(`/admin/orders/${req.params.id}?updated=1`);
 });
 
 // Delete order (also removes its order_items via ON DELETE CASCADE) —
