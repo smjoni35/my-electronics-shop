@@ -19,13 +19,78 @@
         </div>
         <% const allPhotos = [product.image_url, ...galleryImages.map(g => g.image_url)].filter(Boolean); %>
         <% if (allPhotos.length > 0) { %>
-            <img id="main-product-photo" src="<%= allPhotos[0] %>" alt="<%= product.name %>" loading="lazy">
+            <div class="main-slider" id="main-slider">
+                <div class="main-slider-track" id="main-slider-track">
+                    <% allPhotos.forEach((url, i) => { %>
+                        <img src="<%= url %>" class="main-slide" alt="<%= product.name %>" loading="<%= i === 0 ? 'eager' : 'lazy' %>">
+                    <% }) %>
+                </div>
+            </div>
             <% if (allPhotos.length > 1) { %>
-            <div class="gallery-thumbs">
+            <div class="gallery-thumbs" id="gallery-thumbs">
                 <% allPhotos.forEach((url, i) => { %>
-                    <img src="<%= url %>" class="gallery-thumb <%= i === 0 ? 'active' : '' %>" onclick="document.getElementById('main-product-photo').src = this.src; document.querySelectorAll('.gallery-thumb').forEach(t => t.classList.remove('active')); this.classList.add('active');">
+                    <img src="<%= url %>" class="gallery-thumb <%= i === 0 ? 'active' : '' %>" data-index="<%= i %>">
                 <% }) %>
             </div>
+            <script>
+            (function () {
+                var slider = document.getElementById('main-slider');
+                var track = document.getElementById('main-slider-track');
+                var thumbsWrap = document.getElementById('gallery-thumbs');
+                var thumbs = Array.prototype.slice.call(document.querySelectorAll('.gallery-thumb'));
+                var total = <%= allPhotos.length %>;
+                var index = 0;
+                var startX = 0, currentX = 0, dragging = false, sliderWidth = slider.offsetWidth;
+
+                function goTo(i, animate) {
+                    index = Math.max(0, Math.min(total - 1, i));
+                    track.style.transition = animate === false ? 'none' : 'transform 0.35s ease';
+                    track.style.transform = 'translateX(-' + (index * 100) + '%)';
+                    thumbs.forEach(function (t) { t.classList.remove('active'); });
+                    thumbs[index].classList.add('active');
+                    var activeThumb = thumbs[index];
+                    thumbsWrap.scrollTo({
+                        left: activeThumb.offsetLeft - (thumbsWrap.clientWidth / 2) + (activeThumb.clientWidth / 2),
+                        behavior: 'smooth'
+                    });
+                }
+
+                thumbs.forEach(function (t) {
+                    t.addEventListener('click', function () { goTo(parseInt(t.dataset.index, 10)); });
+                });
+
+                window.addEventListener('resize', function () { sliderWidth = slider.offsetWidth; goTo(index, false); });
+
+                slider.addEventListener('touchstart', function (e) {
+                    startX = e.touches[0].clientX;
+                    currentX = startX;
+                    dragging = true;
+                    sliderWidth = slider.offsetWidth;
+                    track.style.transition = 'none';
+                }, { passive: true });
+
+                slider.addEventListener('touchmove', function (e) {
+                    if (!dragging) return;
+                    currentX = e.touches[0].clientX;
+                    var diff = currentX - startX;
+                    var percent = (diff / sliderWidth) * 100;
+                    track.style.transform = 'translateX(calc(-' + (index * 100) + '% + ' + diff + 'px))';
+                }, { passive: true });
+
+                slider.addEventListener('touchend', function () {
+                    if (!dragging) return;
+                    dragging = false;
+                    var diff = currentX - startX;
+                    if (Math.abs(diff) > sliderWidth * 0.15) {
+                        if (diff < 0) goTo(index + 1);
+                        else goTo(index - 1);
+                    } else {
+                        goTo(index);
+                    }
+                    startX = 0; currentX = 0;
+                });
+            })();
+            </script>
             <% } %>
         <% } else { %>
             <div class="no-img large">ছবি নেই</div>
