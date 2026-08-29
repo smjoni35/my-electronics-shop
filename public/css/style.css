@@ -1023,6 +1023,12 @@ h1, h2, h3 { font-family: var(--font-display); font-weight: 700; letter-spacing:
 .order-detail-box strong { color: var(--text); }
 .status-form { display: flex; align-items: center; gap: 12px; margin-top: 18px; flex-wrap: wrap; }
 .status-form select { padding: 9px; background: var(--surface-2); border: 1px solid var(--border); border-radius: var(--radius-sm); color: var(--text); }
+.order-actions-row { display: flex; flex-direction: column; }
+.order-actions-row .status-form { margin-top: 18px; }
+@media (min-width: 700px) {
+    .order-actions-row { flex-direction: row; align-items: center; gap: 20px; flex-wrap: wrap; }
+    .order-actions-row .status-form { margin-top: 18px; }
+}
 
 /* ==========================================================================
    Footer
