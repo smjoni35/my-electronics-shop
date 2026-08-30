@@ -27,6 +27,9 @@ app.use(session({
 
 app.use((req, res, next) => {
     res.locals.storeName = process.env.STORE_NAME || 'JM Gadget Zone';
+    res.locals.storePhone = process.env.STORE_PHONE || '01735698806';
+    res.locals.storeAddress = process.env.STORE_ADDRESS || 'সম্পূর্ণ অনলাইন ভিত্তিক শপ — সারাদেশে ডেলিভারি';
+    res.locals.storeEmail = process.env.STORE_EMAIL || '';
     res.locals.cartCount = req.session.cart
         ? Object.values(req.session.cart).reduce((a, b) => a + b, 0)
         : 0;
