@@ -4,58 +4,60 @@
     <a href="/">হোম</a> <span class="breadcrumb-sep">/</span> <span class="breadcrumb-current">আমার অর্ডার</span>
 </div>
 
-<h1 class="page-title">আমার অর্ডার ট্র্যাক করুন</h1>
-<p class="track-order-sub">যে ফোন নম্বর দিয়ে অর্ডার করেছিলেন তা দিন — অ্যাকাউন্ট তৈরি করার দরকার নেই।</p>
+<div class="track-order-page">
+    <h1 class="page-title">আমার অর্ডার ট্র্যাক করুন</h1>
+    <p class="track-order-sub">যে ফোন নম্বর দিয়ে অর্ডার করেছিলেন তা দিন — অ্যাকাউন্ট তৈরি করার দরকার নেই।</p>
 
-<form method="POST" action="/track-order" class="track-order-form">
-    <label>ফোন নম্বর
-        <input type="tel" name="phone" placeholder="01XXXXXXXXX" value="<%= phone %>" required>
-    </label>
-    <button type="submit" class="btn-primary">অর্ডার খুঁজুন</button>
-</form>
+    <form method="POST" action="/track-order" class="track-order-form">
+        <label>ফোন নম্বর
+            <input type="tel" name="phone" placeholder="01XXXXXXXXX" value="<%= phone %>" required>
+        </label>
+        <button type="submit" class="btn-primary">অর্ডার খুঁজুন</button>
+    </form>
 
-<% const STEPS = ['pending', 'confirmed', 'shipped', 'delivered']; %>
-<% const STEP_LABELS = { pending: 'অর্ডার গৃহীত', confirmed: 'কনফার্ম হয়েছে', shipped: 'পাঠানো হয়েছে', delivered: 'ডেলিভারি সম্পন্ন' }; %>
+    <% const STEPS = ['pending', 'confirmed', 'shipped', 'delivered']; %>
+    <% const STEP_LABELS = { pending: 'অর্ডার গৃহীত', confirmed: 'কনফার্ম হয়েছে', shipped: 'পাঠানো হয়েছে', delivered: 'ডেলিভারি সম্পন্ন' }; %>
 
-<% if (orders !== null) { %>
-    <% if (orders.length === 0) { %>
-        <p class="empty-msg">এই নম্বরে কোনো অর্ডার পাওয়া যায়নি।</p>
-    <% } else { %>
-        <div class="track-order-list">
-            <% orders.forEach(order => { %>
-                <div class="order-detail-box track-order-card">
-                    <div class="track-order-card-head">
-                        <strong>অর্ডার #<%= order.id %></strong>
-                        <span class="status-badge <%= order.status %>"><%= order.status %></span>
-                    </div>
-                    <p><%= new Date(order.created_at).toLocaleDateString('en-GB', { day: 'numeric', month: 'short', year: 'numeric' }) %> &nbsp;•&nbsp; ৳<%= parseFloat(order.total).toLocaleString('en-BD') %> &nbsp;•&nbsp; ক্যাশ অন ডেলিভারি</p>
+    <% if (orders !== null) { %>
+        <% if (orders.length === 0) { %>
+            <p class="empty-msg">এই নম্বরে কোনো অর্ডার পাওয়া যায়নি।</p>
+        <% } else { %>
+            <div class="track-order-list">
+                <% orders.forEach(order => { %>
+                    <div class="order-detail-box track-order-card">
+                        <div class="track-order-card-head">
+                            <strong>অর্ডার #<%= order.id %></strong>
+                            <span class="status-badge <%= order.status %>"><%= order.status %></span>
+                        </div>
+                        <p><%= new Date(order.created_at).toLocaleDateString('en-GB', { day: 'numeric', month: 'short', year: 'numeric' }) %> &nbsp;•&nbsp; ৳<%= parseFloat(order.total).toLocaleString('en-BD') %> &nbsp;•&nbsp; ক্যাশ অন ডেলিভারি</p>
 
-                    <% if (order.status !== 'cancelled') { %>
-                    <div class="order-status-track">
-                        <% const currentIdx = STEPS.indexOf(order.status); %>
-                        <% STEPS.forEach((step, i) => { %>
-                            <div class="order-status-step <%= i <= currentIdx ? 'done' : '' %>">
-                                <span class="order-status-dot"></span>
-                                <span class="order-status-label"><%= STEP_LABELS[step] %></span>
-                            </div>
-                        <% }) %>
-                    </div>
-                    <% } else { %>
-                        <p class="stock-badge out">এই অর্ডারটি বাতিল করা হয়েছে</p>
-                    <% } %>
-
-                    <details class="track-order-items">
-                        <summary>প্রোডাক্টসমূহ দেখুন (<%= orderItemsById[order.id].length %>)</summary>
-                        <ul>
-                            <% orderItemsById[order.id].forEach(item => { %>
-                                <li><%= item.product_name %> × <%= item.quantity %> — ৳<%= parseFloat(item.price * item.quantity).toLocaleString('en-BD') %></li>
+                        <% if (order.status !== 'cancelled') { %>
+                        <div class="order-status-track">
+                            <% const currentIdx = STEPS.indexOf(order.status); %>
+                            <% STEPS.forEach((step, i) => { %>
+                                <div class="order-status-step <%= i <= currentIdx ? 'done' : '' %>">
+                                    <span class="order-status-dot"></span>
+                                    <span class="order-status-label"><%= STEP_LABELS[step] %></span>
+                                </div>
                             <% }) %>
-                        </ul>
-                    </details>
-                </div>
-            <% }) %>
-        </div>
+                        </div>
+                        <% } else { %>
+                            <p class="stock-badge out">এই অর্ডারটি বাতিল করা হয়েছে</p>
+                        <% } %>
+
+                        <details class="track-order-items">
+                            <summary>প্রোডাক্টসমূহ দেখুন (<%= orderItemsById[order.id].length %>)</summary>
+                            <ul>
+                                <% orderItemsById[order.id].forEach(item => { %>
+                                    <li><%= item.product_name %> × <%= item.quantity %> — ৳<%= parseFloat(item.price * item.quantity).toLocaleString('en-BD') %></li>
+                                <% }) %>
+                            </ul>
+                        </details>
+                    </div>
+                <% }) %>
+            </div>
+        <% } %>
     <% } %>
-<% } %>
+</div>
 
 <%- include('partials/footer') %>
