@@ -1566,24 +1566,34 @@ display: inline-flex;
 /* ==========================================================================
    Order tracking page
    ========================================================================== */
+.track-order-page { max-width: 640px; margin: 0 auto; }
+.track-order-page .page-title { text-align: center; }
+.track-order-page .track-order-sub { text-align: center; }
 .track-order-sub { color: var(--text-muted); margin-bottom: 18px; font-size: 0.9rem; }
 .track-order-form {
     display: flex;
     flex-wrap: wrap;
     align-items: flex-end;
+    justify-content: center;
     gap: 14px;
     margin-bottom: 30px;
+    background: var(--surface-2);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-sm);
+    padding: 20px;
 }
-.track-order-form label { display: flex; flex-direction: column; gap: 6px; font-size: 0.85rem; color: var(--text-muted); }
+.track-order-form label { display: flex; flex-direction: column; gap: 6px; font-size: 0.85rem; color: var(--text-muted); flex: 1 1 220px; }
 .track-order-form input {
     padding: 11px 14px;
-    background: var(--surface-2);
+    background: var(--surface);
     border: 1px solid var(--border);
     border-radius: var(--radius-sm);
     color: var(--text);
     font-size: 0.9rem;
+    width: 100%;
     min-width: 220px;
 }
+.track-order-form .btn-primary { flex: 0 0 auto; }
 .track-order-list { display: flex; flex-direction: column; gap: 16px; margin-bottom: 40px; }
 .track-order-card-head { display: flex; align-items: center; justify-content: space-between; gap: 10px; margin-bottom: 8px; }
 .track-order-card-head strong { font-family: var(--font-mono); }
