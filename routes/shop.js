@@ -270,6 +270,27 @@ router.post('/cart/add', async (req, res) => {
     const qty = parseInt(quantity) || 1;
     req.session.cart[productId] = (req.session.cart[productId] || 0) + qty;
 
+    // AJAX request (from the product page's fetch-based add-to-cart) — return
+    // the updated cart as JSON so the front-end can open the drawer instantly
+    // instead of doing a full page redirect.
+    if (req.get('X-Requested-With') === 'fetch') {
+        const cart = req.session.cart;
+        const ids = Object.keys(cart);
+        let items = [];
+        let total = 0;
+        if (ids.length > 0) {
+            const { rows } = await pool.query('SELECT * FROM products WHERE id = ANY($1::int[])', [ids]);
+            items = rows.map(p => {
+                const itemQty = cart[p.id];
+                const subtotal = itemQty * parseFloat(p.price);
+                total += subtotal;
+                return { id: p.id, name: p.name, price: parseFloat(p.price), image_url: p.image_url, quantity: itemQty, subtotal };
+            });
+        }
+        const count = Object.values(cart).reduce((a, b) => a + b, 0);
+        return res.json({ ok: true, items, total, count });
+    }
+
     res.redirect('back');
 });
 
