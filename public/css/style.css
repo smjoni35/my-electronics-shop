@@ -1096,13 +1096,13 @@ h1, h2, h3 { font-family: var(--font-display); font-weight: 700; letter-spacing:
     width: 6px; height: 6px; border-radius: 50%; background: var(--accent-2);
     box-shadow: 0 0 8px 1px rgba(41,182,246,0.5);
 }
-.site-footer { text-align: center; padding: 28px 0 36px; color: var(--text-faint); font-size: 0.82rem; }
+.site-footer { text-align: center; padding: 32px 0 30px; color: var(--text-faint); font-size: 0.82rem; }
 .trust-badges {
     display: flex;
     flex-wrap: wrap;
     justify-content: center;
     gap: 10px;
-    margin-bottom: 18px;
+    margin-bottom: 28px;
 }
 .trust-badge {
     background: var(--surface-2);
@@ -1113,22 +1113,47 @@ h1, h2, h3 { font-family: var(--font-display); font-weight: 700; letter-spacing:
     color: var(--text-muted);
     white-space: nowrap;
 }
-.footer-links {
-    display: flex;
-    flex-wrap: wrap;
-    justify-content: center;
-    gap: 6px 18px;
-    margin-bottom: 16px;
+
+.footer-grid {
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: 30px;
+    text-align: left;
+    padding-bottom: 24px;
+    border-bottom: 1px solid var(--border-soft);
+    margin-bottom: 20px;
 }
-.footer-links a { color: var(--text-muted); text-decoration: none; font-size: 0.85rem; }
-.footer-links a:hover { color: var(--accent); text-decoration: underline; }
-.footer-socials { display: flex; justify-content: center; gap: 14px; margin-bottom: 16px; }
+@media (min-width: 700px) {
+    .footer-grid { grid-template-columns: 1.4fr 1fr 1fr; gap: 40px; }
+}
+.footer-col h4 {
+    color: var(--text);
+    font-family: var(--font-display);
+    font-size: 0.92rem;
+    margin-bottom: 14px;
+    letter-spacing: 0.01em;
+}
+.footer-col { display: flex; flex-direction: column; gap: 10px; }
+.footer-col a { color: var(--text-muted); text-decoration: none; font-size: 0.85rem; width: fit-content; transition: color 0.15s; }
+.footer-col a:hover { color: var(--accent-2); }
+.footer-logo {
+    font-family: var(--font-display);
+    font-weight: 700;
+    font-size: 1.1rem;
+    color: var(--text) !important;
+    margin-bottom: 2px;
+}
+.footer-tagline { color: var(--text-faint); font-size: 0.85rem; line-height: 1.6; max-width: 34ch; }
+.footer-contact-line { display: flex; align-items: center; gap: 6px; }
+.footer-address { color: var(--text-muted); }
+
+.footer-socials { display: flex; justify-content: flex-start; gap: 10px; margin-top: 4px; }
 .footer-socials a {
     display: inline-flex;
     align-items: center;
     justify-content: center;
-    width: 36px;
-    height: 36px;
+    width: 34px;
+    height: 34px;
     border-radius: 999px;
     background: var(--surface-2);
     border: 1px solid var(--border-soft);
@@ -1146,6 +1171,8 @@ h1, h2, h3 { font-family: var(--font-display); font-weight: 700; letter-spacing:
 .footer-socials a.social-fb:hover { opacity: 0.88; }
 .footer-socials a.social-ig:hover { opacity: 0.88; }
 .footer-socials a.social-wa:hover { opacity: 0.88; }
+
+.footer-copyright { text-align: center; color: var(--text-faint); font-size: 0.8rem; }
 
 /* ==========================================================================
    WhatsApp floating button
