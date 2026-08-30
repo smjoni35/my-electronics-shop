@@ -56,6 +56,11 @@ router.get('/return-policy', (req, res) => {
     res.render('return-policy', { title: 'রিটার্ন ও এক্সচেঞ্জ পলিসি' });
 });
 
+// Static info page — frequently asked questions
+router.get('/faq', (req, res) => {
+    res.render('faq', { title: 'সাধারণ জিজ্ঞাসা (FAQ)' });
+});
+
 // Home page — product grid, optional category/search/price filters, sort, pagination
 router.get('/', async (req, res) => {
     const { category, q } = req.query;
@@ -71,6 +76,16 @@ router.get('/', async (req, res) => {
     const products = pageRows.slice(0, PAGE_SIZE);
 
     const { rows: categories } = await pool.query('SELECT DISTINCT category FROM products WHERE category IS NOT NULL');
+
+    // One representative product image per category, for the homepage category shortcut grid
+    const { rows: categoryThumbRows } = await pool.query(`
+        SELECT DISTINCT ON (category) category, image_url
+        FROM products
+        WHERE category IS NOT NULL AND image_url IS NOT NULL
+        ORDER BY category, id ASC
+    `);
+    const categoryThumbs = {};
+    categoryThumbRows.forEach(r => { categoryThumbs[r.category] = r.image_url; });
 
     // Overall min/max effective price across all products — used to size the price slider
     const { rows: boundsRows } = await pool.query(`
@@ -110,7 +125,7 @@ router.get('/', async (req, res) => {
     }
 
     res.render('home', {
-        products, categories, activeCategory: category || '', q: q || '', bestSellerIds, bestSellers,
+        products, categories, categoryThumbs, activeCategory: category || '', q: q || '', bestSellerIds, bestSellers,
         sort, NEW_PRODUCT_DAYS, LOW_STOCK_THRESHOLD, hasMore, priceBounds,
         minPrice: minPrice || '', maxPrice: maxPrice || ''
     });
