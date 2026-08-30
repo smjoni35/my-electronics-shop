@@ -102,15 +102,16 @@
         forms.forEach(function (form) {
             form.addEventListener('submit', function (e) {
                 e.preventDefault();
-                var formData = new FormData(form);
+                var params = new URLSearchParams();
+                new FormData(form).forEach(function (value, key) { params.append(key, value); });
                 var submitBtn = form.querySelector('button[type=submit]');
                 var originalText = submitBtn ? submitBtn.textContent : '';
                 if (submitBtn) { submitBtn.disabled = true; submitBtn.textContent = 'যোগ হচ্ছে...'; }
 
                 fetch(form.action, {
                     method: 'POST',
-                    headers: { 'X-Requested-With': 'fetch' },
-                    body: formData
+                    headers: { 'X-Requested-With': 'fetch', 'Content-Type': 'application/x-www-form-urlencoded' },
+                    body: params
                 })
                     .then(function (res) { return res.json(); })
                     .then(function (data) {
