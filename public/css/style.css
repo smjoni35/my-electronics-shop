@@ -48,7 +48,7 @@ body {
     flex-direction: column;
     min-height: 100vh;
 }
-main.container { flex: 1 0 auto; width: 100%; min-width: 0; }
+main.container { flex: 1 0 auto; width: 100%; }
 a { color: inherit; }
 
 button, input, select, textarea { font-family: inherit; }
@@ -59,7 +59,10 @@ button, input, select, textarea { font-family: inherit; }
     border-radius: 4px;
 }
 
-.container { max-width: 1180px; margin: 0 auto; padding: 0 20px; }
+/* width: 100% (not the default "auto") keeps this a definite size. Without it, body's
+   flex layout lets a wide child (like the admin products table) stretch .container
+   past the screen edge on mobile, cutting off the stat boxes and table columns. */
+.container { max-width: 1180px; width: 100%; margin: 0 auto; padding: 0 20px; }
 
 h1, h2, h3 { font-family: var(--font-display); font-weight: 700; letter-spacing: -0.01em; }
 
@@ -1015,22 +1018,25 @@ h1, h2, h3 { font-family: var(--font-display); font-weight: 700; letter-spacing:
 .admin-login-box input:focus { border-color: var(--accent-2); outline: none; box-shadow: 0 0 0 1px var(--accent-2); }
 .admin-login-box .btn-primary { margin-top: 6px; text-align: center; }
 
-.stats-row { display: grid; grid-template-columns: repeat(auto-fit, minmax(140px, 1fr)); gap: 16px; margin: 20px 0; }
+.stats-row { display: flex; gap: 16px; margin: 20px 0; flex-wrap: wrap; }
 .stat-box {
     background: var(--surface); border: 1px solid var(--border-soft); border-radius: var(--radius);
-    padding: 18px 20px; min-width: 0; color: var(--text-muted); font-size: 0.88rem;
+    padding: 18px 20px; flex: 1; min-width: 150px; color: var(--text-muted); font-size: 0.88rem;
 }
-.stat-box strong { display: block; font-size: 1.4rem; color: var(--accent); margin-top: 6px; font-family: var(--font-mono); word-break: break-word; }
+.stat-box strong { display: block; font-size: 1.4rem; color: var(--accent); margin-top: 6px; font-family: var(--font-mono); }
 
 .admin-header-row { display: flex; justify-content: space-between; align-items: center; margin: 22px 0; flex-wrap: wrap; gap: 12px; }
 
 .admin-table { width: 100%; border-collapse: collapse; background: var(--surface); border: 1px solid var(--border-soft); border-radius: var(--radius); overflow: hidden; margin-bottom: 40px; }
 .table-scroll { width: 100%; overflow-x: auto; -webkit-overflow-scrolling: touch; margin-bottom: 40px; border-radius: var(--radius); }
-.table-scroll-hint { display: none; font-size: 0.78rem; color: var(--text-faint); margin-bottom: 8px; }
-@media (max-width: 800px) {
-    .table-scroll-hint { display: block; }
-}
 .table-scroll .admin-table { margin-bottom: 0; min-width: 720px; }
+.table-scroll-hint { display: none; }
+@media (max-width: 800px) {
+    .table-scroll-hint {
+        display: flex; align-items: center; gap: 6px; margin: -4px 0 10px;
+        color: var(--text-faint); font-size: 0.78rem;
+    }
+}
 .admin-table th, .admin-table td { padding: 11px 14px; border-bottom: 1px solid var(--border-soft); text-align: center; font-size: 0.88rem; vertical-align: middle; }
 .admin-table th { background: var(--surface-2); color: var(--text-muted); font-weight: 600; text-transform: uppercase; font-size: 0.75rem; letter-spacing: 0.03em; }
 .admin-table tr:last-child td { border-bottom: none; }
