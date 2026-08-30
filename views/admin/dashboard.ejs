@@ -14,30 +14,10 @@
     <div class="container">
         <div class="stats-row">
             <div class="stat-box">Total Order<strong><%= stats.total_orders %></strong></div>
-            <div class="stat-box">Total Sell<strong>৳<%= parseFloat(stats.total_revenue).toLocaleString('en-BD') %></strong></div>
+            <div class="stat-box">Total Sales<strong>৳<%= parseFloat(stats.total_revenue).toLocaleString('en-BD') %></strong></div>
+            <div class="stat-box">Pending Revenue<strong>৳<%= parseFloat(stats.pending_revenue).toLocaleString('en-BD') %></strong></div>
             <div class="stat-box">Total Product<strong><%= products.length %></strong></div>
         </div>
-
-        <% if (bestSellers.length > 0) { %>
-        <div class="admin-header-row">
-            <h1>🏆 Best Sellers</h1>
-        </div>
-        <table class="admin-table best-sellers-table">
-            <thead>
-                <tr><th>Photo</th><th>Product</th><th>Total Sold</th><th>Total Revenue</th></tr>
-            </thead>
-            <tbody>
-                <% bestSellers.forEach((b, i) => { %>
-                <tr>
-                    <td><% if (b.image_url) { %><img src="<%= b.image_url %>" class="thumb"><% } %></td>
-                    <td><%= i === 0 ? '🥇 ' : (i === 1 ? '🥈 ' : (i === 2 ? '🥉 ' : '')) %><%= b.product_name %></td>
-                    <td><%= b.total_sold %> pcs</td>
-                    <td>৳<%= parseFloat(b.total_revenue).toLocaleString('en-BD') %></td>
-                </tr>
-                <% }) %>
-            </tbody>
-        </table>
-        <% } %>
 
         <div class="admin-header-row">
             <h1>Products</h1>
@@ -46,6 +26,8 @@
             <% } %>
         </div>
 
+        <p class="table-scroll-hint">👉 বাকি কলাম দেখতে টেবিলটি বামে-ডানে সোয়াইপ করুন</p>
+        <div class="table-scroll">
         <table class="admin-table">
             <thead>
                 <tr><th>Photo</th><th>Name</th><th>Price</th><th>Stock</th><th>Category</th><th>Action</th></tr>
@@ -72,6 +54,7 @@
                 <% }) %>
             </tbody>
         </table>
+        </div>
     </div>
 </body>
 </html>
