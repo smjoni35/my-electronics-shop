@@ -1,0 +1,251 @@
+<%- include('partials/header') %>
+
+<% if (typeof bestSellers !== 'undefined' && bestSellers.length > 0) { %>
+<div class="hero-slider" id="heroSlider">
+    <div class="hero-track" id="heroTrack">
+        <% bestSellers.forEach(p => { %>
+            <a href="/product/<%= p.id %>" class="hero-slide">
+                <% if (p.image_url) { %>
+                    <img src="<%= p.image_url %>" alt="<%= p.name %>">
+                <% } %>
+                <div class="hero-slide-overlay">
+                    <span class="hero-tag">🏆 Best Seller</span>
+                    <h2 class="hero-slide-title"><%= p.name %></h2>
+                    <p class="hero-slide-price">
+                        <% if (p.discount_percent > 0) { %>
+                            ৳<%= parseFloat(p.effective_price).toLocaleString('en-BD') %>
+                            <span class="hero-slide-price-original">৳<%= parseFloat(p.price).toLocaleString('en-BD') %></span>
+                        <% } else { %>
+                            ৳<%= parseFloat(p.price).toLocaleString('en-BD') %>
+                        <% } %>
+                    </p>
+                </div>
+            </a>
+        <% }) %>
+    </div>
+    <% if (bestSellers.length > 1) { %>
+        <button type="button" class="hero-arrow hero-arrow-prev" id="heroPrev" aria-label="Previous slide">&#10094;</button>
+        <button type="button" class="hero-arrow hero-arrow-next" id="heroNext" aria-label="Next slide">&#10095;</button>
+        <div class="hero-dots" id="heroDots">
+            <% bestSellers.forEach((p, i) => { %>
+                <button type="button" class="hero-dot <%= i === 0 ? 'active' : '' %>" data-index="<%= i %>" aria-label="Slide <%= i + 1 %>"></button>
+            <% }) %>
+        </div>
+    <% } %>
+</div>
+<script>
+(function () {
+    const track = document.getElementById('heroTrack');
+    const dots = document.querySelectorAll('#heroDots .hero-dot');
+    if (!track || dots.length === 0) return;
+    let index = 0;
+    let autoplay;
+
+    function goTo(i) {
+        index = (i + dots.length) % dots.length;
+        track.scrollTo({ left: track.clientWidth * index, behavior: 'smooth' });
+        dots.forEach((d, di) => d.classList.toggle('active', di === index));
+    }
+    dots.forEach(d => d.addEventListener('click', () => { goTo(parseInt(d.dataset.index, 10)); resetAutoplay(); }));
+
+    const prevBtn = document.getElementById('heroPrev');
+    const nextBtn = document.getElementById('heroNext');
+    if (prevBtn) prevBtn.addEventListener('click', () => { goTo(index - 1); resetAutoplay(); });
+    if (nextBtn) nextBtn.addEventListener('click', () => { goTo(index + 1); resetAutoplay(); });
+
+    let scrollTimeout;
+    track.addEventListener('scroll', () => {
+        clearTimeout(scrollTimeout);
+        scrollTimeout = setTimeout(() => {
+            const i = Math.round(track.scrollLeft / track.clientWidth);
+            index = i;
+            dots.forEach((d, di) => d.classList.toggle('active', di === index));
+        }, 100);
+    });
+
+    function resetAutoplay() {
+        clearInterval(autoplay);
+        autoplay = setInterval(() => goTo(index + 1), 4000);
+    }
+    resetAutoplay();
+})();
+</script>
+<% } %>
+
+<% if (!activeCategory && !q) { %>
+<section class="why-us-row">
+    <div class="why-us-item">
+        <span class="why-us-icon">✅</span>
+        <div><strong>১০০% অরিজিনাল পণ্য</strong><p>প্রতিটি প্রোডাক্ট যাচাই করে বিক্রি করা হয়</p></div>
+    </div>
+    <div class="why-us-item">
+        <span class="why-us-icon">🚚</span>
+        <div><strong>দ্রুত ডেলিভারি</strong><p>ঢাকার ভিতরে ২-৩ দিনে পৌঁছে যাবে</p></div>
+    </div>
+    <div class="why-us-item">
+        <span class="why-us-icon">💵</span>
+        <div><strong>ক্যাশ অন ডেলিভারি</strong><p>পণ্য হাতে পেয়ে তারপর টাকা দিন</p></div>
+    </div>
+    <div class="why-us-item">
+        <span class="why-us-icon">🔁</span>
+        <div><strong>সহজ রিটার্ন</strong><p>৭ দিনের মধ্যে রিটার্ন/এক্সচেঞ্জ সুবিধা</p></div>
+    </div>
+</section>
+
+<% if (categories.length > 0) { %>
+<section class="category-grid-section">
+    <h2 class="section-title">ক্যাটাগরি অনুযায়ী দেখুন</h2>
+    <div class="category-shortcut-grid">
+        <% categories.forEach(c => { %>
+            <a href="/?category=<%= encodeURIComponent(c.category) %>" class="category-shortcut-card">
+                <% if (categoryThumbs[c.category]) { %>
+                    <img src="<%= categoryThumbs[c.category] %>" alt="<%= c.category %>">
+                <% } else { %>
+                    <div class="no-img large"></div>
+                <% } %>
+                <span><%= c.category %></span>
+            </a>
+        <% }) %>
+    </div>
+</section>
+<% } %>
+<% } %>
+
+<% if (activeCategory) { %>
+<nav class="breadcrumb" aria-label="breadcrumb">
+    <a href="/">হোম</a> <span class="breadcrumb-sep">/</span> <span class="breadcrumb-current"><%= activeCategory %></span>
+</nav>
+<% } %>
+
+<div class="category-bar-wrap">
+    <div class="category-bar">
+        <a href="/" class="<%= activeCategory === '' ? 'active' : '' %>">All products</a>
+        <% categories.forEach(c => { %>
+            <a href="/?category=<%= encodeURIComponent(c.category) %>" class="<%= activeCategory === c.category ? 'active' : '' %>"><%= c.category %></a>
+        <% }) %>
+    </div>
+</div>
+
+<div class="toolbar-row">
+    <h1 class="page-title">Products</h1>
+    <form method="GET" class="sort-form">
+        <% if (activeCategory) { %><input type="hidden" name="category" value="<%= activeCategory %>"><% } %>
+        <% if (q) { %><input type="hidden" name="q" value="<%= q %>"><% } %>
+        <% if (minPrice) { %><input type="hidden" name="minPrice" value="<%= minPrice %>"><% } %>
+        <% if (maxPrice) { %><input type="hidden" name="maxPrice" value="<%= maxPrice %>"><% } %>
+        <label class="sort-label">Sort:
+            <select name="sort" onchange="this.form.submit()">
+                <option value="newest" <%= sort === 'newest' ? 'selected' : '' %>>নতুন প্রোডাক্ট আগে</option>
+                <option value="price_asc" <%= sort === 'price_asc' ? 'selected' : '' %>>দাম: কম → বেশি</option>
+                <option value="price_desc" <%= sort === 'price_desc' ? 'selected' : '' %>>দাম: বেশি → কম</option>
+            </select>
+        </label>
+    </form>
+</div>
+
+<form method="GET" class="price-filter-bar" id="priceFilterForm">
+    <% if (activeCategory) { %><input type="hidden" name="category" value="<%= activeCategory %>"><% } %>
+    <% if (q) { %><input type="hidden" name="q" value="<%= q %>"><% } %>
+    <% if (sort && sort !== 'newest') { %><input type="hidden" name="sort" value="<%= sort %>"><% } %>
+    <span class="price-filter-label">প্রাইস রেঞ্জ:</span>
+    <div class="price-range-slider" data-min="<%= priceBounds.min %>" data-max="<%= priceBounds.max %>">
+        <div class="price-range-track"></div>
+        <div class="price-range-fill" id="priceRangeFill"></div>
+        <input type="range" id="priceMinRange" min="<%= priceBounds.min %>" max="<%= priceBounds.max %>" value="<%= minPrice || priceBounds.min %>" step="10">
+        <input type="range" id="priceMaxRange" min="<%= priceBounds.min %>" max="<%= priceBounds.max %>" value="<%= maxPrice || priceBounds.max %>" step="10">
+    </div>
+    <span class="price-range-values">৳<span id="priceMinLabel"><%= minPrice || priceBounds.min %></span> – ৳<span id="priceMaxLabel"><%= maxPrice || priceBounds.max %></span></span>
+    <input type="hidden" name="minPrice" id="minPriceInput" value="<%= minPrice || priceBounds.min %>">
+    <input type="hidden" name="maxPrice" id="maxPriceInput" value="<%= maxPrice || priceBounds.max %>">
+    <button type="submit" class="btn-price-filter">Apply</button>
+</form>
+<script>
+(function () {
+    const wrap = document.querySelector('.price-range-slider');
+    if (!wrap) return;
+    const minR = document.getElementById('priceMinRange');
+    const maxR = document.getElementById('priceMaxRange');
+    const fill = document.getElementById('priceRangeFill');
+    const minLabel = document.getElementById('priceMinLabel');
+    const maxLabel = document.getElementById('priceMaxLabel');
+    const minInput = document.getElementById('minPriceInput');
+    const maxInput = document.getElementById('maxPriceInput');
+    const bMin = parseFloat(wrap.dataset.min), bMax = parseFloat(wrap.dataset.max) || 1;
+
+    function update() {
+        let vMin = parseFloat(minR.value), vMax = parseFloat(maxR.value);
+        if (vMin > vMax) { [vMin, vMax] = [vMax, vMin]; }
+        minLabel.textContent = vMin.toLocaleString('en-BD');
+        maxLabel.textContent = vMax.toLocaleString('en-BD');
+        minInput.value = vMin;
+        maxInput.value = vMax;
+        const range = (bMax - bMin) || 1;
+        const left = ((vMin - bMin) / range) * 100;
+        const right = ((vMax - bMin) / range) * 100;
+        fill.style.left = left + '%';
+        fill.style.right = (100 - right) + '%';
+    }
+    minR.addEventListener('input', update);
+    maxR.addEventListener('input', update);
+    update();
+})();
+</script>
+
+<% if (products.length === 0) { %>
+    <p class="empty-msg">No products found.</p>
+<% } else { %>
+<div class="product-grid" id="productGrid">
+    <%- include('partials/product-cards', { products, bestSellerIds, NEW_PRODUCT_DAYS, LOW_STOCK_THRESHOLD }) %>
+</div>
+<% if (hasMore) { %>
+    <div class="load-more-wrap">
+        <button type="button" id="loadMoreBtn" class="btn-primary"
+            data-offset="<%= products.length %>"
+            data-category="<%= activeCategory %>"
+            data-q="<%= q %>"
+            data-sort="<%= sort %>"
+            data-minprice="<%= minPrice || '' %>"
+            data-maxprice="<%= maxPrice || '' %>">
+            আরও দেখুন (Load More)
+        </button>
+    </div>
+    <script>
+    (function () {
+        const btn = document.getElementById('loadMoreBtn');
+        const grid = document.getElementById('productGrid');
+        if (!btn || !grid) return;
+        btn.addEventListener('click', async function () {
+            btn.disabled = true;
+            btn.textContent = 'লোড হচ্ছে...';
+            const params = new URLSearchParams({
+                offset: btn.dataset.offset,
+                category: btn.dataset.category || '',
+                q: btn.dataset.q || '',
+                sort: btn.dataset.sort || '',
+                minPrice: btn.dataset.minprice || '',
+                maxPrice: btn.dataset.maxprice || ''
+            });
+            try {
+                const res = await fetch('/api/products/more?' + params.toString());
+                const html = await res.text();
+                grid.insertAdjacentHTML('beforeend', html);
+                const hasMoreHeader = res.headers.get('X-Has-More');
+                const nextOffset = res.headers.get('X-Next-Offset');
+                if (nextOffset) btn.dataset.offset = nextOffset;
+                if (hasMoreHeader === '1') {
+                    btn.disabled = false;
+                    btn.textContent = 'আরও দেখুন (Load More)';
+                } else {
+                    btn.remove();
+                }
+            } catch (err) {
+                btn.disabled = false;
+                btn.textContent = 'আবার চেষ্টা করুন';
+            }
+        });
+    })();
+    </script>
+<% } %>
+<% } %>
+
+<%- include('partials/footer') %>
