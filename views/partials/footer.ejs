@@ -36,5 +36,98 @@
             <p>&copy; <%= new Date().getFullYear() %> <%= storeName %>. সর্বস্বত্ব সংরক্ষিত।</p>
         </div>
     </footer>
+
+    <!-- Slide-in cart drawer: opens instantly when a product is added to cart -->
+    <div class="cart-drawer-overlay" id="cartDrawerOverlay"></div>
+    <aside class="cart-drawer" id="cartDrawer" aria-hidden="true">
+        <div class="cart-drawer-head">
+            <h3>✅ কার্টে যোগ হয়েছে</h3>
+            <button type="button" class="cart-drawer-close" id="cartDrawerClose" aria-label="বন্ধ করুন">✕</button>
+        </div>
+        <div class="cart-drawer-items" id="cartDrawerItems"></div>
+        <div class="cart-drawer-foot">
+            <div class="cart-drawer-total">মোট: <strong id="cartDrawerTotal">৳0</strong></div>
+            <a href="/cart" class="btn-primary cart-drawer-view">কার্ট দেখুন</a>
+        </div>
+    </aside>
+
+    <script>
+    (function () {
+        var drawer = document.getElementById('cartDrawer');
+        var overlay = document.getElementById('cartDrawerOverlay');
+        var closeBtn = document.getElementById('cartDrawerClose');
+        var itemsBox = document.getElementById('cartDrawerItems');
+        var totalBox = document.getElementById('cartDrawerTotal');
+
+        function openDrawer() {
+            drawer.classList.add('open');
+            overlay.classList.add('open');
+            drawer.setAttribute('aria-hidden', 'false');
+            document.body.style.overflow = 'hidden';
+        }
+        function closeDrawer() {
+            drawer.classList.remove('open');
+            overlay.classList.remove('open');
+            drawer.setAttribute('aria-hidden', 'true');
+            document.body.style.overflow = '';
+        }
+        if (closeBtn) closeBtn.addEventListener('click', closeDrawer);
+        if (overlay) overlay.addEventListener('click', closeDrawer);
+
+        function fmt(n) {
+            return '৳' + Number(n).toLocaleString('en-BD');
+        }
+
+        function renderDrawer(data) {
+            itemsBox.innerHTML = '';
+            data.items.forEach(function (item) {
+                var row = document.createElement('div');
+                row.className = 'cart-drawer-item';
+                var img = item.image_url ? item.image_url : '/img/logo.png';
+                row.innerHTML =
+                    '<img src="' + img + '" alt="">' +
+                    '<div class="cart-drawer-item-info">' +
+                        '<p class="cart-drawer-item-name">' + item.name + '</p>' +
+                        '<p class="cart-drawer-item-qty">' + item.quantity + ' × ' + fmt(item.price) + '</p>' +
+                    '</div>' +
+                    '<div class="cart-drawer-item-subtotal">' + fmt(item.subtotal) + '</div>';
+                itemsBox.appendChild(row);
+            });
+            totalBox.textContent = fmt(data.total);
+            var cartCountEl = document.querySelector('.cart-count');
+            if (cartCountEl) cartCountEl.textContent = data.count;
+        }
+
+        var forms = document.querySelectorAll('.add-cart-form');
+        forms.forEach(function (form) {
+            form.addEventListener('submit', function (e) {
+                e.preventDefault();
+                var formData = new FormData(form);
+                var submitBtn = form.querySelector('button[type=submit]');
+                var originalText = submitBtn ? submitBtn.textContent : '';
+                if (submitBtn) { submitBtn.disabled = true; submitBtn.textContent = 'যোগ হচ্ছে...'; }
+
+                fetch(form.action, {
+                    method: 'POST',
+                    headers: { 'X-Requested-With': 'fetch' },
+                    body: formData
+                })
+                    .then(function (res) { return res.json(); })
+                    .then(function (data) {
+                        if (data.ok) {
+                            renderDrawer(data);
+                            openDrawer();
+                        }
+                    })
+                    .catch(function () {
+                        form.submit(); // fallback: normal form submit if fetch fails
+                    })
+                    .finally(function () {
+                        if (submitBtn) { submitBtn.disabled = false; submitBtn.textContent = originalText; }
+                    });
+            });
+        });
+    })();
+    </script>
 </body>
 </html>
