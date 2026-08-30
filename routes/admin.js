@@ -67,23 +67,7 @@ router.get('/dashboard', requireAdmin, async (req, res) => {
             COALESCE(SUM(total) FILTER (WHERE status IN ('pending', 'confirmed', 'shipped')), 0) AS pending_revenue
         FROM orders
     `);
-    // Best sellers — total quantity sold per product, only counting delivered orders
-    const { rows: bestSellers } = await pool.query(`
-        SELECT
-            oi.product_id,
-            oi.product_name,
-            p.image_url,
-            SUM(oi.quantity) AS total_sold,
-            SUM(oi.quantity * oi.price) AS total_revenue
-        FROM order_items oi
-        JOIN orders o ON o.id = oi.order_id
-        LEFT JOIN products p ON p.id = oi.product_id
-        WHERE o.status = 'delivered'
-        GROUP BY oi.product_id, oi.product_name, p.image_url
-        ORDER BY total_sold DESC
-        LIMIT 5
-    `);
-    res.render('admin/dashboard', { products, stats: orderStats[0], bestSellers, addedSuccess: req.query.added === '1' });
+    res.render('admin/dashboard', { products, stats: orderStats[0], addedSuccess: req.query.added === '1' });
 });
 
 // New product form
