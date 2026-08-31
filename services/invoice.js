@@ -2,6 +2,10 @@
 // pdfkit — a free, open-source library (no paid API / subscription).
 const PDFDocument = require('pdfkit');
 
+const PAGE_LEFT = 50;
+const PAGE_RIGHT = 545;
+const PAGE_WIDTH = PAGE_RIGHT - PAGE_LEFT; // 495
+
 function money(n) {
     return `Tk ${Number(n || 0).toLocaleString('en-BD', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
 }
@@ -17,84 +21,130 @@ function streamInvoice(res, order, items, storeInfo) {
     res.setHeader('Content-Disposition', `inline; filename="invoice-${order.id}.pdf"`);
     doc.pipe(res);
 
-    // ---- Header ----
-    doc.font('Helvetica-Bold').fontSize(20).fillColor('#1a1300').text(storeInfo.name, { continued: false });
-    doc.font('Helvetica').fontSize(9).fillColor('#555')
-        .text(storeInfo.address || '')
-        .text(storeInfo.phone ? `Phone: ${storeInfo.phone}` : '')
-        .text(storeInfo.email || '');
+    // ---- Header: two independent columns (store info left, invoice meta
+    // right) both starting from the exact same Y — no moveUp() guessing,
+    // so the row below always starts from whichever column ran longer. ----
+    const headerTop = doc.y;
+    const leftColWidth = 260;
+    const rightColX = PAGE_LEFT + leftColWidth + 20; // 330
+    const rightColWidth = PAGE_RIGHT - rightColX;     // 215
 
-    doc.moveUp(storeInfo.email ? 3 : 2);
-    doc.font('Helvetica-Bold').fontSize(16).fillColor('#000').text('INVOICE', 0, doc.y, { align: 'right' });
-    doc.font('Helvetica').fontSize(10).fillColor('#333')
-        .text(`Invoice / Order #: ${order.id}`, { align: 'right' })
-        .text(`Order date: ${new Date(order.created_at).toLocaleDateString('en-GB')}`, { align: 'right' })
-        .text(`Status: ${order.status.toUpperCase()}`, { align: 'right' });
+    doc.font('Helvetica-Bold').fontSize(20).fillColor('#1a1300')
+        .text(storeInfo.name, PAGE_LEFT, headerTop, { width: leftColWidth });
+    let leftY = doc.y + 2;
+    doc.font('Helvetica').fontSize(9).fillColor('#555');
+    [storeInfo.address, storeInfo.phone ? `Phone: ${storeInfo.phone}` : null, storeInfo.email]
+        .filter(Boolean)
+        .forEach(line => {
+            doc.text(line, PAGE_LEFT, leftY, { width: leftColWidth });
+            leftY = doc.y;
+        });
 
-    doc.moveDown(1.5);
-    doc.moveTo(50, doc.y).lineTo(545, doc.y).strokeColor('#ddd').stroke();
-    doc.moveDown();
+    doc.font('Helvetica-Bold').fontSize(16).fillColor('#000')
+        .text('INVOICE', rightColX, headerTop, { width: rightColWidth, align: 'right' });
+    let rightY = doc.y + 4;
+    doc.font('Helvetica').fontSize(10).fillColor('#333');
+    [
+        `Invoice / Order #: ${order.id}`,
+        `Order date: ${new Date(order.created_at).toLocaleDateString('en-GB')}`,
+        `Status: ${order.status.toUpperCase()}`
+    ].forEach(line => {
+        doc.text(line, rightColX, rightY, { width: rightColWidth, align: 'right' });
+        rightY = doc.y;
+    });
+
+    let y = Math.max(leftY, rightY) + 12;
+    doc.moveTo(PAGE_LEFT, y).lineTo(PAGE_RIGHT, y).strokeColor('#ddd').stroke();
+    y += 16;
 
     // ---- Bill to ----
-    doc.font('Helvetica-Bold').fontSize(11).fillColor('#000').text('Bill To');
-    doc.font('Helvetica').fontSize(10).fillColor('#333')
-        .text(order.customer_name)
-        .text(order.phone)
-        .text(`${order.address}${order.city ? ', ' + order.city : ''}`)
-        .text('Payment method: Cash on Delivery');
+    doc.font('Helvetica-Bold').fontSize(11).fillColor('#000').text('Bill To', PAGE_LEFT, y);
+    y = doc.y + 2;
+    doc.font('Helvetica').fontSize(10).fillColor('#333');
+    [
+        order.customer_name,
+        order.phone,
+        `${order.address}${order.city ? ', ' + order.city : ''}`,
+        'Payment method: Cash on Delivery'
+    ].forEach(line => {
+        doc.text(line, PAGE_LEFT, y, { width: PAGE_WIDTH });
+        y = doc.y;
+    });
 
-    doc.moveDown(1.2);
+    y += 14;
 
     // ---- Items table ----
-    const tableTop = doc.y;
-    const col = { name: 50, variant: 220, qty: 340, price: 390, total: 470 };
+    // Columns sized to fit PAGE_LEFT..PAGE_RIGHT with no overlap; product
+    // name gets the most room since it's the field most likely to wrap.
+    const col = {
+        name: { x: PAGE_LEFT, width: 195 },
+        variant: { x: PAGE_LEFT + 205, width: 90 },
+        qty: { x: PAGE_LEFT + 305, width: 35 },
+        price: { x: PAGE_LEFT + 350, width: 70 },
+        total: { x: PAGE_LEFT + 425, width: PAGE_RIGHT - (PAGE_LEFT + 425) }
+    };
 
+    const tableTop = y;
     doc.font('Helvetica-Bold').fontSize(9.5).fillColor('#000');
-    doc.text('Product', col.name, tableTop);
-    doc.text('Variant', col.variant, tableTop);
-    doc.text('Qty', col.qty, tableTop, { width: 40, align: 'right' });
-    doc.text('Price', col.price, tableTop, { width: 70, align: 'right' });
-    doc.text('Subtotal', col.total, tableTop, { width: 75, align: 'right' });
+    doc.text('Product', col.name.x, tableTop, { width: col.name.width });
+    doc.text('Variant', col.variant.x, tableTop, { width: col.variant.width });
+    doc.text('Qty', col.qty.x, tableTop, { width: col.qty.width, align: 'right' });
+    doc.text('Price', col.price.x, tableTop, { width: col.price.width, align: 'right' });
+    doc.text('Subtotal', col.total.x, tableTop, { width: col.total.width, align: 'right' });
 
-    doc.moveTo(50, tableTop + 15).lineTo(545, tableTop + 15).strokeColor('#ccc').stroke();
+    y = tableTop + 16;
+    doc.moveTo(PAGE_LEFT, y).lineTo(PAGE_RIGHT, y).strokeColor('#ccc').stroke();
+    y += 8;
 
-    let y = tableTop + 22;
     doc.font('Helvetica').fontSize(9.5).fillColor('#222');
     items.forEach(item => {
         const lineTotal = parseFloat(item.price) * item.quantity;
-        const rowHeight = 18;
-        doc.text(item.product_name, col.name, y, { width: 165 });
-        doc.text(item.variant_label || '-', col.variant, y, { width: 115 });
-        doc.text(String(item.quantity), col.qty, y, { width: 40, align: 'right' });
-        doc.text(money(item.price), col.price, y, { width: 70, align: 'right' });
-        doc.text(money(lineTotal), col.total, y, { width: 75, align: 'right' });
-        y += rowHeight;
+        const nameText = item.product_name;
+        const variantText = item.variant_label || '-';
+
+        // Rows can wrap (long product names) — measure the actual height
+        // each cell needs so nothing below ever overlaps the wrapped text.
+        const nameHeight = doc.heightOfString(nameText, { width: col.name.width });
+        const variantHeight = doc.heightOfString(variantText, { width: col.variant.width });
+        const rowHeight = Math.max(nameHeight, variantHeight, 14);
+
+        doc.text(nameText, col.name.x, y, { width: col.name.width });
+        doc.text(variantText, col.variant.x, y, { width: col.variant.width });
+        doc.text(String(item.quantity), col.qty.x, y, { width: col.qty.width, align: 'right' });
+        doc.text(money(item.price), col.price.x, y, { width: col.price.width, align: 'right' });
+        doc.text(money(lineTotal), col.total.x, y, { width: col.total.width, align: 'right' });
+
+        y += rowHeight + 8;
     });
 
-    doc.moveTo(50, y + 2).lineTo(545, y + 2).strokeColor('#ccc').stroke();
+    doc.moveTo(PAGE_LEFT, y).lineTo(PAGE_RIGHT, y).strokeColor('#ccc').stroke();
     y += 14;
 
     // ---- Totals ----
-    const totalsX = 380;
+    const totalsLabelX = PAGE_LEFT + 300;
+    const totalsLabelWidth = 100;
+    const totalsValueX = totalsLabelX + totalsLabelWidth;
+    const totalsValueWidth = PAGE_RIGHT - totalsValueX;
+
     function totalRow(label, value, bold) {
         doc.font(bold ? 'Helvetica-Bold' : 'Helvetica').fontSize(bold ? 11 : 10).fillColor('#000');
-        doc.text(label, totalsX, y, { width: 90, align: 'left' });
-        doc.text(value, totalsX + 90, y, { width: 75, align: 'right' });
+        doc.text(label, totalsLabelX, y, { width: totalsLabelWidth, align: 'left' });
+        doc.text(value, totalsValueX, y, { width: totalsValueWidth, align: 'right' });
         y += bold ? 20 : 16;
     }
 
-    totalRow('Subtotal', money(order.subtotal));
+    totalRow('Subtotal', money(order.subtotal != null ? order.subtotal : order.total));
     if (parseFloat(order.discount_amount) > 0) {
         totalRow(`Discount${order.coupon_code ? ' (' + order.coupon_code + ')' : ''}`, `- ${money(order.discount_amount)}`);
     }
     totalRow('Delivery charge', money(order.delivery_charge));
-    doc.moveTo(totalsX, y).lineTo(545, y).strokeColor('#000').stroke();
+    doc.moveTo(totalsLabelX, y).lineTo(PAGE_RIGHT, y).strokeColor('#000').stroke();
     y += 6;
     totalRow('Grand Total', money(order.total), true);
 
     // ---- Footer ----
     doc.font('Helvetica').fontSize(9).fillColor('#888')
-        .text('Thank you for shopping with us!', 50, 750, { align: 'center', width: 495 });
+        .text('Thank you for shopping with us!', PAGE_LEFT, 750, { align: 'center', width: PAGE_WIDTH });
 
     doc.end();
 }
