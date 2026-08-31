@@ -113,7 +113,7 @@
                 row.innerHTML =
                     '<img src="' + img + '" alt="">' +
                     '<div class="cart-drawer-item-info">' +
-                        '<p class="cart-drawer-item-name">' + item.name + '</p>' +
+                        '<p class="cart-drawer-item-name">' + item.name + (item.variantLabel ? ' <span class="cart-drawer-item-variant">(' + item.variantLabel + ')</span>' : '') + '</p>' +
                         '<p class="cart-drawer-item-qty">' + item.quantity + ' × ' + fmt(item.price) + '</p>' +
                     '</div>' +
                     '<div class="cart-drawer-item-subtotal">' + fmt(item.subtotal) + '</div>';
