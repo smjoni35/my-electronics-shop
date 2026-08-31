@@ -1,10 +1,39 @@
 // Generates a professional-looking invoice/receipt PDF for an order using
 // pdfkit — a free, open-source library (no paid API / subscription).
 const PDFDocument = require('pdfkit');
+const path = require('path');
+const fs = require('fs');
 
 const PAGE_LEFT = 50;
 const PAGE_RIGHT = 545;
 const PAGE_WIDTH = PAGE_RIGHT - PAGE_LEFT; // 495
+const LOGO_PATH = path.join(__dirname, '..', 'public', 'img', 'logo.png');
+
+// Draws the shop logo, large and very faint, centered on the page — behind
+// everything else, since it's drawn before any other content on the page.
+// Wrapped in try/catch so a missing/corrupt logo file never breaks invoice
+// generation; it just skips the watermark that one time.
+function drawWatermark(doc) {
+    if (!fs.existsSync(LOGO_PATH)) return;
+    try {
+        const pageWidth = doc.page.width;
+        const pageHeight = doc.page.height;
+        const watermarkWidth = 320;
+        const watermarkHeight = watermarkWidth * (320 / 480); // matches logo.png's own aspect ratio
+
+        doc.save();
+        doc.opacity(0.06);
+        doc.image(
+            LOGO_PATH,
+            (pageWidth - watermarkWidth) / 2,
+            (pageHeight - watermarkHeight) / 2,
+            { width: watermarkWidth, height: watermarkHeight }
+        );
+        doc.restore();
+    } catch (err) {
+        console.error('Invoice watermark skipped:', err.message);
+    }
+}
 
 function money(n) {
     return `Tk ${Number(n || 0).toLocaleString('en-BD', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
@@ -20,6 +49,8 @@ function streamInvoice(res, order, items, storeInfo) {
     res.setHeader('Content-Type', 'application/pdf');
     res.setHeader('Content-Disposition', `inline; filename="invoice-${order.id}.pdf"`);
     doc.pipe(res);
+
+    drawWatermark(doc);
 
     // ---- Header: two independent columns (store info left, invoice meta
     // right) both starting from the exact same Y — no moveUp() guessing,
