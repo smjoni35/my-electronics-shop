@@ -1108,12 +1108,20 @@ h1, h2, h3 { font-family: var(--font-display); font-weight: 700; letter-spacing:
 .success-support-text { font-size: 0.82rem; color: var(--text-muted); line-height: 1.5; }
 
 .success-btn-row { display: flex; gap: 10px; margin-bottom: 12px; }
-.success-btn {
+.success-btn,
+.success-btn-primary,
+.success-btn-outline,
+.success-btn-ghost {
     display: inline-flex;
     align-items: center;
     justify-content: center;
     gap: 6px;
+    box-sizing: border-box;
     height: 46px;
+    min-height: 46px;
+    max-height: 46px;
+    padding: 0 16px;
+    line-height: 1;
     border-radius: var(--radius-sm);
     font-weight: 700;
     font-size: 0.88rem;
