@@ -1910,3 +1910,71 @@ display: inline-flex;
 @media (max-width: 560px) {
     .back-to-top { right: 14px; bottom: 76px; width: 40px; height: 40px; }
 }
+
+/* ==========================================================================
+   Customer accounts, product variants, coupons, invoices — added on top of
+   the existing theme, reusing the same design tokens.
+   ========================================================================== */
+
+/* Auth pages (login/register) */
+.auth-page { max-width: 480px; margin: 20px auto 60px; }
+.auth-sub { color: var(--text-muted); font-size: 0.9rem; margin-bottom: 16px; }
+.auth-switch { margin-top: 18px; color: var(--text-muted); font-size: 0.9rem; }
+.auth-switch a { color: var(--accent-2); }
+.checkbox-row { flex-direction: row !important; align-items: center; gap: 8px !important; }
+
+/* Customer dashboard */
+.account-dashboard-head { display: flex; align-items: center; justify-content: space-between; gap: 12px; flex-wrap: wrap; margin-bottom: 18px; }
+.invoice-link { display: inline-block; margin-top: 10px; }
+
+/* Variant selector on the product page */
+.variant-select-row { margin: 14px 0; }
+.variant-select-row select {
+    width: 100%; max-width: 360px; padding: 10px 12px; border-radius: var(--radius-sm);
+    background: var(--surface-2); border: 1px solid var(--border); color: var(--text); font-size: 0.95rem;
+}
+.variant-select-row select:focus { outline: none; border-color: var(--accent-2); }
+.cart-item-variant { color: var(--text-muted); font-size: 0.82rem; margin: 2px 0; }
+
+/* Admin: variant rows manager */
+.variant-manager { border: 1px dashed var(--border); border-radius: var(--radius); padding: 14px; margin: 6px 0; }
+.variant-manager h3 { font-size: 0.95rem; margin-bottom: 10px; }
+.variant-row {
+    display: grid; grid-template-columns: repeat(5, 1fr) auto; gap: 8px; margin-bottom: 8px; align-items: center;
+}
+.variant-row input {
+    padding: 8px 10px; border-radius: var(--radius-sm); background: var(--surface-2);
+    border: 1px solid var(--border); color: var(--text); font-size: 0.85rem; width: 100%;
+}
+.variant-row .v-remove-btn { padding: 8px 12px; }
+#addVariantRowBtn { margin-top: 4px; }
+@media (max-width: 700px) {
+    .variant-row { grid-template-columns: 1fr 1fr; }
+}
+
+/* Coupon box (cart + checkout) */
+.coupon-box { border: 1px dashed var(--border); border-radius: var(--radius); padding: 14px; margin: 16px 0; }
+.coupon-input-row { display: flex; gap: 8px; margin-top: 6px; flex-wrap: wrap; }
+.coupon-input-row input {
+    flex: 1; min-width: 140px; padding: 9px 12px; border-radius: var(--radius-sm);
+    background: var(--surface-2); border: 1px solid var(--border); color: var(--text);
+}
+.coupon-message { margin-top: 8px; font-size: 0.85rem; min-height: 1em; }
+.coupon-message.success { color: var(--accent-2); }
+.coupon-message.error { color: var(--danger); }
+
+/* Checkout layout: form + order summary side by side on wider screens */
+.checkout-layout { display: flex; gap: 28px; flex-wrap: wrap; align-items: flex-start; }
+.checkout-layout .checkout-form { flex: 1 1 340px; }
+.order-summary-box { flex: 1 1 320px; background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius); padding: 18px; }
+.order-summary-items { list-style: none; padding: 0; margin: 0 0 6px; display: flex; flex-direction: column; gap: 8px; }
+.order-summary-items li { display: flex; justify-content: space-between; gap: 10px; font-size: 0.88rem; color: var(--text-muted); }
+.order-summary-items li em { color: var(--text-faint); font-style: normal; }
+.order-summary-totals p { display: flex; justify-content: space-between; margin: 6px 0; font-size: 0.92rem; }
+
+/* Admin order-detail totals footer */
+.totals-label { text-align: right; color: var(--text-muted); }
+.totals-grand { color: var(--accent); font-weight: 700; }
+
+/* Admin header row (title + action button) */
+.admin-header-row { display: flex; align-items: center; justify-content: space-between; gap: 12px; flex-wrap: wrap; margin-bottom: 16px; }
