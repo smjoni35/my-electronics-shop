@@ -7,6 +7,7 @@
             <div class="admin-desktop-links">
                 <a href="/admin/dashboard">Product</a>
                 <a href="/admin/orders">Order</a>
+                <% if (currentRole !== 'moderator') { %><a href="/admin/coupons">Coupons</a><% } %>
                 <% if (currentRole === 'admin') { %><a href="/admin/staff">Staff</a><% } %>
                 <a href="/" target="_blank">Visit the site</a>
                 <form action="/admin/logout" method="POST">
@@ -33,6 +34,7 @@
                 </div>
                 <a href="/admin/dashboard">Product</a>
                 <a href="/admin/orders">Order</a>
+                <% if (currentRole !== 'moderator') { %><a href="/admin/coupons">Coupons</a><% } %>
                 <% if (currentRole === 'admin') { %><a href="/admin/staff">Staff</a><% } %>
                 <a href="/" target="_blank">Visit the site</a>
                 <form action="/admin/logout" method="POST">

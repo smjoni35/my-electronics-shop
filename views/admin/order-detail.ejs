@@ -41,6 +41,26 @@
                     <span class="order-info-label">💳 Payment</span>
                     <span class="order-info-value">Cash on Delivery</span>
                 </div>
+                <% if (order.coupon_code) { %>
+                <div class="order-info-item">
+                    <span class="order-info-label">🏷️ Coupon</span>
+                    <span class="order-info-value"><%= order.coupon_code %> (-৳<%= parseFloat(order.discount_amount).toLocaleString('en-BD') %>)</span>
+                </div>
+                <% } %>
+                <div class="order-info-item">
+                    <span class="order-info-label">🚚 Delivery charge</span>
+                    <span class="order-info-value">৳<%= parseFloat(order.delivery_charge || 0).toLocaleString('en-BD') %></span>
+                </div>
+                <% if (order.customer_id) { %>
+                <div class="order-info-item">
+                    <span class="order-info-label">👤 Account</span>
+                    <span class="order-info-value">Registered customer (#<%= order.customer_id %>)</span>
+                </div>
+                <% } %>
+            </div>
+
+            <div class="order-actions-row">
+                <a href="/admin/orders/<%= order.id %>/invoice" target="_blank" rel="noopener" class="btn-details">🧾 Invoice দেখুন</a>
             </div>
 
             <div class="order-actions-row">
@@ -66,17 +86,26 @@
         <h2>প্রোডাক্টসমূহ</h2>
         <div class="table-scroll">
         <table class="admin-table">
-            <thead><tr><th>Product</th><th>Price</th><th>Quantity</th><th>Subtotal</th></tr></thead>
+            <thead><tr><th>Product</th><th>Variant</th><th>Price</th><th>Quantity</th><th>Subtotal</th></tr></thead>
             <tbody>
                 <% items.forEach(item => { %>
                 <tr>
                     <td><%= item.product_name %></td>
+                    <td><%= item.variant_label || '-' %></td>
                     <td>৳<%= parseFloat(item.price).toLocaleString('en-BD') %></td>
                     <td><%= item.quantity %></td>
                     <td>৳<%= (item.price * item.quantity).toLocaleString('en-BD') %></td>
                 </tr>
                 <% }) %>
             </tbody>
+            <tfoot>
+                <tr><td colspan="4" class="totals-label">Subtotal</td><td>৳<%= parseFloat(order.subtotal || order.total).toLocaleString('en-BD') %></td></tr>
+                <% if (order.discount_amount > 0) { %>
+                <tr><td colspan="4" class="totals-label">Discount<%= order.coupon_code ? ' (' + order.coupon_code + ')' : '' %></td><td>- ৳<%= parseFloat(order.discount_amount).toLocaleString('en-BD') %></td></tr>
+                <% } %>
+                <tr><td colspan="4" class="totals-label">Delivery charge</td><td>৳<%= parseFloat(order.delivery_charge || 0).toLocaleString('en-BD') %></td></tr>
+                <tr><td colspan="4" class="totals-label totals-grand">Grand Total</td><td class="totals-grand">৳<%= parseFloat(order.total).toLocaleString('en-BD') %></td></tr>
+            </tfoot>
         </table>
         </div>
         <a href="/admin/orders" class="back-link">← Return to order list</a>

@@ -75,8 +75,69 @@
             <label>Additional Photos (gallery — you can select several at once) <span class="field-hint">এগুলো প্রোডাক্ট পেজে স্লাইড করে দেখা যাবে</span>
                 <input type="file" name="gallery" accept="image/*" multiple>
             </label>
+
+            <div class="variant-manager">
+                <h3>Product Variants <span class="field-hint">(ঐচ্ছিক — Color/Storage/Model অনুযায়ী আলাদা স্টক থাকলে যোগ করুন। কোনো ভ্যারিয়েন্ট না থাকলে উপরের সাধারণ Price/Stock ব্যবহার হবে)</span></h3>
+                <div id="variantRows"></div>
+                <button type="button" id="addVariantRowBtn" class="btn-details">+ ভ্যারিয়েন্ট যোগ করুন</button>
+                <input type="hidden" name="variantsJson" id="variantsJsonInput">
+            </div>
+
             <button type="submit" class="btn-primary">Save</button>
         </form>
+
+        <script>
+        (function () {
+            var existingVariants = <%- JSON.stringify((typeof variants !== 'undefined' ? variants : []).map(v => ({
+                id: v.id, color: v.color || '', storage: v.storage || '', sizeModel: v.size_model || '',
+                priceOverride: v.price_override != null ? v.price_override : '', stock: v.stock, sku: v.sku || ''
+            }))) %>;
+
+            var container = document.getElementById('variantRows');
+            var addBtn = document.getElementById('addVariantRowBtn');
+            var hiddenInput = document.getElementById('variantsJsonInput');
+            var form = document.querySelector('.admin-form');
+            var rowCount = 0;
+
+            function addRow(data) {
+                data = data || {};
+                var idx = rowCount++;
+                var row = document.createElement('div');
+                row.className = 'variant-row';
+                row.dataset.id = data.id || '';
+                row.innerHTML =
+                    '<input type="text" placeholder="Color (যেমন Black)" class="v-color" value="' + (data.color || '') + '">' +
+                    '<input type="text" placeholder="Storage (যেমন 128GB)" class="v-storage" value="' + (data.storage || '') + '">' +
+                    '<input type="text" placeholder="Size/Model" class="v-size" value="' + (data.sizeModel || '') + '">' +
+                    '<input type="number" step="0.01" placeholder="Price override (৳) — খালি রাখলে সাধারণ Price" class="v-price" value="' + (data.priceOverride != null ? data.priceOverride : '') + '">' +
+                    '<input type="number" placeholder="Stock *" class="v-stock" value="' + (data.stock != null ? data.stock : 0) + '" required>' +
+                    '<input type="text" placeholder="SKU (ঐচ্ছিক)" class="v-sku" value="' + (data.sku || '') + '">' +
+                    '<button type="button" class="btn-remove v-remove-btn">✕</button>';
+                row.querySelector('.v-remove-btn').addEventListener('click', function () { row.remove(); });
+                container.appendChild(row);
+            }
+
+            existingVariants.forEach(addRow);
+            addBtn.addEventListener('click', function () { addRow(); });
+
+            form.addEventListener('submit', function () {
+                var rows = container.querySelectorAll('.variant-row');
+                var variants = [];
+                rows.forEach(function (row) {
+                    variants.push({
+                        id: row.dataset.id || null,
+                        color: row.querySelector('.v-color').value,
+                        storage: row.querySelector('.v-storage').value,
+                        sizeModel: row.querySelector('.v-size').value,
+                        priceOverride: row.querySelector('.v-price').value,
+                        stock: row.querySelector('.v-stock').value,
+                        sku: row.querySelector('.v-sku').value
+                    });
+                });
+                hiddenInput.value = JSON.stringify(variants);
+            });
+        })();
+        </script>
 
         <% if (product && galleryImages && galleryImages.length > 0) { %>
         <h2>Gallery Photos</h2>

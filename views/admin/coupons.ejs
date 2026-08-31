@@ -1,0 +1,55 @@
+<!DOCTYPE html>
+<html lang="bn">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Coupons</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;600;700&family=Inter:wght@400;500;600&family=JetBrains+Mono:wght@400;500;600;700&family=Hind+Siliguri:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="/css/style.css">
+</head>
+<body>
+    <%- include('nav') %>
+    <div class="container">
+        <div class="admin-header-row">
+            <h1>Coupons</h1>
+            <a href="/admin/coupons/new" class="btn-primary">+ Add Coupon</a>
+        </div>
+
+        <% if (addedSuccess) { %><p class="info-note">✅ সফলভাবে সংরক্ষিত হয়েছে।</p><% } %>
+
+        <div class="table-scroll">
+        <table class="admin-table">
+            <thead>
+                <tr><th>Code</th><th>Type</th><th>Value</th><th>Min. Order</th><th>Used / Limit</th><th>Expiry</th><th>Status</th><th></th></tr>
+            </thead>
+            <tbody>
+                <% if (coupons.length === 0) { %>
+                    <tr><td colspan="8">কোনো কুপন যোগ করা হয়নি।</td></tr>
+                <% } %>
+                <% coupons.forEach(c => { %>
+                <tr>
+                    <td><code><%= c.code %></code></td>
+                    <td><%= c.type === 'percent' ? 'Percentage' : 'Fixed' %></td>
+                    <td><%= c.type === 'percent' ? c.value + '%' : '৳' + parseFloat(c.value).toLocaleString('en-BD') %></td>
+                    <td>৳<%= parseFloat(c.min_order_amount).toLocaleString('en-BD') %></td>
+                    <td><%= c.used_count %><%= c.usage_limit != null ? ' / ' + c.usage_limit : ' / ∞' %></td>
+                    <td><%= c.expires_at ? new Date(c.expires_at).toLocaleDateString('en-GB') : '—' %></td>
+                    <td><span class="status-badge <%= c.active ? 'confirmed' : 'cancelled' %>"><%= c.active ? 'Active' : 'Inactive' %></span></td>
+                    <td class="actions">
+                        <div class="actions-inner">
+                            <a href="/admin/coupons/<%= c.id %>/edit">Edit</a>
+                            <form action="/admin/coupons/<%= c.id %>/delete" method="POST" onsubmit="return confirm('এই কুপনটি মুছে ফেলবেন?')">
+                                <button type="submit" class="btn-remove">Delete</button>
+                            </form>
+                        </div>
+                    </td>
+                </tr>
+                <% }) %>
+            </tbody>
+        </table>
+        </div>
+    </div>
+</body>
+</html>
