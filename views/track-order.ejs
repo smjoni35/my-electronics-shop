@@ -49,10 +49,12 @@
                             <summary>প্রোডাক্টসমূহ দেখুন (<%= orderItemsById[order.id].length %>)</summary>
                             <ul>
                                 <% orderItemsById[order.id].forEach(item => { %>
-                                    <li><%= item.product_name %> × <%= item.quantity %> — ৳<%= parseFloat(item.price * item.quantity).toLocaleString('en-BD') %></li>
+                                    <li><%= item.product_name %><% if (item.variant_label) { %> (<%= item.variant_label %>)<% } %> × <%= item.quantity %> — ৳<%= parseFloat(item.price * item.quantity).toLocaleString('en-BD') %></li>
                                 <% }) %>
                             </ul>
                         </details>
+
+                        <a href="/order/<%= order.id %>/invoice?phone=<%= encodeURIComponent(phone) %>" target="_blank" rel="noopener" class="btn-details invoice-link">🧾 ইনভয়েস দেখুন / ডাউনলোড করুন</a>
                     </div>
                 <% }) %>
             </div>

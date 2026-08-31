@@ -17,27 +17,66 @@
                 </div>
                 <div class="cart-item-info">
                     <h3><%= item.name %></h3>
+                    <% if (item.variantLabel) { %><p class="cart-item-variant"><%= item.variantLabel %></p><% } %>
                     <p>৳<%= parseFloat(item.price).toLocaleString('en-BD') %> x <%= item.quantity %></p>
                 </div>
                 <div class="cart-item-actions">
                     <p class="cart-item-subtotal">৳<%= item.subtotal.toLocaleString('en-BD') %></p>
                     <form action="/cart/update" method="POST" class="qty-update-row">
-                        <input type="hidden" name="productId" value="<%= item.id %>">
+                        <input type="hidden" name="productId" value="<%= item.productId %>">
+                        <input type="hidden" name="variantId" value="<%= item.variantId || 0 %>">
                         <input type="number" name="quantity" value="<%= item.quantity %>" min="0" max="<%= item.stock %>">
                         <button type="submit">আপডেট</button>
                     </form>
                     <form action="/cart/remove" method="POST">
-                        <input type="hidden" name="productId" value="<%= item.id %>">
+                        <input type="hidden" name="productId" value="<%= item.productId %>">
+                        <input type="hidden" name="variantId" value="<%= item.variantId || 0 %>">
                         <button type="submit" class="btn-remove">মুছুন</button>
                     </form>
                 </div>
             </div>
         <% }) %>
     </div>
+    <div class="coupon-box" id="couponBox">
+        <label>প্রোমো কোড থাকলে দিন
+            <div class="coupon-input-row">
+                <input type="text" id="couponInput" placeholder="যেমন EID50" style="text-transform: uppercase;">
+                <button type="button" id="couponApplyBtn" class="btn-details">প্রয়োগ করুন</button>
+            </div>
+        </label>
+        <p id="couponMessage" class="coupon-message"></p>
+    </div>
+
     <div class="cart-summary">
         <p class="cart-total">মোট: ৳<%= total.toLocaleString('en-BD') %></p>
+        <p class="field-hint">চূড়ান্ত ছাড় ও ডেলিভারি চার্জসহ মোট চেকআউট পেজে দেখা যাবে।</p>
         <a href="/checkout" class="btn-primary">চেকআউট করুন</a>
     </div>
 <% } %>
+
+<script>
+(function () {
+    var btn = document.getElementById('couponApplyBtn');
+    if (!btn) return;
+    var input = document.getElementById('couponInput');
+    var message = document.getElementById('couponMessage');
+    btn.addEventListener('click', function () {
+        var code = input.value.trim();
+        if (!code) return;
+        btn.disabled = true;
+        fetch('/coupon/apply', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ code: code })
+        }).then(function (r) { return r.json(); }).then(function (data) {
+            message.textContent = data.message || '';
+            message.className = 'coupon-message ' + (data.ok ? 'success' : 'error');
+        }).catch(function () {
+            message.textContent = 'কিছু একটা সমস্যা হয়েছে, আবার চেষ্টা করুন।';
+            message.className = 'coupon-message error';
+        }).finally(function () { btn.disabled = false; });
+    });
+})();
+</script>
 
 <%- include('partials/footer') %>

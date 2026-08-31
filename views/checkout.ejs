@@ -7,20 +7,97 @@
     <p class="error-msg"><%= error %></p>
 <% } %>
 
-<form action="/checkout" method="POST" class="checkout-form">
-    <label>Full name *
-        <input type="text" name="customerName" required>
-    </label>
-    <label>Mobile number *
-        <input type="tel" name="phone" required placeholder="01XXXXXXXXX">
-    </label>
-    <label>City
-        <input type="text" name="city" placeholder="Dhaka, Chittagong...">
-    </label>
-    <label>Full address *
-        <textarea name="address" required rows="3"></textarea>
-    </label>
-    <button type="submit" class="btn-primary">Confirm order.</button>
-</form>
+<div class="checkout-layout">
+    <form action="/checkout" method="POST" class="checkout-form">
+        <label>Full name *
+            <input type="text" name="customerName" value="<%= customerName %>" required>
+        </label>
+        <label>Mobile number *
+            <input type="tel" name="phone" value="<%= customerPhone %>" required placeholder="01XXXXXXXXX">
+        </label>
+        <label>City
+            <input type="text" name="city" id="cityInput" placeholder="Dhaka, Chittagong...">
+        </label>
+        <label>Full address *
+            <textarea name="address" required rows="3"></textarea>
+        </label>
+        <button type="submit" class="btn-primary">Confirm order</button>
+    </form>
+
+    <div class="order-summary-box">
+        <h2 class="section-title">অর্ডার সামারি</h2>
+        <ul class="order-summary-items">
+            <% items.forEach(item => { %>
+                <li>
+                    <span><%= item.name %><% if (item.variantLabel) { %> <em>(<%= item.variantLabel %>)</em><% } %> × <%= item.quantity %></span>
+                    <span>৳<%= item.subtotal.toLocaleString('en-BD') %></span>
+                </li>
+            <% }) %>
+        </ul>
+
+        <div class="coupon-box" id="couponBox">
+            <label>প্রোমো কোড <span class="field-hint">থাকলে দিন</span>
+                <div class="coupon-input-row">
+                    <input type="text" id="couponInput" placeholder="যেমন EID50" style="text-transform: uppercase;" value="<%= coupon ? coupon.code : '' %>">
+                    <button type="button" id="couponApplyBtn" class="btn-details"><%= coupon ? 'পরিবর্তন করুন' : 'প্রয়োগ করুন' %></button>
+                    <% if (coupon) { %><button type="button" id="couponRemoveBtn" class="btn-remove">সরান</button><% } %>
+                </div>
+            </label>
+            <p id="couponMessage" class="coupon-message <%= coupon ? 'success' : '' %>"><%= coupon ? `কুপন "${coupon.code}" প্রয়োগ করা আছে — ৳${coupon.discount.toLocaleString('en-BD')} ছাড়` : '' %></p>
+        </div>
+
+        <div class="order-summary-totals">
+            <p><span>সাবটোটাল</span><span id="summarySubtotal">৳<%= subtotal.toLocaleString('en-BD') %></span></p>
+            <p id="summaryDiscountRow" style="<%= coupon ? '' : 'display:none;' %>"><span>ছাড়</span><span id="summaryDiscount">- ৳<%= coupon ? coupon.discount.toLocaleString('en-BD') : '0' %></span></p>
+            <p class="field-hint">ডেলিভারি চার্জ: ঢাকার ভিতরে ৳৭০, বাইরে ৳১৩০ — অর্ডার কনফার্ম করার সময় যোগ হবে।</p>
+        </div>
+    </div>
+</div>
+
+<script>
+(function () {
+    var applyBtn = document.getElementById('couponApplyBtn');
+    var removeBtn = document.getElementById('couponRemoveBtn');
+    var input = document.getElementById('couponInput');
+    var message = document.getElementById('couponMessage');
+    var discountRow = document.getElementById('summaryDiscountRow');
+    var discountEl = document.getElementById('summaryDiscount');
+
+    function apply() {
+        var code = input.value.trim();
+        if (!code) return;
+        applyBtn.disabled = true;
+        fetch('/coupon/apply', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ code: code })
+        }).then(function (r) { return r.json(); }).then(function (data) {
+            message.textContent = data.message || '';
+            message.className = 'coupon-message ' + (data.ok ? 'success' : 'error');
+            if (data.ok) {
+                discountRow.style.display = '';
+                discountEl.textContent = '- ৳' + data.discount.toLocaleString('en-BD');
+                applyBtn.textContent = 'পরিবর্তন করুন';
+            }
+        }).catch(function () {
+            message.textContent = 'কিছু একটা সমস্যা হয়েছে, আবার চেষ্টা করুন।';
+            message.className = 'coupon-message error';
+        }).finally(function () { applyBtn.disabled = false; });
+    }
+
+    applyBtn.addEventListener('click', apply);
+    if (removeBtn) {
+        removeBtn.addEventListener('click', function () {
+            fetch('/coupon/remove', { method: 'POST' }).then(function () {
+                input.value = '';
+                message.textContent = '';
+                discountRow.style.display = 'none';
+                removeBtn.remove();
+                applyBtn.textContent = 'প্রয়োগ করুন';
+            });
+        });
+    }
+})();
+</script>
 
 <%- include('partials/footer') %>

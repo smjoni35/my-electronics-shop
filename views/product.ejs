@@ -99,14 +99,14 @@
     <div class="product-detail-info">
         <h1><%= product.name %></h1>
 
-        <% if (product.discount_percent > 0) { %>
-            <p class="price-row">
-                <span class="price large">৳<%= parseFloat(product.effective_price).toLocaleString('en-BD') %></span>
-                <span class="price-original large">৳<%= parseFloat(product.price).toLocaleString('en-BD') %></span>
-            </p>
-        <% } else { %>
-            <p class="price large">৳<%= parseFloat(product.price).toLocaleString('en-BD') %></p>
-        <% } %>
+        <p class="price-row" id="priceDisplay">
+            <% if (product.discount_percent > 0) { %>
+                <span class="price large" id="priceCurrent">৳<%= basePrice.toLocaleString('en-BD') %></span>
+                <span class="price-original large" id="priceOriginal">৳<%= parseFloat(product.price).toLocaleString('en-BD') %></span>
+            <% } else { %>
+                <span class="price large" id="priceCurrent">৳<%= basePrice.toLocaleString('en-BD') %></span>
+            <% } %>
+        </p>
         <% if (product.category) { %><p class="category-tag"><%= product.category %></p><% } %>
         <% if (product.warranty) { %><span class="badge-warranty">🛡️ <%= product.warranty %></span><% } %>
 
@@ -115,22 +115,39 @@
             <span class="review-count"><%= avgRating.toFixed(1) %> (<%= reviewCount || 0 %> রিভিউ)</span>
         </a>
 
-        <% if (product.stock > 0) { %>
-            <p class="stock-info stock-dot">স্টকে আছে: <%= product.stock %> টি</p>
-            <% if (isLowStock) { %><span class="badge-lowstock">মাত্র <%= product.stock %>টা বাকি — তাড়াতাড়ি করুন!</span><% } %>
+        <% if (inStock) { %>
+            <% if (variantOptions.length > 0) { %>
+                <div class="variant-select-row">
+                    <label>ভ্যারিয়েন্ট বাছাই করুন *
+                        <select id="variantSelect" required>
+                            <option value="">বাছাই করুন</option>
+                            <% variantOptions.forEach(v => { %>
+                                <option value="<%= v.id %>" data-price="<%= v.price %>" data-stock="<%= v.stock %>" <%= v.stock <= 0 ? 'disabled' : '' %>>
+                                    <%= v.label %><%= v.stock <= 0 ? ' — স্টক নেই' : '' %>
+                                </option>
+                            <% }) %>
+                        </select>
+                    </label>
+                </div>
+                <p class="stock-info stock-dot" id="stockInfo">ভ্যারিয়েন্ট বাছাই করলে স্টক দেখাবে</p>
+            <% } else { %>
+                <p class="stock-info stock-dot" id="stockInfo">স্টকে আছে: <%= product.stock %> টি</p>
+                <% if (isLowStock) { %><span class="badge-lowstock">মাত্র <%= product.stock %>টা বাকি — তাড়াতাড়ি করুন!</span><% } %>
+            <% } %>
             <p class="delivery-estimate">🚚 <strong>২-৩ দিনের মধ্যে ডেলিভারি</strong> (ঢাকার ভিতরে) &nbsp;•&nbsp; ক্যাশ অন ডেলিভারি উপলব্ধ</p>
             <p class="return-policy-note">🔁 ৭ দিনের মধ্যে রিটার্ন/এক্সচেঞ্জ সুবিধা — <a href="/return-policy">বিস্তারিত জানুন</a></p>
             <div class="product-cta-row">
-                <form action="/cart/add" method="POST" class="add-cart-form">
+                <form action="/cart/add" method="POST" class="add-cart-form" id="addCartForm">
                     <input type="hidden" name="productId" value="<%= product.id %>">
+                    <input type="hidden" name="variantId" id="variantIdInput" value="0">
                     <label>পরিমাণ:
-                        <input type="number" name="quantity" value="1" min="1" max="<%= product.stock %>">
+                        <input type="number" name="quantity" id="quantityInput" value="1" min="1" max="<%= variantOptions.length > 0 ? 1 : product.stock %>">
                     </label>
-                    <button type="submit" class="btn-primary">কার্টে যোগ করুন</button>
+                    <button type="submit" class="btn-primary" id="addCartBtn" <%= variantOptions.length > 0 ? 'disabled' : '' %>>কার্টে যোগ করুন</button>
                 </form>
                 <%
                     const waText = encodeURIComponent(
-                        `আমি এই প্রোডাক্টটি অর্ডার করতে চাই:\n${product.name}\nদাম: ৳${parseFloat(product.effective_price).toLocaleString('en-BD')}\nলিংক: ${typeof ogUrl !== 'undefined' && ogUrl ? ogUrl : ('/product/' + product.id)}`
+                        `আমি এই প্রোডাক্টটি অর্ডার করতে চাই:\n${product.name}\nদাম: ৳${basePrice.toLocaleString('en-BD')}\nলিংক: ${typeof ogUrl !== 'undefined' && ogUrl ? ogUrl : ('/product/' + product.id)}`
                     );
                 %>
                 <a href="https://wa.me/8801735698806?text=<%= waText %>" target="_blank" rel="noopener" class="btn-whatsapp-order">
@@ -138,6 +155,36 @@
                     WhatsApp-এ অর্ডার করুন
                 </a>
             </div>
+            <% if (variantOptions.length > 0) { %>
+            <script>
+            (function () {
+                var select = document.getElementById('variantSelect');
+                var variantIdInput = document.getElementById('variantIdInput');
+                var quantityInput = document.getElementById('quantityInput');
+                var addBtn = document.getElementById('addCartBtn');
+                var stockInfo = document.getElementById('stockInfo');
+                var priceCurrent = document.getElementById('priceCurrent');
+
+                select.addEventListener('change', function () {
+                    var opt = select.options[select.selectedIndex];
+                    if (!select.value) {
+                        variantIdInput.value = '0';
+                        addBtn.disabled = true;
+                        stockInfo.textContent = 'ভ্যারিয়েন্ট বাছাই করলে স্টক দেখাবে';
+                        return;
+                    }
+                    var price = parseFloat(opt.dataset.price);
+                    var stock = parseInt(opt.dataset.stock, 10);
+                    variantIdInput.value = select.value;
+                    quantityInput.max = stock;
+                    quantityInput.value = Math.min(parseInt(quantityInput.value, 10) || 1, Math.max(stock, 1));
+                    priceCurrent.textContent = '৳' + price.toLocaleString('en-BD');
+                    stockInfo.textContent = stock > 0 ? ('স্টকে আছে: ' + stock + ' টি') : 'এই ভ্যারিয়েন্টে স্টক নেই';
+                    addBtn.disabled = stock <= 0;
+                });
+            })();
+            </script>
+            <% } %>
         <% } else { %>
             <p class="stock-badge out">এই মুহূর্তে স্টক নেই</p>
             <div class="notify-me-box" id="notify-me">
@@ -202,6 +249,7 @@
     <form action="/product/<%= product.id %>/review" method="POST" class="review-form">
         <h3>আপনার রিভিউ দিন</h3>
         <% if (reviewError) { %><p class="error-msg"><%= reviewError %></p><% } %>
+        <% if (typeof rateLimited !== 'undefined' && rateLimited) { %><p class="error-msg">অনেকবার রিভিউ দেওয়ার চেষ্টা করা হয়েছে। কিছুক্ষণ পর আবার চেষ্টা করুন।</p><% } %>
         <div class="review-form-row">
             <label>আপনার নাম *
                 <input type="text" name="customerName" required>
