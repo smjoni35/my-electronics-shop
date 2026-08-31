@@ -4,6 +4,60 @@ const bcrypt = require('bcryptjs');
 const pool = require('../db/pool');
 const { requireAdmin, requireRole, ROLE_LABELS } = require('../middleware/auth');
 const { upload, uploadImageToR2, deleteImageFromR2 } = require('../middleware/r2');
+const { adminLoginLimiter } = require('../middleware/rateLimit');
+const { streamInvoice } = require('../services/invoice');
+
+// Parses the JSON that the product-form page's JS builds from the variant
+// rows (color/storage/size/stock/price/sku) into a clean array. Never
+// trusts field types from the client — everything is re-parsed here.
+function parseVariants(variantsJson) {
+    if (!variantsJson) return [];
+    let arr;
+    try {
+        arr = JSON.parse(variantsJson);
+    } catch (e) {
+        return [];
+    }
+    if (!Array.isArray(arr)) return [];
+    return arr
+        .map(v => ({
+            id: v.id ? parseInt(v.id, 10) : null,
+            color: (v.color || '').toString().trim() || null,
+            storage: (v.storage || '').toString().trim() || null,
+            sizeModel: (v.sizeModel || '').toString().trim() || null,
+            priceOverride: v.priceOverride !== '' && v.priceOverride != null && !isNaN(parseFloat(v.priceOverride)) ? parseFloat(v.priceOverride) : null,
+            stock: parseInt(v.stock, 10) || 0,
+            sku: (v.sku || '').toString().trim() || null
+        }))
+        .filter(v => v.color || v.storage || v.sizeModel);
+}
+
+// Inserts/updates/deletes a product's variant rows to match `variants`
+// exactly (full-replace, driven by whichever ids are still present).
+async function saveVariants(client, productId, variants) {
+    const { rows: existing } = await client.query('SELECT id FROM product_variants WHERE product_id = $1', [productId]);
+    const existingIds = existing.map(r => r.id);
+    const keptIds = variants.filter(v => v.id).map(v => v.id);
+    const toDelete = existingIds.filter(id => !keptIds.includes(id));
+
+    if (toDelete.length > 0) {
+        await client.query('DELETE FROM product_variants WHERE id = ANY($1::int[])', [toDelete]);
+    }
+    for (const v of variants) {
+        if (v.id && existingIds.includes(v.id)) {
+            await client.query(
+                `UPDATE product_variants SET color=$1, storage=$2, size_model=$3, price_override=$4, stock=$5, sku=$6 WHERE id=$7`,
+                [v.color, v.storage, v.sizeModel, v.priceOverride, v.stock, v.sku, v.id]
+            );
+        } else {
+            await client.query(
+                `INSERT INTO product_variants (product_id, color, storage, size_model, price_override, stock, sku)
+                 VALUES ($1, $2, $3, $4, $5, $6, $7)`,
+                [productId, v.color, v.storage, v.sizeModel, v.priceOverride, v.stock, v.sku]
+            );
+        }
+    }
+}
 
 // Parses the admin's "Label: Value" specsText textarea into the
 // [{label, value}, ...] JSON shape the products.specs column stores.
@@ -31,7 +85,7 @@ router.get('/login', (req, res) => {
     res.render('admin/login', { error: null });
 });
 
-router.post('/login', async (req, res) => {
+router.post('/login', adminLoginLimiter, async (req, res) => {
     const { username, password } = req.body;
     const { rows } = await pool.query('SELECT * FROM admins WHERE username = $1', [username]);
 
@@ -72,7 +126,7 @@ router.get('/dashboard', requireAdmin, async (req, res) => {
 
 // New product form
 router.get('/products/new', requireRole('admin', 'manager'), (req, res) => {
-    res.render('admin/product-form', { product: null, galleryImages: [], error: null });
+    res.render('admin/product-form', { product: null, galleryImages: [], variants: [], error: null });
 });
 
 const productImageUpload = upload.fields([
@@ -81,15 +135,19 @@ const productImageUpload = upload.fields([
 ]);
 
 router.post('/products/new', requireRole('admin', 'manager'), productImageUpload, async (req, res) => {
+    const client = await pool.connect();
     try {
         const { name, description, price, stock, category, warranty } = req.body;
         const discountPercent = parseInt(req.body.discountPercent, 10) || 0;
         const specs = JSON.stringify(parseSpecsText(req.body.specsText));
+        const variants = parseVariants(req.body.variantsJson);
         const coverFile = req.files && req.files.image ? req.files.image[0] : null;
         const galleryFiles = (req.files && req.files.gallery) || [];
         const imageUrl = coverFile ? await uploadImageToR2(coverFile) : null;
 
-        const { rows } = await pool.query(
+        await client.query('BEGIN');
+
+        const { rows } = await client.query(
             `INSERT INTO products (name, description, price, stock, category, image_url, discount_percent, warranty, specs)
              VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9) RETURNING id`,
             [name, description, price, stock, category, imageUrl, discountPercent, warranty || null, specs]
@@ -99,16 +157,22 @@ router.post('/products/new', requireRole('admin', 'manager'), productImageUpload
         let sortOrder = 0;
         for (const file of galleryFiles) {
             const url = await uploadImageToR2(file);
-            await pool.query(
+            await client.query(
                 'INSERT INTO product_images (product_id, image_url, sort_order) VALUES ($1, $2, $3)',
                 [productId, url, sortOrder++]
             );
         }
 
+        await saveVariants(client, productId, variants);
+
+        await client.query('COMMIT');
         res.redirect('/admin/dashboard?added=1');
     } catch (err) {
+        await client.query('ROLLBACK');
         console.error(err);
-        res.render('admin/product-form', { product: null, galleryImages: [], error: 'প্রোডাক্ট যোগ করা যায়নি' });
+        res.render('admin/product-form', { product: null, galleryImages: [], variants: [], error: 'প্রোডাক্ট যোগ করা যায়নি' });
+    } finally {
+        client.release();
     }
 });
 
@@ -120,21 +184,27 @@ router.get('/products/:id/edit', requireAdmin, async (req, res) => {
         'SELECT * FROM product_images WHERE product_id = $1 ORDER BY sort_order ASC, id ASC',
         [req.params.id]
     );
+    const { rows: variants } = await pool.query(
+        'SELECT * FROM product_variants WHERE product_id = $1 ORDER BY id ASC',
+        [req.params.id]
+    );
     const { rows: notifyRequests } = await pool.query(
         'SELECT * FROM stock_notify_requests WHERE product_id = $1 AND notified = FALSE ORDER BY created_at ASC',
         [req.params.id]
     );
     const specsText = (rows[0].specs || []).map(s => `${s.label}: ${s.value}`).join('\n');
-    res.render('admin/product-form', { product: rows[0], galleryImages, notifyRequests, specsText, error: null, savedSuccess: req.query.saved === '1' });
+    res.render('admin/product-form', { product: rows[0], galleryImages, variants, notifyRequests, specsText, error: null, savedSuccess: req.query.saved === '1' });
 });
 
 router.post('/products/:id/edit', requireAdmin, productImageUpload, async (req, res) => {
+    const client = await pool.connect();
     try {
         const { name, description, price, stock, category, warranty } = req.body;
         const discountPercent = parseInt(req.body.discountPercent, 10) || 0;
         const specs = JSON.stringify(parseSpecsText(req.body.specsText));
-        const { rows } = await pool.query('SELECT * FROM products WHERE id = $1', [req.params.id]);
-        if (rows.length === 0) return res.redirect('/admin/dashboard');
+        const variants = parseVariants(req.body.variantsJson);
+        const { rows } = await client.query('SELECT * FROM products WHERE id = $1', [req.params.id]);
+        if (rows.length === 0) { client.release(); return res.redirect('/admin/dashboard'); }
 
         const coverFile = req.files && req.files.image ? req.files.image[0] : null;
         const galleryFiles = (req.files && req.files.gallery) || [];
@@ -145,30 +215,38 @@ router.post('/products/:id/edit', requireAdmin, productImageUpload, async (req, 
             imageUrl = await uploadImageToR2(coverFile);
         }
 
-        await pool.query(
+        await client.query('BEGIN');
+
+        await client.query(
             `UPDATE products SET name=$1, description=$2, price=$3, stock=$4, category=$5, image_url=$6, discount_percent=$7, warranty=$8, specs=$9 WHERE id=$10`,
             [name, description, price, stock, category, imageUrl, discountPercent, warranty || null, specs, req.params.id]
         );
 
         if (galleryFiles.length > 0) {
-            const { rows: countRows } = await pool.query(
+            const { rows: countRows } = await client.query(
                 'SELECT COALESCE(MAX(sort_order), -1) AS max_order FROM product_images WHERE product_id = $1',
                 [req.params.id]
             );
             let sortOrder = countRows[0].max_order + 1;
             for (const file of galleryFiles) {
                 const url = await uploadImageToR2(file);
-                await pool.query(
+                await client.query(
                     'INSERT INTO product_images (product_id, image_url, sort_order) VALUES ($1, $2, $3)',
                     [req.params.id, url, sortOrder++]
                 );
             }
         }
 
+        await saveVariants(client, req.params.id, variants);
+
+        await client.query('COMMIT');
         res.redirect('/admin/products/' + req.params.id + '/edit?saved=1');
     } catch (err) {
+        await client.query('ROLLBACK');
         console.error(err);
-        res.render('admin/product-form', { product: null, galleryImages: [], error: 'আপডেট করা যায়নি' });
+        res.render('admin/product-form', { product: null, galleryImages: [], variants: [], error: 'আপডেট করা যায়নি' });
+    } finally {
+        client.release();
     }
 });
 
@@ -239,6 +317,19 @@ router.post('/orders/:id/status', requireAdmin, async (req, res) => {
     res.redirect(`/admin/orders/${req.params.id}?updated=1`);
 });
 
+// Invoice PDF for any order — staff use (e.g. printing for a delivery run)
+router.get('/orders/:id/invoice', requireAdmin, async (req, res) => {
+    const { rows: orderRows } = await pool.query('SELECT * FROM orders WHERE id = $1', [req.params.id]);
+    if (orderRows.length === 0) return res.redirect('/admin/orders');
+    const { rows: items } = await pool.query('SELECT * FROM order_items WHERE order_id = $1', [req.params.id]);
+    streamInvoice(res, orderRows[0], items, {
+        name: process.env.STORE_NAME || 'JM Gadget Zone',
+        address: process.env.STORE_ADDRESS || '',
+        phone: process.env.STORE_PHONE || '',
+        email: process.env.STORE_EMAIL || ''
+    });
+});
+
 // Delete order (also removes its order_items via ON DELETE CASCADE) —
 // mainly for clearing out test/dummy orders so they don't skew dashboard stats.
 router.post('/orders/:id/delete', requireRole('admin', 'manager'), async (req, res) => {
@@ -250,6 +341,80 @@ router.post('/orders/:id/delete', requireRole('admin', 'manager'), async (req, r
         res.redirect('/admin/orders');
     }
 });
+
+// ==========================================================================
+// Coupon / promo code management (admin + manager)
+// ==========================================================================
+
+router.get('/coupons', requireRole('admin', 'manager'), async (req, res) => {
+    const { rows: coupons } = await pool.query('SELECT * FROM coupons ORDER BY created_at DESC');
+    res.render('admin/coupons', { coupons, addedSuccess: req.query.added === '1' });
+});
+
+router.get('/coupons/new', requireRole('admin', 'manager'), (req, res) => {
+    res.render('admin/coupon-form', { coupon: null, error: null });
+});
+
+router.post('/coupons/new', requireRole('admin', 'manager'), async (req, res) => {
+    try {
+        const coupon = readCouponForm(req.body);
+        if (!coupon.code || !coupon.value) {
+            return res.render('admin/coupon-form', { coupon, error: 'কোড ও ভ্যালু আবশ্যক।' });
+        }
+        await pool.query(
+            `INSERT INTO coupons (code, type, value, min_order_amount, max_discount_amount, usage_limit, expires_at, active)
+             VALUES ($1, $2, $3, $4, $5, $6, $7, $8)`,
+            [coupon.code, coupon.type, coupon.value, coupon.minOrderAmount, coupon.maxDiscountAmount, coupon.usageLimit, coupon.expiresAt, coupon.active]
+        );
+        res.redirect('/admin/coupons?added=1');
+    } catch (err) {
+        console.error(err);
+        const message = err.code === '23505' ? 'এই কোডটি আগে থেকেই আছে।' : 'কুপন তৈরি করা যায়নি।';
+        res.render('admin/coupon-form', { coupon: req.body, error: message });
+    }
+});
+
+router.get('/coupons/:id/edit', requireRole('admin', 'manager'), async (req, res) => {
+    const { rows } = await pool.query('SELECT * FROM coupons WHERE id = $1', [req.params.id]);
+    if (rows.length === 0) return res.redirect('/admin/coupons');
+    res.render('admin/coupon-form', { coupon: rows[0], error: null });
+});
+
+router.post('/coupons/:id/edit', requireRole('admin', 'manager'), async (req, res) => {
+    try {
+        const coupon = readCouponForm(req.body);
+        if (!coupon.code || !coupon.value) {
+            return res.render('admin/coupon-form', { coupon: { ...coupon, id: req.params.id }, error: 'কোড ও ভ্যালু আবশ্যক।' });
+        }
+        await pool.query(
+            `UPDATE coupons SET code=$1, type=$2, value=$3, min_order_amount=$4, max_discount_amount=$5, usage_limit=$6, expires_at=$7, active=$8 WHERE id=$9`,
+            [coupon.code, coupon.type, coupon.value, coupon.minOrderAmount, coupon.maxDiscountAmount, coupon.usageLimit, coupon.expiresAt, coupon.active, req.params.id]
+        );
+        res.redirect('/admin/coupons?added=1');
+    } catch (err) {
+        console.error(err);
+        const message = err.code === '23505' ? 'এই কোডটি আগে থেকেই আছে।' : 'কুপন আপডেট করা যায়নি।';
+        res.render('admin/coupon-form', { coupon: { ...req.body, id: req.params.id }, error: message });
+    }
+});
+
+router.post('/coupons/:id/delete', requireRole('admin', 'manager'), async (req, res) => {
+    await pool.query('DELETE FROM coupons WHERE id = $1', [req.params.id]);
+    res.redirect('/admin/coupons');
+});
+
+function readCouponForm(body) {
+    return {
+        code: (body.code || '').trim().toUpperCase(),
+        type: body.type === 'fixed' ? 'fixed' : 'percent',
+        value: parseFloat(body.value) || 0,
+        minOrderAmount: parseFloat(body.minOrderAmount) || 0,
+        maxDiscountAmount: body.maxDiscountAmount ? parseFloat(body.maxDiscountAmount) : null,
+        usageLimit: body.usageLimit ? parseInt(body.usageLimit, 10) : null,
+        expiresAt: body.expiresAt ? body.expiresAt : null,
+        active: body.active === 'on' || body.active === true
+    };
+}
 
 // ==========================================================================
 // Staff management (admin only) — create/edit/delete Manager & Moderator accounts
