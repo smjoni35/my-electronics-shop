@@ -7,6 +7,7 @@ const pool = require('./db/pool');
 
 const shopRoutes = require('./routes/shop');
 const adminRoutes = require('./routes/admin');
+const accountRoutes = require('./routes/customer');
 
 const app = express();
 
@@ -35,6 +36,8 @@ app.use((req, res, next) => {
         : 0;
     res.locals.currentUsername = req.session.adminUsername || null;
     res.locals.currentRole = req.session.adminRole || null;
+    res.locals.currentCustomerId = req.session.customerId || null;
+    res.locals.currentCustomerName = req.session.customerName || null;
     // Absolute site URL — needed so og:image/og:url work when a link is shared on
     // WhatsApp/Facebook. Set BASE_URL in .env (e.g. https://jmgadgetzone.com) in
     // production; falls back to whatever host the request came in on.
@@ -48,6 +51,7 @@ app.use((req, res, next) => {
 
 app.use('/', shopRoutes);
 app.use('/admin', adminRoutes);
+app.use('/account', accountRoutes);
 
 app.use((req, res) => {
     res.status(404).render('404');
