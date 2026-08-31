@@ -1782,7 +1782,7 @@ display: inline-flex;
    ========================================================================== */
 .why-us-row {
     display: grid;
-    grid-template-columns: 1fr;
+    grid-template-columns: repeat(2, 1fr);
     gap: 14px;
     margin: 22px 0;
 }
@@ -1791,14 +1791,27 @@ display: inline-flex;
 }
 .why-us-item {
     display: flex;
-    align-items: flex-start;
-    gap: 12px;
+    flex-direction: column;
+    align-items: center;
+    text-align: center;
+    gap: 10px;
     background: var(--surface);
     border: 1px solid var(--border-soft);
     border-radius: var(--radius);
-    padding: 16px 18px;
+    padding: 20px 14px;
 }
-.why-us-icon { font-size: 1.4rem; flex-shrink: 0; line-height: 1; margin-top: 2px; }
+.why-us-icon {
+    font-size: 1.5rem;
+    flex-shrink: 0;
+    line-height: 1;
+    width: 56px;
+    height: 56px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 50%;
+    border: 2px solid var(--accent-2, #29b6f6);
+}
 .why-us-item strong { display: block; font-size: 0.92rem; margin-bottom: 3px; color: var(--text); }
 .why-us-item p { font-size: 0.8rem; color: var(--text-muted); line-height: 1.5; margin: 0; }
 
