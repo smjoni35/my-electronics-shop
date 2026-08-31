@@ -486,7 +486,7 @@ router.post('/checkout', checkoutLimiter, async (req, res) => {
         const itemsForNotify = items.map(i => ({ product_name: i.name, quantity: i.quantity, price: i.price }));
         notifyNewOrder(orderForNotify, itemsForNotify).catch(err => console.error('notifyNewOrder error:', err.message));
 
-        res.render('order-success', { orderId, total });
+        res.render('order-success', { orderId, total, phone });
     } catch (err) {
         await client.query('ROLLBACK');
         console.error(err);
