@@ -128,6 +128,15 @@ function streamInvoice(res, order, items, storeInfo) {
     y += 8;
 
     doc.font('Helvetica').fontSize(9.5).fillColor('#222');
+    // Draws `text` vertically centered within a row of height `rowHeight`,
+    // instead of pinned to the row's top — used for the short single-line
+    // cells (Variant/Qty/Price/Subtotal) next to a product name that may
+    // wrap onto two lines and so be taller than they are.
+    function centeredCell(text, x, rowY, rowHeight, options) {
+        const cellHeight = doc.heightOfString(text, options);
+        doc.text(text, x, rowY + (rowHeight - cellHeight) / 2, options);
+    }
+
     items.forEach(item => {
         const lineTotal = parseFloat(item.price) * item.quantity;
         const nameText = item.product_name;
@@ -139,11 +148,13 @@ function streamInvoice(res, order, items, storeInfo) {
         const variantHeight = doc.heightOfString(variantText, { width: col.variant.width });
         const rowHeight = Math.max(nameHeight, variantHeight, 14);
 
+        // Product name stays top-aligned (it's usually what sets the row's
+        // height); the shorter single-line cells are centered against it.
         doc.text(nameText, col.name.x, y, { width: col.name.width });
-        doc.text(variantText, col.variant.x, y, { width: col.variant.width });
-        doc.text(String(item.quantity), col.qty.x, y, { width: col.qty.width, align: 'right' });
-        doc.text(money(item.price), col.price.x, y, { width: col.price.width, align: 'right' });
-        doc.text(money(lineTotal), col.total.x, y, { width: col.total.width, align: 'right' });
+        centeredCell(variantText, col.variant.x, y, rowHeight, { width: col.variant.width });
+        centeredCell(String(item.quantity), col.qty.x, y, rowHeight, { width: col.qty.width, align: 'right' });
+        centeredCell(money(item.price), col.price.x, y, rowHeight, { width: col.price.width, align: 'right' });
+        centeredCell(money(lineTotal), col.total.x, y, rowHeight, { width: col.total.width, align: 'right' });
 
         y += rowHeight + 8;
     });
