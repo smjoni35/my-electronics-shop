@@ -868,6 +868,20 @@ h1, h2, h3 { font-family: var(--font-display); font-weight: 700; letter-spacing:
 .return-policy-note a { color: var(--accent-2); text-decoration: none; }
 .return-policy-note a:hover { text-decoration: underline; }
 
+/* Product detail page: scale down on phone screens only (desktop unaffected) */
+@media (max-width: 560px) {
+    .product-detail-info h1 { font-size: 1.28rem; line-height: 1.35; margin-bottom: 6px; }
+    .price.large { font-size: 1.15rem; padding: 5px 10px; margin: 8px 0; }
+    .price-original.large { font-size: 0.85rem; }
+    .category-tag { font-size: 0.72rem; margin-bottom: 8px; }
+    .badge-warranty { font-size: 0.68rem; padding: 2px 7px; }
+    .star-rating.large .star { font-size: 0.9rem; }
+    .star-rating.large .review-count { font-size: 0.72rem; }
+    .stock-info { font-size: 0.82rem; margin-bottom: 10px; }
+    .return-policy-note { font-size: 0.78rem; margin-bottom: 12px; }
+    .spec-table th, .spec-table td { font-size: 0.8rem; padding: 9px 12px; }
+}
+
 .add-cart-form { display: flex; align-items: center; gap: 12px; width: 100%; }
 .add-cart-form label { color: var(--text-muted); font-size: 0.88rem; display: flex; align-items: center; gap: 8px; flex-shrink: 0; }
 .add-cart-form input[type=number] {
