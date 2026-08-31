@@ -1925,7 +1925,15 @@ display: inline-flex;
 
 /* Customer dashboard */
 .account-dashboard-head { display: flex; align-items: center; justify-content: space-between; gap: 12px; flex-wrap: wrap; margin-bottom: 18px; }
-.invoice-link { display: inline-block; margin-top: 10px; }
+.invoice-link {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 6px;
+    width: 100%;
+    height: 38px;
+    margin-top: 10px;
+}
 
 /* Variant selector on the product page */
 .variant-select-row { margin: 14px 0; }
