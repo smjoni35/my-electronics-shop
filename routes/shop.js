@@ -421,8 +421,8 @@ router.post('/checkout', checkoutLimiter, async (req, res) => {
     if (items.length === 0) return res.redirect('/cart');
 
     const { customerName, phone, address, city } = req.body;
-    if (!customerName || !phone || !address) {
-        return res.render('checkout', { error: 'সব ফিল্ড পূরণ করুন / Please fill all fields', items, subtotal, coupon: null, customerName: customerName || '', customerPhone: phone || '' });
+    if (!customerName || !phone || !address || !city || !city.trim()) {
+        return res.render('checkout', { error: 'সব ফিল্ড পূরণ করুন — City আবশ্যক / Please fill all fields, City is required', items, subtotal, coupon: null, customerName: customerName || '', customerPhone: phone || '' });
     }
 
     // Re-check stock right before committing (cartService already clamps
