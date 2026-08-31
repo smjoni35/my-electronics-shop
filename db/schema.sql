@@ -82,6 +82,70 @@ CREATE TABLE IF NOT EXISTS stock_notify_requests (
 
 CREATE INDEX IF NOT EXISTS idx_stock_notify_product_id ON stock_notify_requests(product_id);
 
+-- ==========================================================================
+-- Customer accounts — phone + password login, separate from admin/staff.
+-- Guest checkout still works (orders.customer_id stays NULL for guests).
+-- ==========================================================================
+CREATE TABLE IF NOT EXISTS customers (
+    id SERIAL PRIMARY KEY,
+    name VARCHAR(255) NOT NULL,
+    phone VARCHAR(50) UNIQUE NOT NULL,
+    email VARCHAR(255),
+    password_hash TEXT NOT NULL,
+    created_at TIMESTAMP DEFAULT NOW()
+);
+
+-- Link an order to the logged-in customer who placed it (NULL = guest order)
+ALTER TABLE orders ADD COLUMN IF NOT EXISTS customer_id INTEGER REFERENCES customers(id) ON DELETE SET NULL;
+CREATE INDEX IF NOT EXISTS idx_orders_customer_id ON orders(customer_id);
+
+-- Order money breakdown, needed for the invoice and for coupon bookkeeping
+ALTER TABLE orders ADD COLUMN IF NOT EXISTS subtotal NUMERIC(10, 2);
+ALTER TABLE orders ADD COLUMN IF NOT EXISTS discount_amount NUMERIC(10, 2) NOT NULL DEFAULT 0;
+ALTER TABLE orders ADD COLUMN IF NOT EXISTS delivery_charge NUMERIC(10, 2) NOT NULL DEFAULT 0;
+ALTER TABLE orders ADD COLUMN IF NOT EXISTS coupon_code VARCHAR(50);
+
+-- ==========================================================================
+-- Product variants — Color / Storage / Size-Model combinations, each with
+-- its own stock. A product with zero rows here has no variant picker and is
+-- just sold at the product's own price/stock, exactly like before.
+-- ==========================================================================
+CREATE TABLE IF NOT EXISTS product_variants (
+    id SERIAL PRIMARY KEY,
+    product_id INTEGER NOT NULL REFERENCES products(id) ON DELETE CASCADE,
+    color VARCHAR(100),
+    storage VARCHAR(100),
+    size_model VARCHAR(100),
+    price_override NUMERIC(10, 2),
+    stock INTEGER NOT NULL DEFAULT 0,
+    sku VARCHAR(100),
+    created_at TIMESTAMP DEFAULT NOW()
+);
+
+CREATE INDEX IF NOT EXISTS idx_product_variants_product_id ON product_variants(product_id);
+
+-- Which variant (if any) was ordered — variant_label is frozen at order time
+-- so the invoice still reads correctly even if the variant is later edited/deleted.
+ALTER TABLE order_items ADD COLUMN IF NOT EXISTS variant_id INTEGER REFERENCES product_variants(id) ON DELETE SET NULL;
+ALTER TABLE order_items ADD COLUMN IF NOT EXISTS variant_label VARCHAR(255);
+
+-- ==========================================================================
+-- Coupons / promo codes — fully self-hosted, no external/paid service.
+-- ==========================================================================
+CREATE TABLE IF NOT EXISTS coupons (
+    id SERIAL PRIMARY KEY,
+    code VARCHAR(50) UNIQUE NOT NULL,
+    type VARCHAR(20) NOT NULL CHECK (type IN ('percent', 'fixed')),
+    value NUMERIC(10, 2) NOT NULL,
+    min_order_amount NUMERIC(10, 2) NOT NULL DEFAULT 0,
+    max_discount_amount NUMERIC(10, 2),
+    usage_limit INTEGER,
+    used_count INTEGER NOT NULL DEFAULT 0,
+    expires_at TIMESTAMP,
+    active BOOLEAN NOT NULL DEFAULT TRUE,
+    created_at TIMESTAMP DEFAULT NOW()
+);
+
 -- Admin / staff table (admin, manager, moderator roles)
 CREATE TABLE IF NOT EXISTS admins (
     id SERIAL PRIMARY KEY,
