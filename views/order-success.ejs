@@ -1,11 +1,64 @@
 <%- include('partials/header', { title: 'অর্ডার সফল - ' + storeName }) %>
 
-<div class="success-box">
-    <h1>✅ আপনার অর্ডার সফল হয়েছে!</h1>
-    <p>অর্ডার নম্বর: <strong>#<%= orderId %></strong></p>
-    <p>মোট: <strong>৳<%= parseFloat(total).toLocaleString('en-BD') %></strong></p>
-    <p>আমরা শীঘ্রই আপনার সাথে যোগাযোগ করব ডেলিভারি নিশ্চিত করতে।</p>
-    <a href="/" class="btn-primary">শপিং চালিয়ে যান</a>
+<div class="success-page">
+    <div class="success-card">
+        <div class="success-check-wrap">
+            <span class="success-spark spark-1">✦</span>
+            <span class="success-spark spark-2">✧</span>
+            <span class="success-spark spark-3">✕</span>
+            <span class="success-spark spark-4">✦</span>
+            <span class="success-spark spark-5">✧</span>
+            <div class="success-check-circle">
+                <svg viewBox="0 0 24 24" class="success-check-icon" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round">
+                    <polyline points="4 12 9 17 20 6"></polyline>
+                </svg>
+            </div>
+        </div>
+
+        <h1 class="success-title">অর্ডার সফল হয়েছে!</h1>
+        <p class="success-subtitle">আপনার অর্ডারটি সফলভাবে গ্রহণ করা হয়েছে।</p>
+
+        <div class="success-info-row">
+            <div class="success-info-item">
+                <span class="success-info-icon success-info-icon-blue">#</span>
+                <div>
+                    <p class="success-info-label">অর্ডার নম্বর</p>
+                    <p class="success-info-value">#<%= orderId %></p>
+                </div>
+            </div>
+            <div class="success-info-divider"></div>
+            <div class="success-info-item">
+                <span class="success-info-icon success-info-icon-green">৳</span>
+                <div>
+                    <p class="success-info-label">মোট পরিমাণ</p>
+                    <p class="success-info-value success-info-value-accent">৳<%= parseFloat(total).toLocaleString('en-BD') %></p>
+                </div>
+            </div>
+        </div>
+
+        <div class="success-support-row">
+            <span class="success-support-icon">🎧</span>
+            <div>
+                <p class="success-support-title">আমাদের প্রতিনিধি শীঘ্রই</p>
+                <p class="success-support-text">আপনার সাথে যোগাযোগ করবেন। ডেলিভারি নিশ্চিত করার জন্য আপনার ফোনে কল করা হতে পারে।</p>
+            </div>
+        </div>
+
+        <div class="success-btn-row">
+            <a href="/track-order" class="success-btn success-btn-primary">🚚 অর্ডার ট্র্যাকিং <span class="success-btn-arrow">›</span></a>
+            <a href="/order/<%= orderId %>/invoice?phone=<%= encodeURIComponent(phone || '') %>" class="success-btn success-btn-outline">📄 ইনভয়েস ডাউনলোড ⬇</a>
+        </div>
+
+        <a href="/" class="success-btn success-btn-ghost">🔒 শপিং চালিয়ে যান</a>
+    </div>
+
+    <div class="success-trust-bar">
+        <span class="success-trust-icon">🛡️</span>
+        <div>
+            <p class="success-trust-title">আপনার আস্থা আমাদের অনুপ্রেরণা</p>
+            <p class="success-trust-text">ধন্যবাদ আমাদের সাথে থাকার জন্য। 💚</p>
+        </div>
+    </div>
 </div>
 
 <%- include('partials/footer') %>
