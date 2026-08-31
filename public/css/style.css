@@ -126,10 +126,9 @@ h1, h2, h3 { font-family: var(--font-display); font-weight: 700; letter-spacing:
 }
 .logo-img-sm { height: 30px; }
 .logo-text {
-    display: none;
-}
-@media (min-width: 900px) {
-    .logo-text { display: inline; }
+    display: inline;
+    font-weight: 700;
+    white-space: nowrap;
 }
 .search-form {
     display: flex;
@@ -214,6 +213,12 @@ h1, h2, h3 { font-family: var(--font-display); font-weight: 700; letter-spacing:
     font-size: 0.75rem;
     padding: 1px 7px;
     border-radius: 999px;
+}
+.header-actions {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    flex-shrink: 0;
 }
 
 .admin-nav .logo { color: var(--accent); }
@@ -1237,6 +1242,11 @@ h1, h2, h3 { font-family: var(--font-display); font-weight: 700; letter-spacing:
     .whatsapp-float { right: 14px; bottom: 14px; width: 50px; height: 50px; }
     .whatsapp-float svg { width: 26px; height: 26px; }
 }
+@media (max-width: 380px) {
+    .logo-text { font-size: 0.8rem; }
+    .header-actions { gap: 4px; }
+    .track-order-link, .cart-link { padding: 0 7px; }
+}
 
 /* ==========================================================================
    404
@@ -1258,15 +1268,19 @@ h1, h2, h3 { font-family: var(--font-display); font-weight: 700; letter-spacing:
     .hero { padding: 32px 20px; }
     .cart-item { grid-template-columns: 52px 1fr; grid-template-rows: auto auto; gap: 12px 14px; }
     .cart-item-actions { grid-column: 1 / -1; flex-direction: row; flex-wrap: wrap; align-items: center; justify-content: space-between; min-width: 0; }
-    .header-inner { flex-wrap: wrap; gap: 8px; padding: 10px 14px; }
+    .header-inner { flex-wrap: wrap; gap: 8px 10px; padding: 10px 14px; }
+    .logo { gap: 6px; }
     .logo-chip { padding: 3px 8px; border-radius: 10px; }
     .logo-img { height: 30px; }
+    .logo-text { font-size: 0.92rem; }
     .search-form { order: 3; flex-basis: 100%; max-width: none; min-width: 0; height: 44px; margin-top: 2px; }
     .search-form input { padding: 0 10px 0 30px; font-size: 16px; }
     .search-form .search-prompt { left: 10px; font-size: 0.8rem; }
     .search-form button { padding: 0 14px; }
     .search-btn-icon { display: inline; }
     .search-btn-text { display: none; }
+    .header-actions { gap: 6px; flex-wrap: nowrap; }
+    .track-order-link { padding: 0 9px; }
     .cart-link { padding: 7px 9px; gap: 4px; font-size: 0.8rem; }
     .cart-text { display: none; }
 
