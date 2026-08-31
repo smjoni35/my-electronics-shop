@@ -31,8 +31,8 @@
             <a href="/" class="logo"><span class="logo-chip"><img src="/img/logo.png" alt="<%= storeName %>" class="logo-img"></span><span class="logo-text"><%= storeName %></span></a>
             <form action="/" method="GET" class="search-form">
                 <span class="search-prompt">&#10095;</span>
-                <input type="text" name="q" placeholder="Find the product..." value="<%= typeof q !== 'undefined' ? q : '' %>">
-                <button type="submit">Search</button>
+                <input type="text" name="q" placeholder="Find the product..." value="<%= typeof q !== 'undefined' ? q : '' %>" enterkeyhint="search">
+                <button type="submit" aria-label="Search"><span class="search-btn-icon">🔍</span><span class="search-btn-text">Search</span></button>
             </form>
             <a href="/track-order" class="track-order-link">📦 <span class="cart-text">আমার অর্ডার</span></a>
             <% if (typeof currentCustomerId !== 'undefined' && currentCustomerId) { %>
