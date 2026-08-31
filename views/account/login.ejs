@@ -1,0 +1,22 @@
+<%- include('../partials/header', { title: 'লগইন - ' + storeName }) %>
+
+<div class="auth-page">
+    <h1 class="page-title">লগইন করুন</h1>
+
+    <% if (error) { %><p class="error-msg"><%= error %></p><% } %>
+
+    <form action="/account/login" method="POST" class="checkout-form">
+        <input type="hidden" name="next" value="<%= next %>">
+        <label>মোবাইল নম্বর *
+            <input type="tel" name="phone" placeholder="01XXXXXXXXX" required>
+        </label>
+        <label>পাসওয়ার্ড *
+            <input type="password" name="password" required>
+        </label>
+        <button type="submit" class="btn-primary">লগইন</button>
+    </form>
+
+    <p class="auth-switch">অ্যাকাউন্ট নেই? <a href="/account/register">অ্যাকাউন্ট তৈরি করুন</a></p>
+</div>
+
+<%- include('../partials/footer') %>

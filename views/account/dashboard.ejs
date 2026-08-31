@@ -1,0 +1,53 @@
+<%- include('../partials/header', { title: 'আমার ড্যাশবোর্ড - ' + storeName }) %>
+
+<div class="breadcrumb" aria-label="breadcrumb">
+    <a href="/">হোম</a> <span class="breadcrumb-sep">/</span> <span class="breadcrumb-current">আমার ড্যাশবোর্ড</span>
+</div>
+
+<div class="account-dashboard">
+    <div class="account-dashboard-head">
+        <h1 class="page-title">স্বাগতম, <%= currentCustomerName %></h1>
+        <form action="/account/logout" method="POST">
+            <button type="submit" class="btn-remove">লগআউট</button>
+        </form>
+    </div>
+
+    <div class="stats-row">
+        <div class="stat-box">মোট অর্ডার<strong><%= stats.total_orders %></strong></div>
+        <div class="stat-box">মোট কেনাকাটা<strong>৳<%= parseFloat(stats.total_spent).toLocaleString('en-BD') %></strong></div>
+        <div class="stat-box">ডেলিভার্ড<strong><%= stats.delivered_count %></strong></div>
+        <div class="stat-box">পেন্ডিং<strong><%= stats.pending_count %></strong></div>
+        <div class="stat-box">বাতিল<strong><%= stats.cancelled_count %></strong></div>
+    </div>
+
+    <h2 class="section-title">অর্ডার হিস্ট্রি</h2>
+
+    <% if (orders.length === 0) { %>
+        <p class="empty-msg">এখনও কোনো অর্ডার করেননি। <a href="/">শপিং শুরু করুন</a></p>
+    <% } else { %>
+        <div class="track-order-list">
+            <% orders.forEach(order => { %>
+                <div class="order-detail-box track-order-card">
+                    <div class="track-order-card-head">
+                        <strong>অর্ডার #<%= order.id %></strong>
+                        <span class="status-badge <%= order.status %>"><%= order.status %></span>
+                    </div>
+                    <p><%= new Date(order.created_at).toLocaleDateString('en-GB', { day: 'numeric', month: 'short', year: 'numeric' }) %> &nbsp;•&nbsp; ৳<%= parseFloat(order.total).toLocaleString('en-BD') %> &nbsp;•&nbsp; ক্যাশ অন ডেলিভারি</p>
+
+                    <details class="track-order-items">
+                        <summary>প্রোডাক্টসমূহ দেখুন (<%= orderItemsById[order.id].length %>)</summary>
+                        <ul>
+                            <% orderItemsById[order.id].forEach(item => { %>
+                                <li><%= item.product_name %><% if (item.variant_label) { %> (<%= item.variant_label %>)<% } %> × <%= item.quantity %> — ৳<%= parseFloat(item.price * item.quantity).toLocaleString('en-BD') %></li>
+                            <% }) %>
+                        </ul>
+                    </details>
+
+                    <a href="/account/orders/<%= order.id %>/invoice" target="_blank" rel="noopener" class="btn-details invoice-link">🧾 ইনভয়েস দেখুন / ডাউনলোড করুন</a>
+                </div>
+            <% }) %>
+        </div>
+    <% } %>
+</div>
+
+<%- include('../partials/footer') %>

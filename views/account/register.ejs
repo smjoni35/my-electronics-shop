@@ -1,0 +1,31 @@
+<%- include('../partials/header', { title: 'অ্যাকাউন্ট তৈরি করুন - ' + storeName }) %>
+
+<div class="auth-page">
+    <h1 class="page-title">অ্যাকাউন্ট তৈরি করুন</h1>
+    <p class="auth-sub">অ্যাকাউন্ট থাকলে ড্যাশবোর্ড থেকে অর্ডার হিস্ট্রি ও ইনভয়েস দেখতে পারবেন।</p>
+
+    <% if (error) { %><p class="error-msg"><%= error %></p><% } %>
+
+    <form action="/account/register" method="POST" class="checkout-form">
+        <label>পূর্ণ নাম *
+            <input type="text" name="name" value="<%= name %>" required>
+        </label>
+        <label>মোবাইল নম্বর *
+            <input type="tel" name="phone" value="<%= phone %>" placeholder="01XXXXXXXXX" required>
+        </label>
+        <label>ইমেইল <span class="field-hint">(ঐচ্ছিক)</span>
+            <input type="email" name="email" value="<%= email %>">
+        </label>
+        <label>পাসওয়ার্ড *
+            <input type="password" name="password" minlength="6" required>
+        </label>
+        <label>পাসওয়ার্ড আবার লিখুন *
+            <input type="password" name="confirmPassword" minlength="6" required>
+        </label>
+        <button type="submit" class="btn-primary">অ্যাকাউন্ট তৈরি করুন</button>
+    </form>
+
+    <p class="auth-switch">আগে থেকেই অ্যাকাউন্ট আছে? <a href="/account/login">লগইন করুন</a></p>
+</div>
+
+<%- include('../partials/footer') %>
