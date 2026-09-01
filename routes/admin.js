@@ -7,6 +7,13 @@ const { upload, uploadImageToR2, deleteImageFromR2 } = require('../middleware/r2
 const { adminLoginLimiter } = require('../middleware/rateLimit');
 const { streamInvoice } = require('../services/invoice');
 
+// Makes req.path (relative to /admin) available to every admin view for
+// sidebar active-link highlighting, without needing every render() call to pass it.
+router.use((req, res, next) => {
+    res.locals.adminPath = req.path;
+    next();
+});
+
 // Parses the JSON that the product-form page's JS builds from the variant
 // rows (color/storage/size/stock/price/sku) into a clean array. Never
 // trusts field types from the client — everything is re-parsed here.
@@ -111,17 +118,185 @@ router.post('/logout', (req, res) => {
     res.redirect('/admin/login');
 });
 
-// Dashboard
+// Helper: percentage change between two numeric periods, formatted for the stat cards.
+// Returns null when there's nothing meaningful to compare (avoids a misleading "+100%"
+// the first time a store has any data at all).
+function periodChange(current, previous) {
+    current = Number(current) || 0;
+    previous = Number(previous) || 0;
+    if (previous === 0) {
+        return current === 0 ? { pct: 0, dir: 'flat' } : { pct: null, dir: 'up' };
+    }
+    const pct = ((current - previous) / previous) * 100;
+    return { pct: Math.round(pct * 10) / 10, dir: pct > 0 ? 'up' : (pct < 0 ? 'down' : 'flat') };
+}
+
+// Dashboard — analytics overview (real DB figures only, no placeholder numbers)
 router.get('/dashboard', requireAdmin, async (req, res) => {
+    const [
+        { rows: orderStatsRows },
+        { rows: productStatsRows },
+        { rows: customerStatsRows },
+        { rows: recentOrders },
+        { rows: lowStockProducts },
+        { rows: topSellingProducts }
+    ] = await Promise.all([
+        pool.query(`
+            SELECT
+                COUNT(*) FILTER (WHERE status != 'cancelled') AS total_orders,
+                COUNT(*) FILTER (WHERE status != 'cancelled' AND created_at >= NOW() - INTERVAL '7 days') AS orders_last7,
+                COUNT(*) FILTER (WHERE status != 'cancelled' AND created_at >= NOW() - INTERVAL '14 days' AND created_at < NOW() - INTERVAL '7 days') AS orders_prev7,
+                COALESCE(SUM(total) FILTER (WHERE status = 'delivered'), 0) AS total_revenue,
+                COALESCE(SUM(total) FILTER (WHERE status = 'delivered' AND created_at >= NOW() - INTERVAL '7 days'), 0) AS revenue_last7,
+                COALESCE(SUM(total) FILTER (WHERE status = 'delivered' AND created_at >= NOW() - INTERVAL '14 days' AND created_at < NOW() - INTERVAL '7 days'), 0) AS revenue_prev7,
+                COALESCE(SUM(total) FILTER (WHERE status IN ('pending', 'confirmed', 'shipped')), 0) AS pending_revenue,
+                COALESCE(SUM(total) FILTER (WHERE status IN ('pending', 'confirmed', 'shipped') AND created_at >= NOW() - INTERVAL '7 days'), 0) AS pending_last7,
+                COALESCE(SUM(total) FILTER (WHERE status IN ('pending', 'confirmed', 'shipped') AND created_at >= NOW() - INTERVAL '14 days' AND created_at < NOW() - INTERVAL '7 days'), 0) AS pending_prev7,
+                COUNT(*) AS status_total,
+                COUNT(*) FILTER (WHERE status = 'pending') AS status_pending,
+                COUNT(*) FILTER (WHERE status = 'confirmed') AS status_confirmed,
+                COUNT(*) FILTER (WHERE status = 'shipped') AS status_shipped,
+                COUNT(*) FILTER (WHERE status = 'delivered') AS status_delivered,
+                COUNT(*) FILTER (WHERE status = 'cancelled') AS status_cancelled
+            FROM orders
+        `),
+        pool.query(`
+            SELECT COUNT(*) AS total_products,
+                COUNT(*) FILTER (WHERE created_at >= NOW() - INTERVAL '7 days') AS products_last7
+            FROM products
+        `),
+        pool.query(`
+            SELECT COUNT(*) AS total_customers,
+                COUNT(*) FILTER (WHERE created_at >= NOW() - INTERVAL '7 days') AS customers_last7
+            FROM customers
+        `),
+        pool.query(`SELECT id, customer_name, total, payment_method, status, created_at FROM orders ORDER BY created_at DESC LIMIT 5`),
+        pool.query(`SELECT id, name, image_url, stock, price FROM products WHERE stock <= 5 ORDER BY stock ASC, name ASC LIMIT 5`),
+        pool.query(`
+            SELECT p.id, p.name, p.image_url, p.price, COALESCE(SUM(oi.quantity), 0) AS sold
+            FROM products p
+            JOIN order_items oi ON oi.product_id = p.id
+            JOIN orders o ON o.id = oi.order_id AND o.status != 'cancelled'
+            GROUP BY p.id
+            ORDER BY sold DESC
+            LIMIT 5
+        `)
+    ]);
+
+    const os = orderStatsRows[0];
+    const ps = productStatsRows[0];
+    const cs = customerStatsRows[0];
+
+    const stats = {
+        totalOrders: Number(os.total_orders),
+        ordersChange: periodChange(os.orders_last7, os.orders_prev7),
+        totalRevenue: Number(os.total_revenue),
+        revenueChange: periodChange(os.revenue_last7, os.revenue_prev7),
+        pendingRevenue: Number(os.pending_revenue),
+        pendingChange: periodChange(os.pending_last7, os.pending_prev7),
+        totalProducts: Number(ps.total_products),
+        productsLast7: Number(ps.products_last7),
+        totalCustomers: Number(cs.total_customers),
+        customersLast7: Number(cs.customers_last7)
+    };
+
+    const statusTotal = Number(os.status_total) || 0;
+    const statusPct = (n) => statusTotal > 0 ? Math.round((Number(n) / statusTotal) * 1000) / 10 : 0;
+    const orderStatus = {
+        total: statusTotal,
+        breakdown: [
+            { key: 'pending', label: 'Pending', count: Number(os.status_pending), pct: statusPct(os.status_pending), color: '#ffd23f' },
+            { key: 'confirmed', label: 'Confirmed', count: Number(os.status_confirmed), pct: statusPct(os.status_confirmed), color: '#29b6f6' },
+            { key: 'shipped', label: 'Shipped', count: Number(os.status_shipped), pct: statusPct(os.status_shipped), color: '#b7a8ff' },
+            { key: 'delivered', label: 'Delivered', count: Number(os.status_delivered), pct: statusPct(os.status_delivered), color: '#2ecc71' },
+            { key: 'cancelled', label: 'Cancelled', count: Number(os.status_cancelled), pct: statusPct(os.status_cancelled), color: '#ff5470' }
+        ]
+    };
+
+    res.render('admin/dashboard', {
+        pageTitle: 'Dashboard',
+        stats,
+        orderStatus,
+        recentOrders,
+        lowStockProducts,
+        topSellingProducts
+    });
+});
+
+// Sales overview chart data (JSON), used by the dashboard's period switcher.
+// All figures are computed live from the orders table — nothing hardcoded.
+router.get('/api/sales-overview', requireAdmin, async (req, res) => {
+    const period = ['today', 'week', 'month', 'year'].includes(req.query.period) ? req.query.period : 'week';
+    let query, params = [];
+
+    if (period === 'today') {
+        query = `
+            SELECT to_char(hour_slot, 'HH24:00') AS label,
+                   COALESCE(SUM(o.total) FILTER (WHERE o.id IS NOT NULL AND o.status != 'cancelled'), 0) AS sales,
+                   COUNT(o.id) FILTER (WHERE o.status != 'cancelled') AS orders
+            FROM generate_series(date_trunc('day', NOW()), date_trunc('day', NOW()) + INTERVAL '23 hours', INTERVAL '1 hour') AS hour_slot
+            LEFT JOIN orders o ON date_trunc('hour', o.created_at) = hour_slot
+            GROUP BY hour_slot ORDER BY hour_slot`;
+    } else if (period === 'week') {
+        query = `
+            SELECT to_char(day_slot, 'DD Mon') AS label,
+                   COALESCE(SUM(o.total) FILTER (WHERE o.id IS NOT NULL AND o.status != 'cancelled'), 0) AS sales,
+                   COUNT(o.id) FILTER (WHERE o.status != 'cancelled') AS orders
+            FROM generate_series(date_trunc('day', NOW()) - INTERVAL '6 days', date_trunc('day', NOW()), INTERVAL '1 day') AS day_slot
+            LEFT JOIN orders o ON date_trunc('day', o.created_at) = day_slot
+            GROUP BY day_slot ORDER BY day_slot`;
+    } else if (period === 'month') {
+        query = `
+            SELECT to_char(day_slot, 'DD Mon') AS label,
+                   COALESCE(SUM(o.total) FILTER (WHERE o.id IS NOT NULL AND o.status != 'cancelled'), 0) AS sales,
+                   COUNT(o.id) FILTER (WHERE o.status != 'cancelled') AS orders
+            FROM generate_series(date_trunc('month', NOW()), date_trunc('day', NOW()), INTERVAL '1 day') AS day_slot
+            LEFT JOIN orders o ON date_trunc('day', o.created_at) = day_slot
+            GROUP BY day_slot ORDER BY day_slot`;
+    } else {
+        query = `
+            SELECT to_char(month_slot, 'Mon') AS label,
+                   COALESCE(SUM(o.total) FILTER (WHERE o.id IS NOT NULL AND o.status != 'cancelled'), 0) AS sales,
+                   COUNT(o.id) FILTER (WHERE o.status != 'cancelled') AS orders
+            FROM generate_series(date_trunc('year', NOW()), date_trunc('month', NOW()), INTERVAL '1 month') AS month_slot
+            LEFT JOIN orders o ON date_trunc('month', o.created_at) = month_slot
+            GROUP BY month_slot ORDER BY month_slot`;
+    }
+
+    try {
+        const { rows } = await pool.query(query, params);
+        res.json({
+            period,
+            labels: rows.map(r => r.label),
+            sales: rows.map(r => Number(r.sales)),
+            orders: rows.map(r => Number(r.orders))
+        });
+    } catch (err) {
+        console.error('Sales overview error:', err.message);
+        res.status(500).json({ error: 'ডেটা লোড করা যায়নি' });
+    }
+});
+
+// Products list (moved off the old dashboard route so /admin/dashboard can be a
+// pure analytics overview, matching the sidebar's separate "Products" entry)
+router.get('/products', requireAdmin, async (req, res) => {
     const { rows: products } = await pool.query('SELECT * FROM products ORDER BY created_at DESC');
-    const { rows: orderStats } = await pool.query(`
-        SELECT
-            COUNT(*) FILTER (WHERE status != 'cancelled') AS total_orders,
-            COALESCE(SUM(total) FILTER (WHERE status = 'delivered'), 0) AS total_revenue,
-            COALESCE(SUM(total) FILTER (WHERE status IN ('pending', 'confirmed', 'shipped')), 0) AS pending_revenue
-        FROM orders
+    res.render('admin/products', { pageTitle: 'Products', products, addedSuccess: req.query.added === '1' });
+});
+
+// Customers — read-only list; full customer editing isn't part of the existing
+// project, so this reuses the customers table without adding a new subsystem.
+router.get('/customers', requireAdmin, async (req, res) => {
+    const { rows: customers } = await pool.query(`
+        SELECT c.id, c.name, c.phone, c.email, c.created_at,
+               COUNT(o.id) FILTER (WHERE o.status != 'cancelled') AS order_count,
+               COALESCE(SUM(o.total) FILTER (WHERE o.status = 'delivered'), 0) AS total_spent
+        FROM customers c
+        LEFT JOIN orders o ON o.customer_id = c.id
+        GROUP BY c.id
+        ORDER BY c.created_at DESC
     `);
-    res.render('admin/dashboard', { products, stats: orderStats[0], addedSuccess: req.query.added === '1' });
+    res.render('admin/customers', { pageTitle: 'Customers', customers });
 });
 
 // New product form
@@ -166,7 +341,7 @@ router.post('/products/new', requireRole('admin', 'manager'), productImageUpload
         await saveVariants(client, productId, variants);
 
         await client.query('COMMIT');
-        res.redirect('/admin/dashboard?added=1');
+        res.redirect('/admin/products?added=1');
     } catch (err) {
         await client.query('ROLLBACK');
         console.error(err);
@@ -179,7 +354,7 @@ router.post('/products/new', requireRole('admin', 'manager'), productImageUpload
 // Edit product form
 router.get('/products/:id/edit', requireAdmin, async (req, res) => {
     const { rows } = await pool.query('SELECT * FROM products WHERE id = $1', [req.params.id]);
-    if (rows.length === 0) return res.redirect('/admin/dashboard');
+    if (rows.length === 0) return res.redirect('/admin/products');
     const { rows: galleryImages } = await pool.query(
         'SELECT * FROM product_images WHERE product_id = $1 ORDER BY sort_order ASC, id ASC',
         [req.params.id]
@@ -204,7 +379,7 @@ router.post('/products/:id/edit', requireAdmin, productImageUpload, async (req, 
         const specs = JSON.stringify(parseSpecsText(req.body.specsText));
         const variants = parseVariants(req.body.variantsJson);
         const { rows } = await client.query('SELECT * FROM products WHERE id = $1', [req.params.id]);
-        if (rows.length === 0) { client.release(); return res.redirect('/admin/dashboard'); }
+        if (rows.length === 0) { client.release(); return res.redirect('/admin/products'); }
 
         const coverFile = req.files && req.files.image ? req.files.image[0] : null;
         const galleryFiles = (req.files && req.files.gallery) || [];
@@ -289,17 +464,36 @@ router.post('/products/:id/delete', requireRole('admin', 'manager'), async (req,
             await deleteImageFromR2(img.image_url);
         }
         await pool.query('DELETE FROM products WHERE id = $1', [req.params.id]);
-        res.redirect('/admin/dashboard');
+        res.redirect('/admin/products');
     } catch (err) {
         console.error('Product delete error:', err.message);
-        res.redirect('/admin/dashboard');
+        res.redirect('/admin/products');
     }
 });
 
-// Orders list
+// Orders list — optional ?status= filter, with real counts per tab (only the
+// statuses order-detail.ejs actually supports: pending/confirmed/shipped/delivered/cancelled)
 router.get('/orders', requireAdmin, async (req, res) => {
-    const { rows: orders } = await pool.query('SELECT * FROM orders ORDER BY created_at DESC');
-    res.render('admin/orders', { orders });
+    const VALID_STATUSES = ['pending', 'confirmed', 'shipped', 'delivered', 'cancelled'];
+    const statusFilter = VALID_STATUSES.includes(req.query.status) ? req.query.status : null;
+
+    const [{ rows: orders }, { rows: countRows }] = await Promise.all([
+        statusFilter
+            ? pool.query('SELECT * FROM orders WHERE status = $1 ORDER BY created_at DESC', [statusFilter])
+            : pool.query('SELECT * FROM orders ORDER BY created_at DESC'),
+        pool.query(`
+            SELECT
+                COUNT(*) AS all_count,
+                COUNT(*) FILTER (WHERE status = 'pending') AS pending_count,
+                COUNT(*) FILTER (WHERE status = 'confirmed') AS confirmed_count,
+                COUNT(*) FILTER (WHERE status = 'shipped') AS shipped_count,
+                COUNT(*) FILTER (WHERE status = 'delivered') AS delivered_count,
+                COUNT(*) FILTER (WHERE status = 'cancelled') AS cancelled_count
+            FROM orders
+        `)
+    ]);
+
+    res.render('admin/orders', { pageTitle: 'Orders', orders, statusFilter, statusCounts: countRows[0] });
 });
 
 // Order detail
@@ -307,7 +501,7 @@ router.get('/orders/:id', requireAdmin, async (req, res) => {
     const { rows: orderRows } = await pool.query('SELECT * FROM orders WHERE id = $1', [req.params.id]);
     if (orderRows.length === 0) return res.redirect('/admin/orders');
     const { rows: items } = await pool.query('SELECT * FROM order_items WHERE order_id = $1', [req.params.id]);
-    res.render('admin/order-detail', { order: orderRows[0], items, updatedSuccess: req.query.updated === '1' });
+    res.render('admin/order-detail', { pageTitle: 'Order #' + orderRows[0].id, order: orderRows[0], items, updatedSuccess: req.query.updated === '1' });
 });
 
 // Update order status
@@ -327,7 +521,7 @@ router.get('/orders/:id/invoice', requireAdmin, async (req, res) => {
         address: process.env.STORE_ADDRESS || '',
         phone: process.env.STORE_PHONE || '',
         email: process.env.STORE_EMAIL || ''
-    });
+    }, { download: req.query.download === '1' });
 });
 
 // Delete order (also removes its order_items via ON DELETE CASCADE) —
@@ -348,11 +542,11 @@ router.post('/orders/:id/delete', requireRole('admin', 'manager'), async (req, r
 
 router.get('/coupons', requireRole('admin', 'manager'), async (req, res) => {
     const { rows: coupons } = await pool.query('SELECT * FROM coupons ORDER BY created_at DESC');
-    res.render('admin/coupons', { coupons, addedSuccess: req.query.added === '1' });
+    res.render('admin/coupons', { pageTitle: 'Coupons & Discounts', coupons, addedSuccess: req.query.added === '1' });
 });
 
 router.get('/coupons/new', requireRole('admin', 'manager'), (req, res) => {
-    res.render('admin/coupon-form', { coupon: null, error: null });
+    res.render('admin/coupon-form', { pageTitle: 'Add Coupon', coupon: null, error: null });
 });
 
 router.post('/coupons/new', requireRole('admin', 'manager'), async (req, res) => {
@@ -377,7 +571,7 @@ router.post('/coupons/new', requireRole('admin', 'manager'), async (req, res) =>
 router.get('/coupons/:id/edit', requireRole('admin', 'manager'), async (req, res) => {
     const { rows } = await pool.query('SELECT * FROM coupons WHERE id = $1', [req.params.id]);
     if (rows.length === 0) return res.redirect('/admin/coupons');
-    res.render('admin/coupon-form', { coupon: rows[0], error: null });
+    res.render('admin/coupon-form', { pageTitle: 'Edit Coupon', coupon: rows[0], error: null });
 });
 
 router.post('/coupons/:id/edit', requireRole('admin', 'manager'), async (req, res) => {
@@ -422,11 +616,11 @@ function readCouponForm(body) {
 
 router.get('/staff', requireRole('admin'), async (req, res) => {
     const { rows: staff } = await pool.query('SELECT id, username, role FROM admins ORDER BY id ASC');
-    res.render('admin/staff', { staff, error: null, roleLabels: ROLE_LABELS, currentUsername: req.session.adminUsername });
+    res.render('admin/staff', { pageTitle: 'Staff & Roles', staff, error: null, roleLabels: ROLE_LABELS, currentUsername: req.session.adminUsername });
 });
 
 router.get('/staff/new', requireRole('admin'), (req, res) => {
-    res.render('admin/staff-form', { error: null, roleLabels: ROLE_LABELS });
+    res.render('admin/staff-form', { pageTitle: 'Add Staff', error: null, roleLabels: ROLE_LABELS });
 });
 
 router.post('/staff/new', requireRole('admin'), async (req, res) => {
