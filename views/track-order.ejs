@@ -9,6 +9,7 @@
     <p class="track-order-sub">যে ফোন নম্বর দিয়ে অর্ডার করেছিলেন তা দিন — অ্যাকাউন্ট তৈরি করার দরকার নেই।</p>
 
     <form method="POST" action="/track-order" class="track-order-form">
+        <input type="hidden" name="_csrf" value="<%= csrfToken %>">
         <label>ফোন নম্বর
             <input type="tel" name="phone" placeholder="01XXXXXXXXX" value="<%= phone %>" required>
         </label>

@@ -141,6 +141,7 @@
             <p class="return-policy-note">🔁 ৭ দিনের মধ্যে রিটার্ন/এক্সচেঞ্জ সুবিধা — <a href="/return-policy">বিস্তারিত জানুন</a></p>
             <div class="product-cta-row">
                 <form action="/cart/add" method="POST" class="add-cart-form" id="addCartForm">
+                    <input type="hidden" name="_csrf" value="<%= csrfToken %>">
                     <input type="hidden" name="productId" value="<%= product.id %>">
                     <input type="hidden" name="variantId" id="variantIdInput" value="0">
                     <label>পরিমাণ:
@@ -195,6 +196,7 @@
                     <p class="notify-me-success">✅ ধন্যবাদ! স্টক এলে আমরা আপনাকে জানানোর চেষ্টা করব।</p>
                 <% } else { %>
                     <form action="/product/<%= product.id %>/notify-me" method="POST" class="notify-me-form">
+                        <input type="hidden" name="_csrf" value="<%= csrfToken %>">
                         <label>স্টক এলে জানান — ফোন নম্বর দিন
                             <input type="tel" name="phone" placeholder="01XXXXXXXXX" required>
                         </label>
@@ -250,6 +252,7 @@
     <% } %>
 
     <form action="/product/<%= product.id %>/review" method="POST" class="review-form">
+        <input type="hidden" name="_csrf" value="<%= csrfToken %>">
         <h3>আপনার রিভিউ দিন</h3>
         <% if (reviewError) { %><p class="error-msg"><%= reviewError %></p><% } %>
         <% if (typeof rateLimited !== 'undefined' && rateLimited) { %><p class="error-msg">অনেকবার রিভিউ দেওয়ার চেষ্টা করা হয়েছে। কিছুক্ষণ পর আবার চেষ্টা করুন।</p><% } %>

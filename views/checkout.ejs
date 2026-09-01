@@ -9,6 +9,7 @@
 
 <div class="checkout-layout">
     <form action="/checkout" method="POST" class="checkout-form">
+        <input type="hidden" name="_csrf" value="<%= csrfToken %>">
         <label>Full name *
             <input type="text" name="customerName" value="<%= customerName %>" required>
         </label>
@@ -67,9 +68,10 @@
         var code = input.value.trim();
         if (!code) return;
         applyBtn.disabled = true;
+        var csrfToken = document.querySelector('meta[name="csrf-token"]').content;
         fetch('/coupon/apply', {
             method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
+            headers: { 'Content-Type': 'application/json', 'X-CSRF-Token': csrfToken },
             body: JSON.stringify({ code: code })
         }).then(function (r) { return r.json(); }).then(function (data) {
             message.textContent = data.message || '';
@@ -88,7 +90,8 @@
     applyBtn.addEventListener('click', apply);
     if (removeBtn) {
         removeBtn.addEventListener('click', function () {
-            fetch('/coupon/remove', { method: 'POST' }).then(function () {
+            var removeCsrfToken = document.querySelector('meta[name="csrf-token"]').content;
+            fetch('/coupon/remove', { method: 'POST', headers: { 'X-CSRF-Token': removeCsrfToken } }).then(function () {
                 input.value = '';
                 message.textContent = '';
                 discountRow.style.display = 'none';
