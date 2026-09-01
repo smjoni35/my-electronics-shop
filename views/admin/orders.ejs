@@ -12,27 +12,59 @@
 <body>
     <%- include('nav') %>
     <div class="container">
-        <h1>Orders</h1>
+        <div class="admin-header-row">
+            <h1>Orders</h1>
+        </div>
+
+        <div class="order-status-tabs">
+            <a href="/admin/orders" class="<%= !statusFilter ? 'active' : '' %>">All (<%= statusCounts.all_count %>)</a>
+            <a href="/admin/orders?status=pending" class="<%= statusFilter === 'pending' ? 'active' : '' %>">Pending (<%= statusCounts.pending_count %>)</a>
+            <a href="/admin/orders?status=confirmed" class="<%= statusFilter === 'confirmed' ? 'active' : '' %>">Confirmed (<%= statusCounts.confirmed_count %>)</a>
+            <a href="/admin/orders?status=shipped" class="<%= statusFilter === 'shipped' ? 'active' : '' %>">Shipped (<%= statusCounts.shipped_count %>)</a>
+            <a href="/admin/orders?status=delivered" class="<%= statusFilter === 'delivered' ? 'active' : '' %>">Delivered (<%= statusCounts.delivered_count %>)</a>
+            <a href="/admin/orders?status=cancelled" class="<%= statusFilter === 'cancelled' ? 'active' : '' %>">Cancelled (<%= statusCounts.cancelled_count %>)</a>
+        </div>
+
         <div class="table-scroll">
         <table class="admin-table">
             <thead>
-                <tr><th>#</th><th>Customer</th><th>Phone</th><th>Total</th><th>Status</th><th>Date</th><th></th></tr>
+                <tr><th>Order ID</th><th>Customer</th><th>Phone</th><th>Amount</th><th>Payment</th><th>Status</th><th>Date</th><th>Action</th></tr>
             </thead>
             <tbody>
+                <% if (orders.length === 0) { %>
+                <tr><td colspan="8" class="dash-empty">এই স্ট্যাটাসে কোনো অর্ডার নেই।</td></tr>
+                <% } %>
                 <% orders.forEach(o => { %>
                 <tr>
-                    <td>#<%= o.id %></td>
+                    <td>#ORD-<%= String(o.id).padStart(5, '0') %></td>
                     <td><%= o.customer_name %></td>
                     <td><%= o.phone %></td>
                     <td>৳<%= parseFloat(o.total).toLocaleString('en-BD') %></td>
+                    <td><%= paymentLabel(o.payment_method) %></td>
                     <td><span class="status-badge <%= o.status %>"><%= o.status %></span></td>
                     <td><%= new Date(o.created_at).toLocaleDateString('en-BD') %></td>
-                    <td><a href="/admin/orders/<%= o.id %>" class="btn-details">Details</a></td>
+                    <td>
+                        <div class="order-actions-inline">
+                            <a href="/admin/orders/<%= o.id %>" class="order-icon-btn" title="View Details">
+                                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path><circle cx="12" cy="12" r="3"></circle></svg>
+                            </a>
+                            <a href="/track-order?phone=<%= encodeURIComponent(o.phone) %>" target="_blank" rel="noopener" class="order-icon-btn" title="Track Order">
+                                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 10c0 6-9 12-9 12s-9-6-9-12a9 9 0 0 1 18 0z"></path><circle cx="12" cy="10" r="3"></circle></svg>
+                            </a>
+                            <a href="/admin/orders/<%= o.id %>/invoice?download=1" class="order-icon-btn" title="Download Invoice">
+                                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="7 10 12 15 17 10"></polyline><line x1="12" y1="15" x2="12" y2="3"></line></svg>
+                            </a>
+                            <a href="/admin/orders/<%= o.id %>/invoice" target="_blank" rel="noopener" class="order-icon-btn" title="Print Invoice">
+                                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 6 2 18 2 18 9"></polyline><path d="M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2"></path><rect x="6" y="14" width="12" height="8"></rect></svg>
+                            </a>
+                        </div>
+                    </td>
                 </tr>
                 <% }) %>
             </tbody>
         </table>
         </div>
     </div>
+    <%- include('nav-end') %>
 </body>
 </html>

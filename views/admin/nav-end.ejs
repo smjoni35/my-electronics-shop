@@ -1,0 +1,52 @@
+        </main>
+    </div>
+</div>
+<script>
+    (function () {
+        var shell = document.getElementById('adminShell');
+        var sidebar = document.getElementById('adminSidebar');
+        var overlay = document.getElementById('adminSidebarOverlay');
+        var collapseBtn = document.getElementById('adminSidebarToggle');
+        var mobileBtn = document.getElementById('adminMobileToggle');
+        if (!shell) return;
+
+        // Desktop collapse/expand — remembered across pages
+        try {
+            if (localStorage.getItem('adminSidebarCollapsed') === '1') {
+                shell.classList.add('sidebar-collapsed');
+            }
+        } catch (e) {}
+        if (collapseBtn) {
+            collapseBtn.addEventListener('click', function () {
+                shell.classList.toggle('sidebar-collapsed');
+                try {
+                    localStorage.setItem('adminSidebarCollapsed', shell.classList.contains('sidebar-collapsed') ? '1' : '0');
+                } catch (e) {}
+            });
+        }
+
+        // Mobile drawer
+        function openMobile() { shell.classList.add('sidebar-mobile-open'); if (overlay) overlay.classList.add('open'); }
+        function closeMobile() { shell.classList.remove('sidebar-mobile-open'); if (overlay) overlay.classList.remove('open'); }
+        if (mobileBtn) mobileBtn.addEventListener('click', openMobile);
+        if (overlay) overlay.addEventListener('click', closeMobile);
+        window.addEventListener('resize', function () {
+            if (window.innerWidth > 980) closeMobile();
+        });
+
+        // Profile dropdown
+        var btn = document.getElementById('profileBtn');
+        var dropdown = document.getElementById('profileDropdown');
+        if (btn && dropdown) {
+            btn.addEventListener('click', function (e) {
+                e.stopPropagation();
+                dropdown.classList.toggle('open');
+            });
+            document.addEventListener('click', function (e) {
+                if (!dropdown.contains(e.target) && e.target !== btn) {
+                    dropdown.classList.remove('open');
+                }
+            });
+        }
+    })();
+</script>

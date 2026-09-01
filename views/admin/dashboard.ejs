@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Admin Dashboard</title>
+    <title>Dashboard — Admin</title>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;600;700&family=Inter:wght@400;500;600&family=JetBrains+Mono:wght@400;500;600;700&family=Hind+Siliguri:wght@400;500;600;700&display=swap" rel="stylesheet">
@@ -12,49 +12,311 @@
 <body>
     <%- include('nav') %>
     <div class="container">
-        <div class="stats-row">
-            <div class="stat-box">Total Order<strong><%= stats.total_orders %></strong></div>
-            <div class="stat-box">Total Sales<strong>৳<%= parseFloat(stats.total_revenue).toLocaleString('en-BD') %></strong></div>
-            <div class="stat-box">Pending Revenue<strong>৳<%= parseFloat(stats.pending_revenue).toLocaleString('en-BD') %></strong></div>
-            <div class="stat-box">Total Product<strong><%= products.length %></strong></div>
+
+        <%
+            // Small helper to render a growth badge consistently across the stat cards.
+            function changeBadge(change) {
+                if (!change || change.pct === null) return '<span class="dash-stat-change up">New</span>';
+                var dir = change.dir;
+                var arrow = dir === 'up' ? '▲' : (dir === 'down' ? '▼' : '—');
+                var sign = change.pct > 0 ? '+' : '';
+                return '<span class="dash-stat-change ' + dir + '">' + arrow + ' ' + sign + change.pct + '%</span>';
+            }
+        %>
+
+        <div class="dash-stats-grid">
+            <div class="dash-stat-card">
+                <div class="dash-stat-top">
+                    <span class="dash-stat-icon gold">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M6 2l1.5 4h9L18 2"></path><path d="M3.5 8h17l-1.2 11a2 2 0 0 1-2 1.8H6.7a2 2 0 0 1-2-1.8L3.5 8z"></path><path d="M9 12a3 3 0 0 0 6 0"></path></svg>
+                    </span>
+                    <%- changeBadge(stats.ordersChange) %>
+                </div>
+                <div class="dash-stat-label">Total Orders</div>
+                <div class="dash-stat-value"><%= stats.totalOrders %></div>
+                <div class="dash-stat-caption">vs previous 7 days</div>
+            </div>
+
+            <div class="dash-stat-card">
+                <div class="dash-stat-top">
+                    <span class="dash-stat-icon green">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"></circle><path d="M12 7v10M15 9.5c0-1.4-1.3-2.5-3-2.5s-3 1-3 2.3c0 3 6 1.4 6 4.4 0 1.4-1.3 2.5-3 2.5s-3-1.1-3-2.5"></path></svg>
+                    </span>
+                    <%- changeBadge(stats.revenueChange) %>
+                </div>
+                <div class="dash-stat-label">Total Sales</div>
+                <div class="dash-stat-value">৳<%= stats.totalRevenue.toLocaleString('en-BD') %></div>
+                <div class="dash-stat-caption">delivered orders</div>
+            </div>
+
+            <div class="dash-stat-card">
+                <div class="dash-stat-top">
+                    <span class="dash-stat-icon orange">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"></circle><path d="M12 7v5l3.5 2"></path></svg>
+                    </span>
+                    <%- changeBadge(stats.pendingChange) %>
+                </div>
+                <div class="dash-stat-label">Pending Revenue</div>
+                <div class="dash-stat-value">৳<%= stats.pendingRevenue.toLocaleString('en-BD') %></div>
+                <div class="dash-stat-caption">not yet delivered</div>
+            </div>
+
+            <div class="dash-stat-card">
+                <div class="dash-stat-top">
+                    <span class="dash-stat-icon purple">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 8l-9-5-9 5 9 5 9-5z"></path><path d="M3 8v8l9 5 9-5V8"></path></svg>
+                    </span>
+                    <span class="dash-stat-change <%= stats.productsLast7 > 0 ? 'up' : 'flat' %>">+<%= stats.productsLast7 %> new</span>
+                </div>
+                <div class="dash-stat-label">Total Products</div>
+                <div class="dash-stat-value"><%= stats.totalProducts %></div>
+                <div class="dash-stat-caption">this week</div>
+            </div>
+
+            <div class="dash-stat-card">
+                <div class="dash-stat-top">
+                    <span class="dash-stat-icon blue">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"></path><circle cx="9" cy="7" r="4"></circle><path d="M23 21v-2a4 4 0 0 0-3-3.87"></path><path d="M16 3.13a4 4 0 0 1 0 7.75"></path></svg>
+                    </span>
+                    <span class="dash-stat-change <%= stats.customersLast7 > 0 ? 'up' : 'flat' %>">+<%= stats.customersLast7 %> new</span>
+                </div>
+                <div class="dash-stat-label">Total Customers</div>
+                <div class="dash-stat-value"><%= stats.totalCustomers %></div>
+                <div class="dash-stat-caption">this week</div>
+            </div>
         </div>
 
-        <div class="admin-header-row">
-            <h1>Products</h1>
-            <% if (currentRole !== 'moderator') { %>
-            <a href="/admin/products/new" class="btn-primary">+ Add Product</a>
-            <% } %>
+        <div class="dash-charts-row">
+            <div class="dash-widget">
+                <div class="dash-widget-head">
+                    <h2>Sales Overview</h2>
+                    <div class="period-tabs" id="salesPeriodTabs">
+                        <button type="button" data-period="today">Today</button>
+                        <button type="button" data-period="week" class="active">This Week</button>
+                        <button type="button" data-period="month">This Month</button>
+                        <button type="button" data-period="year">This Year</button>
+                    </div>
+                </div>
+                <div class="chart-legend-row">
+                    <span class="chart-legend-item"><span class="chart-legend-dot" style="background:#ffd23f"></span>Sales (৳)</span>
+                    <span class="chart-legend-item"><span class="chart-legend-dot" style="background:#29b6f6"></span>Orders</span>
+                </div>
+                <div class="chart-canvas-wrap">
+                    <div class="chart-skeleton" id="salesChartSkeleton"></div>
+                    <canvas id="salesChart"></canvas>
+                </div>
+            </div>
+
+            <div class="dash-widget">
+                <div class="dash-widget-head">
+                    <h2>Order Status</h2>
+                </div>
+                <% if (orderStatus.total === 0) { %>
+                    <p class="dash-empty">এখনো কোনো অর্ডার নেই।</p>
+                <% } else { %>
+                <div class="donut-wrap">
+                    <div class="donut-canvas-wrap">
+                        <canvas id="statusDonut"></canvas>
+                        <div class="donut-center"><strong><%= orderStatus.total %></strong><span>Total</span></div>
+                    </div>
+                    <ul class="status-legend">
+                        <% orderStatus.breakdown.forEach(s => { %>
+                        <li>
+                            <span class="dot" style="background:<%= s.color %>"></span>
+                            <span class="name"><%= s.label %></span>
+                            <span class="count"><%= s.count %></span>
+                            <span class="pct">(<%= s.pct %>%)</span>
+                        </li>
+                        <% }) %>
+                    </ul>
+                </div>
+                <% } %>
+            </div>
         </div>
 
-        
-        <div class="table-scroll">
-        <table class="admin-table">
-            <thead>
-                <tr><th>Photo</th><th>Name</th><th>Price</th><th>Stock</th><th>Category</th><th>Action</th></tr>
-            </thead>
-            <tbody>
-                <% products.forEach(p => { %>
-                <tr>
-                    <td><% if (p.image_url) { %><img src="<%= p.image_url %>" class="thumb"><% } %></td>
-                    <td><%= p.name %></td>
-                    <td>৳<%= parseFloat(p.price).toLocaleString('en-BD') %></td>
-                    <td><%= p.stock %></td>
-                    <td><%= p.category || '-' %></td>
-                    <td class="actions">
-                        <div class="actions-inner">
-                            <a href="/admin/products/<%= p.id %>/edit">Edit</a>
-                            <% if (currentRole !== 'moderator') { %>
-                            <form action="/admin/products/<%= p.id %>/delete" method="POST" onsubmit="return confirm('Confirm?')">
-                                <button type="submit" class="btn-remove">Delete</button>
-                            </form>
-                            <% } %>
-                        </div>
-                    </td>
-                </tr>
+        <div class="dash-sections-row">
+            <div class="dash-widget">
+                <div class="dash-widget-head">
+                    <h2>Recent Orders</h2>
+                    <a href="/admin/orders" class="view-all">View All</a>
+                </div>
+                <% if (recentOrders.length === 0) { %>
+                    <p class="dash-empty">এখনো কোনো অর্ডার আসেনি।</p>
+                <% } else { %>
+                <% recentOrders.forEach(o => { %>
+                <div class="dash-order-row">
+                    <div>
+                        <a href="/admin/orders/<%= o.id %>" class="dash-order-id">#ORD-<%= String(o.id).padStart(5, '0') %></a>
+                        <div class="dash-order-cust"><%= o.customer_name %></div>
+                    </div>
+                    <div class="mini-end">
+                        <div class="mini-amount">৳<%= parseFloat(o.total).toLocaleString('en-BD') %></div>
+                        <span class="status-badge <%= o.status %>"><%= o.status %></span>
+                    </div>
+                    <div class="dash-order-meta"><%= paymentLabel(o.payment_method) %> · <%= new Date(o.created_at).toLocaleDateString('en-BD') %></div>
+                </div>
                 <% }) %>
-            </tbody>
-        </table>
+                <% } %>
+            </div>
+
+            <div class="dash-widget">
+                <div class="dash-widget-head">
+                    <h2>Low Stock Products</h2>
+                    <a href="/admin/products" class="view-all">View All</a>
+                </div>
+                <% if (lowStockProducts.length === 0) { %>
+                    <p class="dash-empty">সব প্রোডাক্টে পর্যাপ্ত স্টক আছে ✅</p>
+                <% } else { %>
+                <% lowStockProducts.forEach(p => { %>
+                <div class="mini-row">
+                    <% if (p.image_url) { %><img src="<%= p.image_url %>" class="mini-thumb"><% } else { %><span class="mini-thumb-fallback">N/A</span><% } %>
+                    <div class="mini-main">
+                        <div class="mini-title"><%= p.name %></div>
+                        <span class="stock-pill <%= p.stock === 0 ? 'out' : 'low' %>">Stock: <%= p.stock %></span>
+                    </div>
+                    <div class="mini-end">
+                        <div class="mini-amount">৳<%= parseFloat(p.price).toLocaleString('en-BD') %></div>
+                        <a href="/admin/products/<%= p.id %>/edit" class="mini-link">Update</a>
+                    </div>
+                </div>
+                <% }) %>
+                <% } %>
+            </div>
+
+            <div class="dash-widget">
+                <div class="dash-widget-head">
+                    <h2>Top Selling Products</h2>
+                    <a href="/admin/products" class="view-all">View All</a>
+                </div>
+                <% if (topSellingProducts.length === 0) { %>
+                    <p class="dash-empty">এখনো কোনো বিক্রি হয়নি।</p>
+                <% } else { %>
+                <% topSellingProducts.forEach((p, i) => { %>
+                <div class="mini-row">
+                    <span class="mini-rank <%= i === 0 ? 'top1' : (i === 1 ? 'top2' : (i === 2 ? 'top3' : '')) %>"><%= i + 1 %></span>
+                    <div class="mini-main">
+                        <div class="mini-title"><%= p.name %></div>
+                        <div class="mini-sub">Sold: <%= p.sold %></div>
+                    </div>
+                    <div class="mini-end">
+                        <div class="mini-amount">৳<%= parseFloat(p.price).toLocaleString('en-BD') %></div>
+                    </div>
+                </div>
+                <% }) %>
+                <% } %>
+            </div>
         </div>
     </div>
+    <%- include('nav-end') %>
+
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.4/dist/chart.umd.min.js"></script>
+    <script>
+        (function () {
+            var salesCanvas = document.getElementById('salesChart');
+            var salesSkeleton = document.getElementById('salesChartSkeleton');
+            var statusCanvas = document.getElementById('statusDonut');
+            var salesChart = null;
+
+            function renderStatusDonut() {
+                if (!statusCanvas || typeof Chart === 'undefined') return;
+                var data = <%- JSON.stringify(orderStatus.breakdown) %>;
+                new Chart(statusCanvas.getContext('2d'), {
+                    type: 'doughnut',
+                    data: {
+                        labels: data.map(function (d) { return d.label; }),
+                        datasets: [{
+                            data: data.map(function (d) { return d.count; }),
+                            backgroundColor: data.map(function (d) { return d.color; }),
+                            borderColor: '#0d1425',
+                            borderWidth: 2
+                        }]
+                    },
+                    options: {
+                        responsive: true,
+                        maintainAspectRatio: false,
+                        cutout: '72%',
+                        plugins: { legend: { display: false }, tooltip: { enabled: true } }
+                    }
+                });
+            }
+
+            async function loadSales(period) {
+                if (salesSkeleton) salesSkeleton.style.display = 'block';
+                try {
+                    var res = await fetch('/admin/api/sales-overview?period=' + encodeURIComponent(period));
+                    var json = await res.json();
+                    if (salesSkeleton) salesSkeleton.style.display = 'none';
+                    if (!salesCanvas || typeof Chart === 'undefined') return;
+
+                    if (salesChart) {
+                        salesChart.data.labels = json.labels;
+                        salesChart.data.datasets[0].data = json.sales;
+                        salesChart.data.datasets[1].data = json.orders;
+                        salesChart.update();
+                        return;
+                    }
+
+                    salesChart = new Chart(salesCanvas.getContext('2d'), {
+                        type: 'line',
+                        data: {
+                            labels: json.labels,
+                            datasets: [
+                                {
+                                    label: 'Sales (৳)',
+                                    data: json.sales,
+                                    borderColor: '#ffd23f',
+                                    backgroundColor: 'rgba(255, 210, 63, 0.14)',
+                                    fill: true,
+                                    tension: 0.35,
+                                    yAxisID: 'y',
+                                    pointRadius: 0,
+                                    borderWidth: 2
+                                },
+                                {
+                                    label: 'Orders',
+                                    data: json.orders,
+                                    borderColor: '#29b6f6',
+                                    backgroundColor: 'rgba(41, 182, 246, 0.08)',
+                                    fill: false,
+                                    tension: 0.35,
+                                    yAxisID: 'y1',
+                                    pointRadius: 0,
+                                    borderWidth: 2
+                                }
+                            ]
+                        },
+                        options: {
+                            responsive: true,
+                            maintainAspectRatio: false,
+                            interaction: { mode: 'index', intersect: false },
+                            plugins: { legend: { display: false } },
+                            scales: {
+                                x: { grid: { color: 'rgba(255,255,255,0.04)' }, ticks: { color: '#8b93b0', font: { size: 10 } } },
+                                y: { position: 'left', grid: { color: 'rgba(255,255,255,0.04)' }, ticks: { color: '#8b93b0', font: { size: 10 } } },
+                                y1: { position: 'right', grid: { display: false }, ticks: { color: '#8b93b0', font: { size: 10 }, precision: 0 } }
+                            }
+                        }
+                    });
+                } catch (err) {
+                    if (salesSkeleton) salesSkeleton.style.display = 'none';
+                    console.error('Sales overview load failed:', err);
+                }
+            }
+
+            var tabs = document.getElementById('salesPeriodTabs');
+            if (tabs) {
+                tabs.addEventListener('click', function (e) {
+                    var btn = e.target.closest('button[data-period]');
+                    if (!btn) return;
+                    tabs.querySelectorAll('button').forEach(function (b) { b.classList.remove('active'); });
+                    btn.classList.add('active');
+                    loadSales(btn.getAttribute('data-period'));
+                });
+            }
+
+            renderStatusDonut();
+            loadSales('week');
+        })();
+    </script>
 </body>
 </html>

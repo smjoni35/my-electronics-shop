@@ -1,62 +1,96 @@
-<header class="admin-nav">
-    <div class="container header-inner">
-        <a href="/admin/dashboard" class="logo"><span class="logo-chip"><img src="/img/logo.png" alt="Admin" class="logo-img logo-img-sm"></span>Admin প্যানেল</a>
+<%
+    // res.locals.adminPath is set by admin router middleware (req.path, relative to /admin)
+    var _p = (typeof adminPath !== 'undefined' && adminPath) ? adminPath : '';
+    function navActive(prefix) {
+        if (prefix === '/dashboard') return _p === '/dashboard' || _p === '/' || _p === '';
+        return _p === prefix || _p.indexOf(prefix + '/') === 0;
+    }
+%>
+<div class="admin-shell" id="adminShell">
+    <div class="admin-sidebar-overlay" id="adminSidebarOverlay"></div>
+    <aside class="admin-sidebar" id="adminSidebar">
+        <a href="/admin/dashboard" class="admin-sidebar-brand">
+            <img src="/img/logo.png" alt="<%= storeName %>" class="logo-img-sm">
+            <span class="admin-sidebar-brand-text">
+                <strong><%= storeName %></strong>
+                <span>Admin প্যানেল</span>
+            </span>
+        </a>
+        <nav class="admin-sidebar-nav">
+            <a href="/admin/dashboard" class="admin-nav-link <%= navActive('/dashboard') ? 'active' : '' %>">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="7" height="9" rx="1.5"></rect><rect x="14" y="3" width="7" height="5" rx="1.5"></rect><rect x="14" y="12" width="7" height="9" rx="1.5"></rect><rect x="3" y="16" width="7" height="5" rx="1.5"></rect></svg>
+                <span>Dashboard</span>
+            </a>
 
-        <!-- Desktop: links shown directly, no dropdown -->
-        <div class="admin-desktop-bar">
-            <div class="admin-desktop-links">
-                <a href="/admin/dashboard">Product</a>
-                <a href="/admin/orders">Order</a>
-                <% if (currentRole !== 'moderator') { %><a href="/admin/coupons">Coupons</a><% } %>
-                <% if (currentRole === 'admin') { %><a href="/admin/staff">Staff</a><% } %>
-                <a href="/" target="_blank">Visit the site</a>
-                <form action="/admin/logout" method="POST">
-                    <button type="submit" class="link-btn">Logout</button>
-                </form>
-            </div>
-            <div class="admin-desktop-user">
-                <span class="profile-avatar"><%= (currentUsername || 'A').charAt(0).toUpperCase() %></span>
-                <span class="profile-name"><%= currentUsername %></span>
-                <% if (currentRole) { %><span class="role-badge role-<%= currentRole %>"><%= currentRole.charAt(0).toUpperCase() + currentRole.slice(1) %></span><% } %>
+            <div class="admin-nav-label">Manage</div>
+            <a href="/admin/products" class="admin-nav-link <%= navActive('/products') ? 'active' : '' %>">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 8l-9-5-9 5 9 5 9-5z"></path><path d="M3 8v8l9 5 9-5V8"></path><path d="M12 13v8"></path></svg>
+                <span>Products</span>
+            </a>
+            <a href="/admin/orders" class="admin-nav-link <%= navActive('/orders') ? 'active' : '' %>">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="9" cy="21" r="1.5"></circle><circle cx="19" cy="21" r="1.5"></circle><path d="M2.5 3h2l2.6 12.4a2 2 0 0 0 2 1.6h8.8a2 2 0 0 0 2-1.6L21.5 7H6"></path></svg>
+                <span>Orders</span>
+            </a>
+            <a href="/admin/customers" class="admin-nav-link <%= navActive('/customers') ? 'active' : '' %>">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"></path><circle cx="9" cy="7" r="4"></circle><path d="M23 21v-2a4 4 0 0 0-3-3.87"></path><path d="M16 3.13a4 4 0 0 1 0 7.75"></path></svg>
+                <span>Customers</span>
+            </a>
+            <% if (currentRole !== 'moderator') { %>
+            <a href="/admin/coupons" class="admin-nav-link <%= navActive('/coupons') ? 'active' : '' %>">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20.59 13.41L11 3.83A2 2 0 0 0 9.59 3.24L4 3a1 1 0 0 0-1 1l.24 5.59a2 2 0 0 0 .59 1.41l9.58 9.58a2 2 0 0 0 2.83 0l4.35-4.35a2 2 0 0 0 0-2.82z"></path><circle cx="7.5" cy="7.5" r="1.5"></circle></svg>
+                <span>Coupons &amp; Discounts</span>
+            </a>
+            <% } %>
+
+            <% if (currentRole === 'admin') { %>
+            <div class="admin-nav-label">Staff / Admin</div>
+            <a href="/admin/staff" class="admin-nav-link <%= navActive('/staff') ? 'active' : '' %>">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"></path></svg>
+                <span>Staff &amp; Roles</span>
+            </a>
+            <% } %>
+        </nav>
+        <div class="admin-sidebar-foot">
+            <div class="admin-help-box">
+                <strong>Need Help?</strong>
+                <p>Contact Support<br>📞 <%= storePhone %></p>
+                <a href="tel:<%= storePhone %>" class="btn-primary">Go to Support</a>
             </div>
         </div>
+    </aside>
 
-        <!-- Mobile: links inside dropdown -->
-        <div class="profile-menu">
-            <button type="button" class="profile-btn" id="profileBtn">
-                <span class="profile-avatar"><%= (currentUsername || 'A').charAt(0).toUpperCase() %></span>
-                <span class="profile-name"><%= currentUsername %></span>
-            </button>
-            <div class="profile-dropdown" id="profileDropdown">
-                <div class="profile-dropdown-head">
-                    <div class="profile-dropdown-user"><%= currentUsername %></div>
-                    <% if (currentRole) { %><span class="role-badge role-<%= currentRole %>"><%= currentRole.charAt(0).toUpperCase() + currentRole.slice(1) %></span><% } %>
+    <div class="admin-content">
+        <header class="admin-topbar">
+            <div class="admin-topbar-left">
+                <button type="button" class="admin-icon-btn admin-sidebar-toggle" id="adminSidebarToggle" aria-label="Toggle sidebar">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="3" y1="6" x2="21" y2="6"></line><line x1="3" y1="12" x2="21" y2="12"></line><line x1="3" y1="18" x2="21" y2="18"></line></svg>
+                </button>
+                <button type="button" class="admin-icon-btn admin-mobile-toggle" id="adminMobileToggle" aria-label="Open menu">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="3" y1="6" x2="21" y2="6"></line><line x1="3" y1="12" x2="21" y2="12"></line><line x1="3" y1="18" x2="21" y2="18"></line></svg>
+                </button>
+                <span class="admin-topbar-title"><%= typeof pageTitle !== 'undefined' ? pageTitle : 'Dashboard' %></span>
+            </div>
+            <div class="admin-topbar-right">
+                <a href="/" target="_blank" class="admin-visit-site">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"></path><polyline points="15 3 21 3 21 9"></polyline><line x1="10" y1="14" x2="21" y2="3"></line></svg>
+                    <span class="vs-text">Visit Site</span>
+                </a>
+                <div class="profile-menu">
+                    <button type="button" class="profile-btn" id="profileBtn">
+                        <span class="profile-avatar"><%= (currentUsername || 'A').charAt(0).toUpperCase() %></span>
+                        <span class="profile-name"><%= currentUsername %></span>
+                    </button>
+                    <div class="profile-dropdown" id="profileDropdown">
+                        <div class="profile-dropdown-head">
+                            <div class="profile-dropdown-user"><%= currentUsername %></div>
+                            <% if (currentRole) { %><span class="role-badge role-<%= currentRole %>"><%= currentRole.charAt(0).toUpperCase() + currentRole.slice(1) %></span><% } %>
+                        </div>
+                        <a href="/" target="_blank">Visit the site</a>
+                        <form action="/admin/logout" method="POST">
+                            <button type="submit" class="link-btn">Logout</button>
+                        </form>
+                    </div>
                 </div>
-                <a href="/admin/dashboard">Product</a>
-                <a href="/admin/orders">Order</a>
-                <% if (currentRole !== 'moderator') { %><a href="/admin/coupons">Coupons</a><% } %>
-                <% if (currentRole === 'admin') { %><a href="/admin/staff">Staff</a><% } %>
-                <a href="/" target="_blank">Visit the site</a>
-                <form action="/admin/logout" method="POST">
-                    <button type="submit" class="link-btn">Logout</button>
-                </form>
             </div>
-        </div>
-    </div>
-</header>
-<script>
-    (function () {
-        var btn = document.getElementById('profileBtn');
-        var dropdown = document.getElementById('profileDropdown');
-        if (!btn || !dropdown) return;
-        btn.addEventListener('click', function (e) {
-            e.stopPropagation();
-            dropdown.classList.toggle('open');
-        });
-        document.addEventListener('click', function (e) {
-            if (!dropdown.contains(e.target) && e.target !== btn) {
-                dropdown.classList.remove('open');
-            }
-        });
-    })();
-</script>
+        </header>
+        <main class="admin-main">

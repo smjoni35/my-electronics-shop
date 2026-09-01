@@ -1,0 +1,59 @@
+<!DOCTYPE html>
+<html lang="bn">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Products — Admin</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;600;700&family=Inter:wght@400;500;600&family=JetBrains+Mono:wght@400;500;600;700&family=Hind+Siliguri:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="/css/style.css">
+</head>
+<body>
+    <%- include('nav') %>
+    <div class="container">
+        <% if (typeof addedSuccess !== 'undefined' && addedSuccess) { %>
+            <p class="info-note">✅ প্রোডাক্ট সফলভাবে যোগ হয়েছে।</p>
+        <% } %>
+        <div class="admin-header-row">
+            <h1>Products</h1>
+            <% if (currentRole !== 'moderator') { %>
+            <a href="/admin/products/new" class="btn-primary">+ Add Product</a>
+            <% } %>
+        </div>
+
+        <div class="table-scroll">
+        <table class="admin-table">
+            <thead>
+                <tr><th>Photo</th><th>Name</th><th>Price</th><th>Stock</th><th>Category</th><th>Action</th></tr>
+            </thead>
+            <tbody>
+                <% if (products.length === 0) { %>
+                <tr><td colspan="6" class="dash-empty">এখনো কোনো প্রোডাক্ট যোগ করা হয়নি।</td></tr>
+                <% } %>
+                <% products.forEach(p => { %>
+                <tr>
+                    <td><% if (p.image_url) { %><img src="<%= p.image_url %>" class="thumb"><% } %></td>
+                    <td><%= p.name %></td>
+                    <td>৳<%= parseFloat(p.price).toLocaleString('en-BD') %></td>
+                    <td><% if (p.stock <= 5) { %><span class="stock-pill <%= p.stock === 0 ? 'out' : 'low' %>"><%= p.stock %></span><% } else { %><%= p.stock %><% } %></td>
+                    <td><%= p.category || '-' %></td>
+                    <td class="actions">
+                        <div class="actions-inner">
+                            <a href="/admin/products/<%= p.id %>/edit">Edit</a>
+                            <% if (currentRole !== 'moderator') { %>
+                            <form action="/admin/products/<%= p.id %>/delete" method="POST" onsubmit="return confirm('Confirm?')">
+                                <button type="submit" class="btn-remove">Delete</button>
+                            </form>
+                            <% } %>
+                        </div>
+                    </td>
+                </tr>
+                <% }) %>
+            </tbody>
+        </table>
+        </div>
+    </div>
+    <%- include('nav-end') %>
+</body>
+</html>

@@ -39,7 +39,7 @@
                 </div>
                 <div class="order-info-item">
                     <span class="order-info-label">💳 Payment</span>
-                    <span class="order-info-value">Cash on Delivery</span>
+                    <span class="order-info-value"><%= paymentLabel(order.payment_method) %></span>
                 </div>
                 <% if (order.coupon_code) { %>
                 <div class="order-info-item">
@@ -60,7 +60,9 @@
             </div>
 
             <div class="order-actions-row">
-                <a href="/admin/orders/<%= order.id %>/invoice" target="_blank" rel="noopener" class="btn-details">🧾 Invoice দেখুন</a>
+                <a href="/track-order?phone=<%= encodeURIComponent(order.phone) %>" target="_blank" rel="noopener" class="btn-details">📍 Track Order</a>
+                <a href="/admin/orders/<%= order.id %>/invoice?download=1" class="btn-details">🧾 Download Invoice</a>
+                <a href="/admin/orders/<%= order.id %>/invoice" target="_blank" rel="noopener" class="btn-details">🖨️ Print Invoice</a>
             </div>
 
             <div class="order-actions-row">
@@ -110,5 +112,6 @@
         </div>
         <a href="/admin/orders" class="back-link">← Return to order list</a>
     </div>
+    <%- include('nav-end') %>
 </body>
 </html>

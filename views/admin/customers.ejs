@@ -1,0 +1,45 @@
+<!DOCTYPE html>
+<html lang="bn">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Customers — Admin</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;600;700&family=Inter:wght@400;500;600&family=JetBrains+Mono:wght@400;500;600;700&family=Hind+Siliguri:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="/css/style.css">
+</head>
+<body>
+    <%- include('nav') %>
+    <div class="container">
+        <div class="admin-header-row">
+            <h1>Customers</h1>
+        </div>
+
+        <div class="table-scroll">
+        <table class="admin-table">
+            <thead>
+                <tr><th>Name</th><th>Phone</th><th>Email</th><th>Orders</th><th>Total Spent</th><th>Joined</th></tr>
+            </thead>
+            <tbody>
+                <% if (customers.length === 0) { %>
+                <tr><td colspan="6" class="dash-empty">এখনো কোনো রেজিস্টার্ড কাস্টমার নেই।</td></tr>
+                <% } %>
+                <% customers.forEach(c => { %>
+                <tr>
+                    <td><%= c.name %></td>
+                    <td><%= c.phone %></td>
+                    <td><%= c.email || '-' %></td>
+                    <td><%= c.order_count %></td>
+                    <td>৳<%= parseFloat(c.total_spent).toLocaleString('en-BD') %></td>
+                    <td><%= new Date(c.created_at).toLocaleDateString('en-BD') %></td>
+                </tr>
+                <% }) %>
+            </tbody>
+        </table>
+        </div>
+        <p class="dash-stat-caption" style="margin-top:12px;">গেস্ট চেকআউট করা কাস্টমাররা (রেজিস্ট্রেশন ছাড়া) এই তালিকায় দেখানো হয় না — তাদের অর্ডার Orders পেজে ফোন নম্বর দিয়ে খুঁজে পাওয়া যাবে।</p>
+    </div>
+    <%- include('nav-end') %>
+</body>
+</html>
