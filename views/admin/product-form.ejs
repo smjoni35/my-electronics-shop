@@ -36,12 +36,14 @@
                 <% }) %>
             </ul>
             <form action="/admin/products/<%= product.id %>/notify-requests/clear" method="POST" onsubmit="return confirm('সবগুলো রিকোয়েস্ট হ্যান্ডল্ড হিসেবে চিহ্নিত করবেন?')">
+            <input type="hidden" name="_csrf" value="<%= csrfToken %>">
                 <button type="submit" class="btn-remove">সব ক্লিয়ার করুন</button>
             </form>
         </div>
         <% } %>
 
         <form action="<%= product ? '/admin/products/' + product.id + '/edit' : '/admin/products/new' %>" method="POST" enctype="multipart/form-data" class="admin-form">
+            <input type="hidden" name="_csrf" value="<%= csrfToken %>">
             <label>Product name *
                 <input type="text" name="name" value="<%= product ? product.name : '' %>" required>
             </label>
@@ -146,6 +148,7 @@
                 <div class="gallery-preview-item">
                     <img src="<%= img.image_url %>" class="thumb-preview">
                     <form action="/admin/products/<%= product.id %>/images/<%= img.id %>/delete" method="POST" onsubmit="return confirm('Delete this photo?')">
+                        <input type="hidden" name="_csrf" value="<%= csrfToken %>">
                         <button type="submit" class="btn-remove">Delete</button>
                     </form>
                 </div>

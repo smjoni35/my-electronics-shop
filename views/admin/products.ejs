@@ -43,6 +43,7 @@
                             <a href="/admin/products/<%= p.id %>/edit">Edit</a>
                             <% if (currentRole !== 'moderator') { %>
                             <form action="/admin/products/<%= p.id %>/delete" method="POST" onsubmit="return confirm('Confirm?')">
+                                <input type="hidden" name="_csrf" value="<%= csrfToken %>">
                                 <button type="submit" class="btn-remove">Delete</button>
                             </form>
                             <% } %>

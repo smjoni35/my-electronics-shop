@@ -67,6 +67,7 @@
 
             <div class="order-actions-row">
                 <form action="/admin/orders/<%= order.id %>/status" method="POST" class="status-form">
+                    <input type="hidden" name="_csrf" value="<%= csrfToken %>">
                     <label>স্ট্যাটাস:
                         <select name="status">
                             <option value="pending" <%= order.status === 'pending' ? 'selected' : '' %>>Pending</option>
@@ -80,6 +81,7 @@
                 </form>
 
                 <form action="/admin/orders/<%= order.id %>/delete" method="POST" class="status-form" onsubmit="return confirm('এই অর্ডারটি স্থায়ীভাবে মুছে ফেলা হবে, এটা আর ফেরত আনা যাবে না। আপনি কি নিশ্চিত?')">
+                    <input type="hidden" name="_csrf" value="<%= csrfToken %>">
                     <button type="submit" class="btn-remove">🗑️ Delete Order</button>
                 </form>
             </div>

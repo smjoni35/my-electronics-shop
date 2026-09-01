@@ -21,6 +21,7 @@
                 <p class="error-msg"><%= error %></p>
             <% } %>
             <form action="/admin/login" method="POST">
+                <input type="hidden" name="_csrf" value="<%= csrfToken %>">
                 <label>Username
                     <input type="text" name="username" required autofocus>
                 </label>

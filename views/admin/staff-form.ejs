@@ -16,6 +16,7 @@
         <% if (error) { %><p class="error-msg"><%= error %></p><% } %>
 
         <form action="/admin/staff/new" method="POST" class="admin-form">
+            <input type="hidden" name="_csrf" value="<%= csrfToken %>">
             <label>Username *
                 <input type="text" name="username" required>
             </label>

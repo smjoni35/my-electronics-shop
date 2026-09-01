@@ -32,6 +32,7 @@
                         <div class="actions-inner">
                             <% if (s.username !== currentUsername) { %>
                             <form action="/admin/staff/<%= s.id %>/delete" method="POST" onsubmit="return confirm('এই স্টাফ অ্যাকাউন্টটি ডিলিট করবেন?')">
+                                <input type="hidden" name="_csrf" value="<%= csrfToken %>">
                                 <button type="submit" class="btn-remove">Delete</button>
                             </form>
                             <% } else { %>

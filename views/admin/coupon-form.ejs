@@ -17,6 +17,7 @@
 
         <% const c = coupon || {}; %>
         <form action="<%= c.id ? '/admin/coupons/' + c.id + '/edit' : '/admin/coupons/new' %>" method="POST" class="admin-form">
+            <input type="hidden" name="_csrf" value="<%= csrfToken %>">
             <label>Coupon code * <span class="field-hint">কাস্টমার এটাই চেকআউটে টাইপ করবে, যেমন EID50</span>
                 <input type="text" name="code" value="<%= c.code || '' %>" style="text-transform: uppercase;" required>
             </label>

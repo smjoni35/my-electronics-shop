@@ -91,6 +91,7 @@
                         </div>
                         <a href="/" target="_blank">Visit the site</a>
                         <form action="/admin/logout" method="POST">
+                            <input type="hidden" name="_csrf" value="<%= csrfToken %>">
                             <button type="submit" class="link-btn">Logout</button>
                         </form>
                     </div>
