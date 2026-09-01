@@ -38,6 +38,8 @@ app.use((req, res, next) => {
     res.locals.currentRole = req.session.adminRole || null;
     res.locals.currentCustomerId = req.session.customerId || null;
     res.locals.currentCustomerName = req.session.customerName || null;
+    // Human-readable label for an order's payment_method column (admin views)
+    res.locals.paymentLabel = (pm) => ({ cod: 'Cash on Delivery', bkash: 'bKash', nagad: 'Nagad', card: 'Card' }[pm] || (pm || 'Cash on Delivery'));
     // Absolute site URL — needed so og:image/og:url work when a link is shared on
     // WhatsApp/Facebook. Set BASE_URL in .env (e.g. https://jmgadgetzone.com) in
     // production; falls back to whatever host the request came in on.
