@@ -29,7 +29,7 @@
 <body>
     <header class="site-header">
         <div class="container header-inner">
-            <a href="/" class="logo"><span class="logo-chip"><img src="/img/logo.png" class="logo-img"></span><span class="logo-text"><%= storeName %></span></a>
+            <a href="/" class="logo"><span class="logo-chip"><img src="/img/logo.png" alt="<%= storeName %>" class="logo-img"></span><span class="logo-text"><%= storeName %></span></a>
             <form action="/" method="GET" class="search-form">
                 <span class="search-prompt">&#10095;</span>
                 <input type="text" name="q" placeholder="Find the product..." value="<%= typeof q !== 'undefined' ? q : '' %>" enterkeyhint="search">
