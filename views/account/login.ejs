@@ -6,6 +6,7 @@
     <% if (error) { %><p class="error-msg"><%= error %></p><% } %>
 
     <form action="/account/login" method="POST" class="checkout-form">
+        <input type="hidden" name="_csrf" value="<%= csrfToken %>">
         <input type="hidden" name="next" value="<%= next %>">
         <label>মোবাইল নম্বর *
             <input type="tel" name="phone" placeholder="01XXXXXXXXX" required>

@@ -7,6 +7,7 @@
     <% if (error) { %><p class="error-msg"><%= error %></p><% } %>
 
     <form action="/account/register" method="POST" class="checkout-form">
+        <input type="hidden" name="_csrf" value="<%= csrfToken %>">
         <label>পূর্ণ নাম *
             <input type="text" name="name" value="<%= name %>" required>
         </label>

@@ -8,6 +8,7 @@
     <div class="account-dashboard-head">
         <h1 class="page-title">স্বাগতম, <%= currentCustomerName %></h1>
         <form action="/account/logout" method="POST">
+            <input type="hidden" name="_csrf" value="<%= csrfToken %>">
             <button type="submit" class="btn-remove">লগআউট</button>
         </form>
     </div>
