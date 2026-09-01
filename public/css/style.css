@@ -1388,9 +1388,9 @@ h1, h2, h3 { font-family: var(--font-display); font-weight: 700; letter-spacing:
     .whatsapp-float svg { width: 26px; height: 26px; }
 }
 @media (max-width: 380px) {
-    .logo-text { font-size: 0.74rem; max-width: 60px; }
-    .header-actions { gap: 3px; }
-    .track-order-link, .cart-link { padding: 0 6px; }
+    .logo-text { font-size: 0.78rem; max-width: 80px; }
+    .header-actions { gap: 4px; }
+    .track-order-link, .cart-link { padding: 0 7px; }
 }
 @media (max-width: 340px) {
     .logo-text { display: none; }
@@ -1416,20 +1416,20 @@ h1, h2, h3 { font-family: var(--font-display); font-weight: 700; letter-spacing:
     .hero { padding: 32px 20px; }
     .cart-item { grid-template-columns: 52px 1fr; grid-template-rows: auto auto; gap: 12px 14px; }
     .cart-item-actions { grid-column: 1 / -1; flex-direction: row; flex-wrap: wrap; align-items: center; justify-content: space-between; min-width: 0; }
-    .header-inner { flex-wrap: wrap; gap: 6px 8px; padding: 10px 12px; }
-    .logo { gap: 5px; flex-shrink: 1; min-width: 0; }
-    .logo-chip { padding: 2px 6px; border-radius: 9px; height: 34px; }
-    .logo-img { height: 22px; }
-    .logo-text { font-size: 0.82rem; overflow: hidden; text-overflow: ellipsis; max-width: 88px; }
+    .header-inner { flex-wrap: wrap; gap: 8px 10px; padding: 10px 14px; }
+    .logo { gap: 6px; flex-shrink: 1; min-width: 0; }
+    .logo-chip { padding: 3px 8px; border-radius: 10px; }
+    .logo-img { height: 30px; }
+    .logo-text { font-size: 0.92rem; overflow: hidden; text-overflow: ellipsis; max-width: 130px; }
     .search-form { order: 3; flex-basis: 100%; max-width: none; min-width: 0; height: 44px; margin-top: 2px; }
     .search-form input { padding: 0 10px 0 30px; font-size: 16px; }
     .search-form .search-prompt { left: 10px; font-size: 0.8rem; }
     .search-form button { padding: 0 14px; }
     .search-btn-icon { display: inline; }
     .search-btn-text { display: none; }
-    .header-actions { gap: 5px; flex-wrap: nowrap; flex-shrink: 0; }
-    .track-order-link { padding: 0 8px; height: 34px; }
-    .cart-link { padding: 0 8px; gap: 4px; font-size: 0.8rem; height: 34px; }
+    .header-actions { gap: 6px; flex-wrap: nowrap; flex-shrink: 0; }
+    .track-order-link { padding: 0 9px; }
+    .cart-link { padding: 7px 9px; gap: 4px; font-size: 0.8rem; }
     .cart-text { display: none; }
 
     .admin-nav .header-inner { flex-wrap: wrap; }
