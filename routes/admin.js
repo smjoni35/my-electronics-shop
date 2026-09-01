@@ -4,6 +4,7 @@ const bcrypt = require('bcryptjs');
 const pool = require('../db/pool');
 const { requireAdmin, requireRole, ROLE_LABELS } = require('../middleware/auth');
 const { upload, uploadImageToR2, deleteImageFromR2 } = require('../middleware/r2');
+const { verifyCsrfToken } = require('../middleware/csrf');
 const { adminLoginLimiter } = require('../middleware/rateLimit');
 const { streamInvoice } = require('../services/invoice');
 const { notifyLowStock } = require('../services/notify');
@@ -345,7 +346,7 @@ const productImageUpload = upload.fields([
     { name: 'gallery', maxCount: 8 }    // extra photos for the product page gallery
 ]);
 
-router.post('/products/new', requireRole('admin', 'manager'), productImageUpload, async (req, res) => {
+router.post('/products/new', requireRole('admin', 'manager'), productImageUpload, verifyCsrfToken, async (req, res) => {
     const client = await pool.connect();
     try {
         const { name, description, price, stock, category, warranty } = req.body;
@@ -408,7 +409,7 @@ router.get('/products/:id/edit', requireAdmin, async (req, res) => {
     res.render('admin/product-form', { product: rows[0], galleryImages, variants, notifyRequests, specsText, error: null, savedSuccess: req.query.saved === '1' });
 });
 
-router.post('/products/:id/edit', requireAdmin, productImageUpload, async (req, res) => {
+router.post('/products/:id/edit', requireAdmin, productImageUpload, verifyCsrfToken, async (req, res) => {
     const client = await pool.connect();
     try {
         const { name, description, price, stock, category, warranty } = req.body;
