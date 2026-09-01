@@ -297,17 +297,33 @@ router.get('/products', requireAdmin, async (req, res) => {
     res.render('admin/products', { pageTitle: 'Products', products, addedSuccess: req.query.added === '1' });
 });
 
-// Customers — read-only list; full customer editing isn't part of the existing
-// project, so this reuses the customers table without adding a new subsystem.
+// Customers — merges registered accounts with guest checkouts (grouped by phone,
+// since a guest order has no customer_id) so every real customer shows up here,
+// with quick Call/WhatsApp links for marketing outreach ("নতুন প্রোডাক্ট এসেছে...").
 router.get('/customers', requireAdmin, async (req, res) => {
     const { rows: customers } = await pool.query(`
-        SELECT c.id, c.name, c.phone, c.email, c.created_at,
-               COUNT(o.id) FILTER (WHERE o.status != 'cancelled') AS order_count,
-               COALESCE(SUM(o.total) FILTER (WHERE o.status = 'delivered'), 0) AS total_spent
-        FROM customers c
-        LEFT JOIN orders o ON o.customer_id = c.id
-        GROUP BY c.id
-        ORDER BY c.created_at DESC
+        WITH order_agg AS (
+            SELECT
+                phone,
+                (ARRAY_AGG(customer_name ORDER BY created_at DESC))[1] AS latest_name,
+                COUNT(*) FILTER (WHERE status != 'cancelled') AS order_count,
+                COALESCE(SUM(total) FILTER (WHERE status = 'delivered'), 0) AS total_spent,
+                MAX(created_at) AS last_order_at
+            FROM orders
+            GROUP BY phone
+        )
+        SELECT
+            COALESCE(c.phone, oa.phone) AS phone,
+            COALESCE(c.name, oa.latest_name) AS name,
+            c.email,
+            (c.id IS NOT NULL) AS is_registered,
+            c.created_at AS registered_at,
+            COALESCE(oa.order_count, 0) AS order_count,
+            COALESCE(oa.total_spent, 0) AS total_spent,
+            oa.last_order_at
+        FROM order_agg oa
+        FULL OUTER JOIN customers c ON c.phone = oa.phone
+        ORDER BY COALESCE(oa.last_order_at, c.created_at) DESC
     `);
     res.render('admin/customers', { pageTitle: 'Customers', customers });
 });
@@ -484,16 +500,41 @@ router.post('/products/:id/delete', requireRole('admin', 'manager'), async (req,
     }
 });
 
-// Orders list — optional ?status= filter, with real counts per tab (only the
-// statuses order-detail.ejs actually supports: pending/confirmed/shipped/delivered/cancelled)
+// Orders list — optional ?status= filter, ?q= search (order ID / customer name / phone),
+// and ?page= pagination. Tab counts (statusCounts) always reflect ALL orders regardless
+// of the current search/filter, so the tabs stay a stable overview.
 router.get('/orders', requireAdmin, async (req, res) => {
     const VALID_STATUSES = ['pending', 'confirmed', 'shipped', 'delivered', 'cancelled'];
     const statusFilter = VALID_STATUSES.includes(req.query.status) ? req.query.status : null;
+    const searchQuery = (req.query.q || '').trim().slice(0, 100);
+    const PAGE_SIZE = 20;
+    const page = Math.max(1, parseInt(req.query.page, 10) || 1);
 
-    const [{ rows: orders }, { rows: countRows }] = await Promise.all([
-        statusFilter
-            ? pool.query('SELECT * FROM orders WHERE status = $1 ORDER BY created_at DESC', [statusFilter])
-            : pool.query('SELECT * FROM orders ORDER BY created_at DESC'),
+    const conditions = [];
+    const baseParams = [];
+    if (statusFilter) {
+        baseParams.push(statusFilter);
+        conditions.push(`status = $${baseParams.length}`);
+    }
+    if (searchQuery) {
+        baseParams.push(`%${searchQuery}%`);
+        const likeIdx = baseParams.length;
+        const numericId = searchQuery.replace(/\D/g, '');
+        if (numericId) {
+            baseParams.push(Number(numericId));
+            conditions.push(`(customer_name ILIKE $${likeIdx} OR phone ILIKE $${likeIdx} OR id = $${baseParams.length})`);
+        } else {
+            conditions.push(`(customer_name ILIKE $${likeIdx} OR phone ILIKE $${likeIdx})`);
+        }
+    }
+    const whereClause = conditions.length ? 'WHERE ' + conditions.join(' AND ') : '';
+
+    const dataParams = [...baseParams, PAGE_SIZE, (page - 1) * PAGE_SIZE];
+    const limitIdx = baseParams.length + 1;
+    const offsetIdx = baseParams.length + 2;
+
+    const [{ rows: orders }, { rows: countRows }, { rows: filteredCountRows }] = await Promise.all([
+        pool.query(`SELECT * FROM orders ${whereClause} ORDER BY created_at DESC LIMIT $${limitIdx} OFFSET $${offsetIdx}`, dataParams),
         pool.query(`
             SELECT
                 COUNT(*) AS all_count,
@@ -503,10 +544,23 @@ router.get('/orders', requireAdmin, async (req, res) => {
                 COUNT(*) FILTER (WHERE status = 'delivered') AS delivered_count,
                 COUNT(*) FILTER (WHERE status = 'cancelled') AS cancelled_count
             FROM orders
-        `)
+        `),
+        pool.query(`SELECT COUNT(*) AS total FROM orders ${whereClause}`, baseParams)
     ]);
 
-    res.render('admin/orders', { pageTitle: 'Orders', orders, statusFilter, statusCounts: countRows[0] });
+    const totalCount = Number(filteredCountRows[0].total);
+    const totalPages = Math.max(1, Math.ceil(totalCount / PAGE_SIZE));
+
+    res.render('admin/orders', {
+        pageTitle: 'Orders',
+        orders,
+        statusFilter,
+        statusCounts: countRows[0],
+        searchQuery,
+        page,
+        totalPages,
+        totalCount
+    });
 });
 
 // Order detail
