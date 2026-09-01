@@ -1,9 +1,11 @@
 require('dotenv').config();
 const express = require('express');
+const helmet = require('helmet');
 const session = require('express-session');
 const pgSession = require('connect-pg-simple')(session);
 const path = require('path');
 const pool = require('./db/pool');
+const { attachCsrfToken, csrfGate } = require('./middleware/csrf');
 
 const shopRoutes = require('./routes/shop');
 const adminRoutes = require('./routes/admin');
@@ -11,8 +13,28 @@ const accountRoutes = require('./routes/customer');
 
 const app = express();
 
+// Fail loudly instead of quietly running with a guessable session secret —
+// a default fallback here would be a real vulnerability if .env is ever
+// missing in production.
+if (!process.env.SESSION_SECRET) {
+    if (process.env.NODE_ENV === 'production') {
+        throw new Error('SESSION_SECRET is not set. Refusing to start in production without it — set it in your .env / host environment.');
+    }
+    console.warn('⚠️  SESSION_SECRET is not set — using an insecure dev-only default. Set it before deploying.');
+}
+
+// Render (and most PaaS hosts) terminate TLS at a proxy and forward plain
+// HTTP internally. Without this, Express can't tell the request was HTTPS,
+// so "secure" cookies below would never get sent by the browser.
+app.set('trust proxy', 1);
+
 app.set('view engine', 'ejs');
 app.set('views', path.join(__dirname, 'views'));
+
+// Basic security headers (clickjacking, MIME-sniffing, etc). CSP is left off
+// for now since the site relies on inline <script> blocks throughout the
+// views — turning it on would need a nonce-based rewrite of those first.
+app.use(helmet({ contentSecurityPolicy: false }));
 
 app.use(express.urlencoded({ extended: true }));
 app.use(express.json());
@@ -20,11 +42,21 @@ app.use(express.static(path.join(__dirname, 'public')));
 
 app.use(session({
     store: new pgSession({ pool, tableName: 'session' }),
-    secret: process.env.SESSION_SECRET || 'change-this-secret',
+    secret: process.env.SESSION_SECRET || 'dev-only-insecure-secret-change-me',
     resave: false,
     saveUninitialized: false,
-    cookie: { maxAge: 7 * 24 * 60 * 60 * 1000 } // 7 days
+    cookie: {
+        maxAge: 7 * 24 * 60 * 60 * 1000, // 7 days
+        httpOnly: true, // JS on the page can't read the cookie
+        secure: process.env.NODE_ENV === 'production', // HTTPS-only once deployed
+        sameSite: 'lax' // blocks the cookie being sent on cross-site POSTs
+    }
 }));
+
+// CSRF protection: attach/reuse a per-session token on every request, then
+// reject state-changing requests that don't send it back (see middleware/csrf.js).
+app.use(attachCsrfToken);
+app.use(csrfGate);
 
 app.use((req, res, next) => {
     res.locals.storeName = process.env.STORE_NAME || 'JM Gadget Zone';
