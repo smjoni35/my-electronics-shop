@@ -43,11 +43,14 @@ function money(n) {
 // order: row from `orders` (+ customer_name/phone/address/city/status/created_at/id/
 //        subtotal/discount_amount/delivery_charge/coupon_code/total)
 // items: rows from `order_items` (product_name, variant_label, quantity, price)
-function streamInvoice(res, order, items, storeInfo) {
+function streamInvoice(res, order, items, storeInfo, options = {}) {
     const doc = new PDFDocument({ size: 'A4', margin: 50 });
 
+    // "download" forces a Save-As (Download Invoice); otherwise it opens inline
+    // in the browser's PDF viewer, which has its own Print button (Print Invoice).
+    const disposition = options.download ? 'attachment' : 'inline';
     res.setHeader('Content-Type', 'application/pdf');
-    res.setHeader('Content-Disposition', `inline; filename="invoice-${order.id}.pdf"`);
+    res.setHeader('Content-Disposition', `${disposition}; filename="invoice-${order.id}.pdf"`);
     doc.pipe(res);
 
     drawWatermark(doc);
