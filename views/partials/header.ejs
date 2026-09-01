@@ -38,9 +38,9 @@
             <div class="header-actions">
                 <a href="/track-order" class="track-order-link">📦 <span class="cart-text">আমার অর্ডার</span></a>
                 <% if (typeof currentCustomerId !== 'undefined' && currentCustomerId) { %>
-                    <a href="/account/dashboard" class="track-order-link">👤 <span class="cart-text">আমার অ্যাকাউন্ট</span></a>
+                    <a href="/account/dashboard" class="track-order-link account-link">👤 <span class="cart-text">আমার অ্যাকাউন্ট</span></a>
                 <% } else { %>
-                    <a href="/account/login" class="track-order-link">👤 <span class="cart-text">লগইন</span></a>
+                    <a href="/account/login" class="track-order-link account-link">👤 <span class="cart-text">লগইন</span></a>
                 <% } %>
                 <a href="/cart" class="cart-link">🛒 <span class="cart-text">Cart</span> <span class="cart-count"><%= cartCount %></span></a>
             </div>
