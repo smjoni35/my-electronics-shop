@@ -2048,6 +2048,43 @@ display: inline-flex;
     line-height: 1.3;
 }
 
+@media (max-width: 560px) {
+    .category-shortcut-grid {
+        display: flex;
+        overflow-x: auto;
+        overflow-y: hidden;
+        flex-wrap: nowrap;
+        gap: 12px;
+        padding-bottom: 6px;
+        margin-left: -20px;
+        margin-right: -20px;
+        padding-left: 20px;
+        padding-right: 20px;
+        scroll-snap-type: x mandatory;
+        -webkit-overflow-scrolling: touch;
+        scrollbar-width: none;
+    }
+    .category-shortcut-grid::-webkit-scrollbar { display: none; }
+    .category-shortcut-card {
+        flex: 0 0 auto;
+        width: 92px;
+        scroll-snap-align: start;
+        padding: 12px 6px;
+    }
+    .category-shortcut-card img,
+    .category-shortcut-card .no-img.large {
+        width: 56px;
+        height: 56px;
+    }
+    .category-shortcut-card span {
+        font-size: 0.75rem;
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        max-width: 100%;
+    }
+}
+
 /* ==========================================================================
    FAQ page
    ========================================================================== */
