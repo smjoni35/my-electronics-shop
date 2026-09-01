@@ -1,0 +1,66 @@
+<!DOCTYPE html>
+<html lang="bn">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Activity Log — Admin</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;600;700&family=Inter:wght@400;500;600&family=JetBrains+Mono:wght@400;500;600;700&family=Hind+Siliguri:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="/css/style.css">
+</head>
+<body>
+    <%- include('nav') %>
+    <div class="container">
+        <%
+            // Rough "x আগে" relative time, matching the Bangla tone used elsewhere.
+            function timeAgo(date) {
+                var diffMs = Date.now() - new Date(date).getTime();
+                var mins = Math.floor(diffMs / 60000);
+                if (mins < 1) return 'এইমাত্র';
+                if (mins < 60) return mins + ' মিনিট আগে';
+                var hours = Math.floor(mins / 60);
+                if (hours < 24) return hours + ' ঘণ্টা আগে';
+                var days = Math.floor(hours / 24);
+                if (days < 30) return days + ' দিন আগে';
+                return new Date(date).toLocaleDateString('en-BD');
+            }
+        %>
+        <div class="admin-header-row">
+            <h1>Activity Log</h1>
+        </div>
+        <p class="dash-stat-caption" style="margin: -10px 0 16px;">স্টাফদের সাম্প্রতিক কার্যকলাপ — অর্ডার, প্রোডাক্ট, কুপন ও স্টাফ পরিবর্তন, লগইন। মোট <%= totalCount %>টা এন্ট্রি।</p>
+
+        <div class="table-scroll">
+        <table class="admin-table">
+            <thead>
+                <tr><th>স্টাফ</th><th>রোল</th><th>অ্যাকশন</th><th>বিস্তারিত</th><th>সময়</th></tr>
+            </thead>
+            <tbody>
+                <% if (logs.length === 0) { %>
+                <tr><td colspan="5" class="dash-empty">এখনো কোনো অ্যাক্টিভিটি লগ হয়নি।</td></tr>
+                <% } %>
+                <% logs.forEach(l => { %>
+                <tr>
+                    <td><%= l.staff_username %></td>
+                    <td><% if (l.staff_role) { %><span class="role-badge role-<%= l.staff_role %>"><%= l.staff_role.charAt(0).toUpperCase() + l.staff_role.slice(1) %></span><% } else { %>-<% } %></td>
+                    <td><%= l.action %></td>
+                    <td><%= l.details || '-' %></td>
+                    <td title="<%= new Date(l.created_at).toLocaleString('en-BD') %>"><%= timeAgo(l.created_at) %></td>
+                </tr>
+                <% }) %>
+            </tbody>
+        </table>
+        </div>
+
+        <% if (totalPages > 1) { %>
+        <div class="admin-pagination">
+            <a href="<%= page > 1 ? '/admin/activity-log?page=' + (page - 1) : '#' %>" class="admin-page-btn <%= page <= 1 ? 'disabled' : '' %>">‹ আগে</a>
+            <span class="admin-page-info">পৃষ্ঠা <%= page %> / <%= totalPages %></span>
+            <a href="<%= page < totalPages ? '/admin/activity-log?page=' + (page + 1) : '#' %>" class="admin-page-btn <%= page >= totalPages ? 'disabled' : '' %>">পরে ›</a>
+        </div>
+        <% } %>
+    </div>
+    <%- include('nav-end') %>
+</body>
+</html>
