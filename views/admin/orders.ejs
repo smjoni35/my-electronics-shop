@@ -12,18 +12,43 @@
 <body>
     <%- include('nav') %>
     <div class="container">
+        <%
+            function tabUrl(status) {
+                var params = [];
+                if (status) params.push('status=' + encodeURIComponent(status));
+                if (searchQuery) params.push('q=' + encodeURIComponent(searchQuery));
+                return '/admin/orders' + (params.length ? '?' + params.join('&') : '');
+            }
+            function pageUrl(p) {
+                var params = ['page=' + p];
+                if (statusFilter) params.push('status=' + encodeURIComponent(statusFilter));
+                if (searchQuery) params.push('q=' + encodeURIComponent(searchQuery));
+                return '/admin/orders?' + params.join('&');
+            }
+        %>
         <div class="admin-header-row">
             <h1>Orders</h1>
         </div>
 
+        <form action="/admin/orders" method="GET" class="admin-search-row">
+            <% if (statusFilter) { %><input type="hidden" name="status" value="<%= statusFilter %>"><% } %>
+            <input type="search" name="q" value="<%= searchQuery %>" placeholder="Order ID, নাম বা ফোন নম্বর দিয়ে খুঁজুন..." class="admin-search-input">
+            <button type="submit" class="btn-primary admin-search-btn">খুঁজুন</button>
+            <% if (searchQuery) { %><a href="<%= tabUrl(statusFilter) %>" class="admin-search-clear">✕ Clear</a><% } %>
+        </form>
+
         <div class="order-status-tabs">
-            <a href="/admin/orders" class="<%= !statusFilter ? 'active' : '' %>">All (<%= statusCounts.all_count %>)</a>
-            <a href="/admin/orders?status=pending" class="<%= statusFilter === 'pending' ? 'active' : '' %>">Pending (<%= statusCounts.pending_count %>)</a>
-            <a href="/admin/orders?status=confirmed" class="<%= statusFilter === 'confirmed' ? 'active' : '' %>">Confirmed (<%= statusCounts.confirmed_count %>)</a>
-            <a href="/admin/orders?status=shipped" class="<%= statusFilter === 'shipped' ? 'active' : '' %>">Shipped (<%= statusCounts.shipped_count %>)</a>
-            <a href="/admin/orders?status=delivered" class="<%= statusFilter === 'delivered' ? 'active' : '' %>">Delivered (<%= statusCounts.delivered_count %>)</a>
-            <a href="/admin/orders?status=cancelled" class="<%= statusFilter === 'cancelled' ? 'active' : '' %>">Cancelled (<%= statusCounts.cancelled_count %>)</a>
+            <a href="<%= tabUrl(null) %>" class="<%= !statusFilter ? 'active' : '' %>">All (<%= statusCounts.all_count %>)</a>
+            <a href="<%= tabUrl('pending') %>" class="<%= statusFilter === 'pending' ? 'active' : '' %>">Pending (<%= statusCounts.pending_count %>)</a>
+            <a href="<%= tabUrl('confirmed') %>" class="<%= statusFilter === 'confirmed' ? 'active' : '' %>">Confirmed (<%= statusCounts.confirmed_count %>)</a>
+            <a href="<%= tabUrl('shipped') %>" class="<%= statusFilter === 'shipped' ? 'active' : '' %>">Shipped (<%= statusCounts.shipped_count %>)</a>
+            <a href="<%= tabUrl('delivered') %>" class="<%= statusFilter === 'delivered' ? 'active' : '' %>">Delivered (<%= statusCounts.delivered_count %>)</a>
+            <a href="<%= tabUrl('cancelled') %>" class="<%= statusFilter === 'cancelled' ? 'active' : '' %>">Cancelled (<%= statusCounts.cancelled_count %>)</a>
         </div>
+
+        <% if (searchQuery) { %>
+            <p class="dash-stat-caption" style="margin-bottom: 12px;">"<%= searchQuery %>" এর জন্য <%= totalCount %>টা ফলাফল পাওয়া গেছে</p>
+        <% } %>
 
         <div class="table-scroll">
         <table class="admin-table">
@@ -32,7 +57,7 @@
             </thead>
             <tbody>
                 <% if (orders.length === 0) { %>
-                <tr><td colspan="8" class="dash-empty">এই স্ট্যাটাসে কোনো অর্ডার নেই।</td></tr>
+                <tr><td colspan="8" class="dash-empty"><%= searchQuery ? 'এই খোঁজের সাথে মিলে এমন কোনো অর্ডার নেই।' : 'এই স্ট্যাটাসে কোনো অর্ডার নেই।' %></td></tr>
                 <% } %>
                 <% orders.forEach(o => { %>
                 <tr>
@@ -64,6 +89,14 @@
             </tbody>
         </table>
         </div>
+
+        <% if (totalPages > 1) { %>
+        <div class="admin-pagination">
+            <a href="<%= page > 1 ? pageUrl(page - 1) : '#' %>" class="admin-page-btn <%= page <= 1 ? 'disabled' : '' %>">‹ আগে</a>
+            <span class="admin-page-info">পৃষ্ঠা <%= page %> / <%= totalPages %> (<%= totalCount %>টা অর্ডার)</span>
+            <a href="<%= page < totalPages ? pageUrl(page + 1) : '#' %>" class="admin-page-btn <%= page >= totalPages ? 'disabled' : '' %>">পরে ›</a>
+        </div>
+        <% } %>
     </div>
     <%- include('nav-end') %>
 </body>
