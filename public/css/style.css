@@ -2216,6 +2216,7 @@ body.admin-body { display: block; min-height: 100vh; }
 }
 
 .admin-sidebar-brand {
+    text-decoration: none;
     display: flex;
     align-items: center;
     gap: 10px;
@@ -2248,6 +2249,7 @@ body.admin-body { display: block; min-height: 100vh; }
 .admin-nav-label:first-child { padding-top: 6px; }
 
 .admin-nav-link {
+    text-decoration: none;
     display: flex;
     align-items: center;
     gap: 12px;
@@ -2324,6 +2326,7 @@ body.admin-body { display: block; min-height: 100vh; }
 
 .admin-topbar-right { display: flex; align-items: center; gap: 10px; flex-shrink: 0; }
 .admin-visit-site {
+    text-decoration: none;
     display: inline-flex; align-items: center; gap: 6px; padding: 8px 14px;
     border-radius: var(--radius-sm); border: 1px solid var(--border); color: var(--text-muted);
     font-size: 0.82rem; font-weight: 600; white-space: nowrap;
@@ -2406,7 +2409,7 @@ body.admin-body { display: block; min-height: 100vh; }
 }
 .dash-widget-head { display: flex; align-items: center; justify-content: space-between; gap: 10px; margin-bottom: 16px; flex-wrap: wrap; }
 .dash-widget-head h2 { font-family: var(--font-display); font-size: 1rem; font-weight: 600; color: var(--text); }
-.dash-widget-head .view-all { font-size: 0.8rem; color: var(--accent-2); font-weight: 600; white-space: nowrap; }
+.dash-widget-head .view-all { font-size: 0.8rem; color: var(--accent-2); font-weight: 600; white-space: nowrap; text-decoration: none; }
 .dash-widget-head .view-all:hover { text-decoration: underline; }
 
 .dash-charts-row { display: grid; grid-template-columns: 2fr 1fr; gap: 16px; margin-bottom: 16px; align-items: stretch; }
@@ -2467,7 +2470,7 @@ body.admin-body { display: block; min-height: 100vh; }
 .stock-pill { font-size: 0.68rem; font-weight: 700; padding: 2px 7px; border-radius: 999px; }
 .stock-pill.low { background: rgba(255, 159, 67, 0.14); color: var(--accent-orange); }
 .stock-pill.out { background: var(--danger-bg); color: var(--danger); }
-.mini-link { font-size: 0.72rem; color: var(--accent-2); font-weight: 600; flex-shrink: 0; white-space: nowrap; }
+.mini-link { font-size: 0.72rem; color: var(--accent-2); font-weight: 600; flex-shrink: 0; white-space: nowrap; text-decoration: none; }
 .mini-link:hover { text-decoration: underline; }
 .dash-empty { padding: 22px 4px; text-align: center; color: var(--text-faint); font-size: 0.82rem; }
 
@@ -2475,7 +2478,7 @@ body.admin-body { display: block; min-height: 100vh; }
 .dash-order-row { display: grid; grid-template-columns: 1fr auto; gap: 4px 10px; padding: 10px 0; border-bottom: 1px solid var(--border-soft); }
 .dash-order-row:last-child { border-bottom: none; padding-bottom: 0; }
 .dash-order-row:first-child { padding-top: 0; }
-.dash-order-id { font-family: var(--font-mono); font-size: 0.78rem; color: var(--accent-2); font-weight: 700; }
+.dash-order-id { font-family: var(--font-mono); font-size: 0.78rem; color: var(--accent-2); font-weight: 700; text-decoration: none; }
 .dash-order-cust { font-size: 0.78rem; color: var(--text-muted); }
 .dash-order-meta { font-size: 0.72rem; color: var(--text-faint); grid-column: 1 / 2; }
 .dash-order-amt { font-size: 0.85rem; font-weight: 700; font-family: var(--font-mono); text-align: right; }
@@ -2483,6 +2486,7 @@ body.admin-body { display: block; min-height: 100vh; }
 /* Order status tabs (orders list page) */
 .order-status-tabs { display: flex; gap: 6px; flex-wrap: wrap; margin-bottom: 16px; }
 .order-status-tabs a {
+    text-decoration: none;
     padding: 7px 13px; border-radius: 999px; border: 1px solid var(--border-soft); background: var(--surface);
     font-size: 0.8rem; color: var(--text-muted); font-weight: 600; white-space: nowrap;
 }
@@ -2492,6 +2496,7 @@ body.admin-body { display: block; min-height: 100vh; }
 /* Order row action icon buttons (orders list + dashboard) */
 .order-actions-inline { display: flex; gap: 6px; justify-content: center; flex-wrap: wrap; }
 .order-icon-btn {
+    text-decoration: none;
     width: 30px; height: 30px; display: inline-flex; align-items: center; justify-content: center;
     border-radius: 7px; border: 1px solid var(--border-soft); color: var(--text-muted); background: var(--surface-2);
     flex-shrink: 0;
