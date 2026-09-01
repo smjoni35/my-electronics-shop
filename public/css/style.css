@@ -2406,6 +2406,7 @@ body.admin-body { display: block; min-height: 100vh; }
     border: 1px solid var(--border-soft);
     border-radius: var(--radius-lg);
     padding: 18px;
+    min-width: 0;
 }
 .dash-widget-head { display: flex; align-items: center; justify-content: space-between; gap: 10px; margin-bottom: 16px; flex-wrap: wrap; }
 .dash-widget-head h2 { font-family: var(--font-display); font-size: 1rem; font-weight: 600; color: var(--text); }
@@ -2476,6 +2477,7 @@ body.admin-body { display: block; min-height: 100vh; }
 
 /* Recent orders quick table inside widget */
 .dash-order-row { display: grid; grid-template-columns: 1fr auto; gap: 4px 10px; padding: 10px 0; border-bottom: 1px solid var(--border-soft); }
+.dash-order-row > div:first-child { min-width: 0; }
 .dash-order-row:last-child { border-bottom: none; padding-bottom: 0; }
 .dash-order-row:first-child { padding-top: 0; }
 .dash-order-id { font-family: var(--font-mono); font-size: 0.78rem; color: var(--accent-2); font-weight: 700; text-decoration: none; }
