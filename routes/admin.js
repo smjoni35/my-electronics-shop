@@ -170,7 +170,20 @@ router.get('/dashboard', requireAdmin, async (req, res) => {
                 COUNT(*) FILTER (WHERE created_at >= NOW() - INTERVAL '7 days') AS customers_last7
             FROM customers
         `),
-        pool.query(`SELECT id, customer_name, total, payment_method, status, created_at FROM orders ORDER BY created_at DESC LIMIT 5`),
+        pool.query(`
+            SELECT id, customer_name, total, payment_method, status, created_at FROM orders
+            ORDER BY
+                CASE status
+                    WHEN 'pending' THEN 1
+                    WHEN 'confirmed' THEN 2
+                    WHEN 'shipped' THEN 3
+                    WHEN 'delivered' THEN 4
+                    WHEN 'cancelled' THEN 5
+                    ELSE 6
+                END,
+                created_at DESC
+            LIMIT 5
+        `),
         pool.query(`SELECT id, name, image_url, stock, price FROM products WHERE stock <= 5 ORDER BY stock ASC, name ASC LIMIT 5`),
         pool.query(`
             SELECT p.id, p.name, p.image_url, p.price, COALESCE(SUM(oi.quantity), 0) AS sold
