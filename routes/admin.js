@@ -6,6 +6,12 @@ const { requireAdmin, requireRole, ROLE_LABELS } = require('../middleware/auth')
 const { upload, uploadImageToR2, deleteImageFromR2 } = require('../middleware/r2');
 const { adminLoginLimiter } = require('../middleware/rateLimit');
 const { streamInvoice } = require('../services/invoice');
+const { notifyLowStock } = require('../services/notify');
+const { logActivity } = require('../services/activityLog');
+
+// Matches the admin dashboard's Low Stock widget and routes/shop.js's badge —
+// keep all three in sync if this ever changes.
+const LOW_STOCK_THRESHOLD = 5;
 
 // Makes req.path (relative to /admin) available to every admin view for
 // sidebar active-link highlighting, without needing every render() call to pass it.
@@ -108,6 +114,7 @@ router.post('/login', adminLoginLimiter, async (req, res) => {
     req.session.isAdmin = true;
     req.session.adminUsername = username;
     req.session.adminRole = rows[0].role || 'admin';
+    logActivity(req, 'Logged in');
     res.redirect('/admin/dashboard');
 });
 
@@ -184,7 +191,7 @@ router.get('/dashboard', requireAdmin, async (req, res) => {
                 created_at DESC
             LIMIT 5
         `),
-        pool.query(`SELECT id, name, image_url, stock, price FROM products WHERE stock <= 5 ORDER BY stock ASC, name ASC LIMIT 5`),
+        pool.query(`SELECT id, name, image_url, stock, price FROM products WHERE stock <= $1 ORDER BY stock ASC, name ASC LIMIT 5`, [LOW_STOCK_THRESHOLD]),
         pool.query(`
             SELECT p.id, p.name, p.image_url, p.price, COALESCE(SUM(oi.quantity), 0) AS sold
             FROM products p
@@ -370,6 +377,7 @@ router.post('/products/new', requireRole('admin', 'manager'), productImageUpload
         await saveVariants(client, productId, variants);
 
         await client.query('COMMIT');
+        logActivity(req, 'Added product', name);
         res.redirect('/admin/products?added=1');
     } catch (err) {
         await client.query('ROLLBACK');
@@ -444,6 +452,16 @@ router.post('/products/:id/edit', requireAdmin, productImageUpload, async (req, 
         await saveVariants(client, req.params.id, variants);
 
         await client.query('COMMIT');
+        logActivity(req, 'Edited product', name);
+
+        // Same low-stock transition check as checkout — only fires the first
+        // time an admin edit drops stock at/below the threshold, not every save.
+        const stockBefore = Number(rows[0].stock);
+        const stockAfter = Number(stock);
+        if (stockBefore > LOW_STOCK_THRESHOLD && stockAfter <= LOW_STOCK_THRESHOLD) {
+            notifyLowStock([{ name, stock: stockAfter }]).catch(err => console.error('notifyLowStock error:', err.message));
+        }
+
         res.redirect('/admin/products/' + req.params.id + '/edit?saved=1');
     } catch (err) {
         await client.query('ROLLBACK');
@@ -493,6 +511,7 @@ router.post('/products/:id/delete', requireRole('admin', 'manager'), async (req,
             await deleteImageFromR2(img.image_url);
         }
         await pool.query('DELETE FROM products WHERE id = $1', [req.params.id]);
+        logActivity(req, 'Deleted product', rows.length > 0 ? rows[0].name : ('#' + req.params.id));
         res.redirect('/admin/products');
     } catch (err) {
         console.error('Product delete error:', err.message);
@@ -575,6 +594,7 @@ router.get('/orders/:id', requireAdmin, async (req, res) => {
 router.post('/orders/:id/status', requireAdmin, async (req, res) => {
     const { status } = req.body;
     await pool.query('UPDATE orders SET status = $1 WHERE id = $2', [status, req.params.id]);
+    logActivity(req, 'Updated order status', `Order #ORD-${String(req.params.id).padStart(5, '0')} → ${status}`);
     res.redirect(`/admin/orders/${req.params.id}?updated=1`);
 });
 
@@ -596,6 +616,7 @@ router.get('/orders/:id/invoice', requireAdmin, async (req, res) => {
 router.post('/orders/:id/delete', requireRole('admin', 'manager'), async (req, res) => {
     try {
         await pool.query('DELETE FROM orders WHERE id = $1', [req.params.id]);
+        logActivity(req, 'Deleted order', `Order #ORD-${String(req.params.id).padStart(5, '0')}`);
         res.redirect('/admin/orders');
     } catch (err) {
         console.error('Order delete error:', err.message);
@@ -627,6 +648,7 @@ router.post('/coupons/new', requireRole('admin', 'manager'), async (req, res) =>
              VALUES ($1, $2, $3, $4, $5, $6, $7, $8)`,
             [coupon.code, coupon.type, coupon.value, coupon.minOrderAmount, coupon.maxDiscountAmount, coupon.usageLimit, coupon.expiresAt, coupon.active]
         );
+        logActivity(req, 'Added coupon', coupon.code);
         res.redirect('/admin/coupons?added=1');
     } catch (err) {
         console.error(err);
@@ -651,6 +673,7 @@ router.post('/coupons/:id/edit', requireRole('admin', 'manager'), async (req, re
             `UPDATE coupons SET code=$1, type=$2, value=$3, min_order_amount=$4, max_discount_amount=$5, usage_limit=$6, expires_at=$7, active=$8 WHERE id=$9`,
             [coupon.code, coupon.type, coupon.value, coupon.minOrderAmount, coupon.maxDiscountAmount, coupon.usageLimit, coupon.expiresAt, coupon.active, req.params.id]
         );
+        logActivity(req, 'Edited coupon', coupon.code);
         res.redirect('/admin/coupons?added=1');
     } catch (err) {
         console.error(err);
@@ -660,7 +683,9 @@ router.post('/coupons/:id/edit', requireRole('admin', 'manager'), async (req, re
 });
 
 router.post('/coupons/:id/delete', requireRole('admin', 'manager'), async (req, res) => {
+    const { rows } = await pool.query('SELECT code FROM coupons WHERE id = $1', [req.params.id]);
     await pool.query('DELETE FROM coupons WHERE id = $1', [req.params.id]);
+    logActivity(req, 'Deleted coupon', rows.length > 0 ? rows[0].code : ('#' + req.params.id));
     res.redirect('/admin/coupons');
 });
 
@@ -702,6 +727,7 @@ router.post('/staff/new', requireRole('admin'), async (req, res) => {
         }
         const hash = await bcrypt.hash(password, 10);
         await pool.query('INSERT INTO admins (username, password_hash, role) VALUES ($1, $2, $3)', [username, hash, role]);
+        logActivity(req, 'Added staff', `${username} (${role})`);
         res.redirect('/admin/staff');
     } catch (err) {
         console.error(err);
@@ -728,7 +754,28 @@ router.post('/staff/:id/delete', requireRole('admin'), async (req, res) => {
     }
 
     await pool.query('DELETE FROM admins WHERE id = $1', [req.params.id]);
+    logActivity(req, 'Deleted staff', `${rows[0].username} (${rows[0].role})`);
     res.redirect('/admin/staff');
+});
+
+// Activity log — admin only. Recent staff actions (order/product/coupon/staff
+// changes, logins), newest first, with simple pagination.
+router.get('/activity-log', requireRole('admin'), async (req, res) => {
+    const PAGE_SIZE = 50;
+    const page = Math.max(1, parseInt(req.query.page, 10) || 1);
+
+    const [{ rows: logs }, { rows: countRows }] = await Promise.all([
+        pool.query(
+            'SELECT * FROM activity_log ORDER BY created_at DESC LIMIT $1 OFFSET $2',
+            [PAGE_SIZE, (page - 1) * PAGE_SIZE]
+        ),
+        pool.query('SELECT COUNT(*) AS total FROM activity_log')
+    ]);
+
+    const totalCount = Number(countRows[0].total);
+    const totalPages = Math.max(1, Math.ceil(totalCount / PAGE_SIZE));
+
+    res.render('admin/activity-log', { pageTitle: 'Activity Log', logs, page, totalPages, totalCount });
 });
 
 module.exports = router;

@@ -1,7 +1,7 @@
 const express = require('express');
 const router = express.Router();
 const pool = require('../db/pool');
-const { notifyNewOrder } = require('../services/notify');
+const { notifyNewOrder, notifyLowStock } = require('../services/notify');
 const cartService = require('../services/cart');
 const { validateCoupon } = require('../services/coupon');
 const { streamInvoice } = require('../services/invoice');
@@ -459,6 +459,12 @@ router.post('/checkout', checkoutLimiter, async (req, res) => {
         );
         const orderId = orderResult.rows[0].id;
 
+        // Track products that cross INTO low-stock territory as part of this
+        // order (before > threshold, after <= threshold) — so the WhatsApp
+        // alert fires exactly once per product, right when it matters, instead
+        // of re-alerting on every order once a product is already known-low.
+        const newlyLowStock = [];
+
         for (const item of items) {
             await client.query(
                 `INSERT INTO order_items (order_id, product_id, product_name, quantity, price, variant_id, variant_label)
@@ -469,6 +475,15 @@ router.post('/checkout', checkoutLimiter, async (req, res) => {
                 await client.query('UPDATE product_variants SET stock = GREATEST(stock - $1, 0) WHERE id = $2', [item.quantity, item.variantId]);
             } else {
                 await client.query('UPDATE products SET stock = GREATEST(stock - $1, 0) WHERE id = $2', [item.quantity, item.productId]);
+                // item.stock here is the stock fetched at the top of this handler,
+                // i.e. the value right before this decrement (the admin dashboard's
+                // Low Stock widget only tracks products.stock, not variant stock,
+                // so this alert stays scoped to non-variant items for consistency).
+                const stockBefore = item.stock;
+                const stockAfter = Math.max(stockBefore - item.quantity, 0);
+                if (stockBefore > LOW_STOCK_THRESHOLD && stockAfter <= LOW_STOCK_THRESHOLD) {
+                    newlyLowStock.push({ name: item.name, stock: stockAfter });
+                }
             }
         }
 
@@ -485,6 +500,9 @@ router.post('/checkout', checkoutLimiter, async (req, res) => {
         const orderForNotify = { id: orderId, customer_name: customerName, phone, address, city: city || '', total };
         const itemsForNotify = items.map(i => ({ product_name: i.name, quantity: i.quantity, price: i.price }));
         notifyNewOrder(orderForNotify, itemsForNotify).catch(err => console.error('notifyNewOrder error:', err.message));
+        if (newlyLowStock.length > 0) {
+            notifyLowStock(newlyLowStock).catch(err => console.error('notifyLowStock error:', err.message));
+        }
 
         res.render('order-success', { orderId, total, phone });
     } catch (err) {
