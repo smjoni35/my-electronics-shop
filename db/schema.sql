@@ -165,3 +165,17 @@ CREATE TABLE IF NOT EXISTS "session" (
 );
 
 CREATE INDEX IF NOT EXISTS "IDX_session_expire" ON "session" ("expire");
+
+-- Activity log — one row per meaningful staff action (order status changes,
+-- product/coupon/staff create-edit-delete). staff_username is stored as plain
+-- text (not a foreign key) so the log still reads correctly even after that
+-- staff account is later deleted.
+CREATE TABLE IF NOT EXISTS activity_log (
+    id SERIAL PRIMARY KEY,
+    staff_username VARCHAR(100) NOT NULL,
+    staff_role VARCHAR(20),
+    action VARCHAR(255) NOT NULL,
+    details TEXT,
+    created_at TIMESTAMP DEFAULT NOW()
+);
+CREATE INDEX IF NOT EXISTS idx_activity_log_created_at ON activity_log (created_at DESC);
