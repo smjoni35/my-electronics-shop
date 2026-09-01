@@ -513,8 +513,28 @@ router.get('/order/:id/invoice', async (req, res) => {
 });
 
 // Order tracking — look up past orders by phone number, no account needed
-router.get('/track-order', (req, res) => {
-    res.render('track-order', { phone: '', orders: null, orderItemsById: {} });
+async function lookupOrdersByPhone(phone) {
+    const { rows: orders } = await pool.query(
+        'SELECT * FROM orders WHERE phone = $1 ORDER BY created_at DESC',
+        [phone]
+    );
+    const orderItemsById = {};
+    for (const order of orders) {
+        const { rows: items } = await pool.query('SELECT * FROM order_items WHERE order_id = $1', [order.id]);
+        orderItemsById[order.id] = items;
+    }
+    return { orders, orderItemsById };
+}
+
+router.get('/track-order', async (req, res) => {
+    // ?phone= lets the admin panel's "Track Order" action jump straight to a
+    // customer's tracking view instead of retyping their phone number.
+    const phone = (req.query.phone || '').trim();
+    if (!phone) {
+        return res.render('track-order', { phone: '', orders: null, orderItemsById: {} });
+    }
+    const { orders, orderItemsById } = await lookupOrdersByPhone(phone);
+    res.render('track-order', { phone, orders, orderItemsById });
 });
 
 router.post('/track-order', async (req, res) => {
@@ -522,18 +542,7 @@ router.post('/track-order', async (req, res) => {
     if (!phone) {
         return res.render('track-order', { phone: '', orders: null, orderItemsById: {} });
     }
-
-    const { rows: orders } = await pool.query(
-        'SELECT * FROM orders WHERE phone = $1 ORDER BY created_at DESC',
-        [phone]
-    );
-
-    const orderItemsById = {};
-    for (const order of orders) {
-        const { rows: items } = await pool.query('SELECT * FROM order_items WHERE order_id = $1', [order.id]);
-        orderItemsById[order.id] = items;
-    }
-
+    const { orders, orderItemsById } = await lookupOrdersByPhone(phone);
     res.render('track-order', { phone, orders, orderItemsById });
 });
 
