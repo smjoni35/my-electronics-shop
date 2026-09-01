@@ -1429,6 +1429,7 @@ h1, h2, h3 { font-family: var(--font-display); font-weight: 700; letter-spacing:
     .search-btn-text { display: none; }
     .header-actions { gap: 6px; flex-wrap: nowrap; flex-shrink: 0; }
     .track-order-link { padding: 0 9px; }
+    .account-link { display: none; }
     .cart-link { padding: 7px 9px; gap: 4px; font-size: 0.8rem; }
     .cart-text { display: none; }
 
