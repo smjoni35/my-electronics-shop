@@ -15,6 +15,9 @@
         <% if (typeof addedSuccess !== 'undefined' && addedSuccess) { %>
             <p class="info-note">✅ প্রোডাক্ট সফলভাবে যোগ হয়েছে।</p>
         <% } %>
+        <% if (typeof updatedSuccess !== 'undefined' && updatedSuccess) { %>
+            <p class="info-note">✅ প্রোডাক্ট সফলভাবে আপডেট হয়েছে।</p>
+        <% } %>
         <div class="admin-header-row">
             <h1>Products</h1>
             <% if (currentRole !== 'moderator') { %>
