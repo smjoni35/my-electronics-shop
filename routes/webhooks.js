@@ -5,14 +5,16 @@ const { mapStatus } = require('../services/courier/steadfast');
 const { logActivity } = require('../services/activityLog');
 
 // Steadfast calls this URL whenever a consignment's delivery status changes.
-// Set it as the "Notification URL" in the Steadfast merchant panel as:
-//   https://yourdomain.com/webhooks/steadfast/<STEADFAST_WEBHOOK_TOKEN>
-// The token in the path is a shared secret — Steadfast doesn't sign its
-// webhook payloads, so this is what stops random internet traffic from
-// spoofing order-status changes. Pick any long random string and put the
-// same value in .env as STEADFAST_WEBHOOK_TOKEN.
-router.post('/steadfast/:token', async (req, res) => {
-    if (!process.env.STEADFAST_WEBHOOK_TOKEN || req.params.token !== process.env.STEADFAST_WEBHOOK_TOKEN) {
+// In the Steadfast merchant panel → Webhook settings, set:
+//   Callback URL:        https://yourdomain.com/webhooks/steadfast
+//   Auth Token (Bearer):  <STEADFAST_WEBHOOK_TOKEN> (same value as in .env)
+// Steadfast sends that token back as "Authorization: Bearer <token>" on every
+// call — that's what stops random internet traffic from spoofing order-status
+// changes, since Steadfast doesn't sign its webhook payloads otherwise.
+router.post('/steadfast', async (req, res) => {
+    const authHeader = req.headers['authorization'] || '';
+    const sentToken = authHeader.startsWith('Bearer ') ? authHeader.slice(7) : null;
+    if (!process.env.STEADFAST_WEBHOOK_TOKEN || sentToken !== process.env.STEADFAST_WEBHOOK_TOKEN) {
         return res.status(403).json({ ok: false });
     }
 
