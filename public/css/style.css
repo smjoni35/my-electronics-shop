@@ -298,7 +298,6 @@ h1, h2, h3 { font-family: var(--font-display); font-weight: 700; letter-spacing:
     padding: 0 12px;
 }
 .logo-img-sm { height: 30px; }
-.logo-text-short { display: none; }
 .logo-text {
     display: inline;
     font-weight: 700;
@@ -1589,10 +1588,6 @@ h1, h2, h3 { font-family: var(--font-display); font-weight: 700; letter-spacing:
     .float-btn svg { width: 22px; height: 22px; }
     .whatsapp-float svg { width: 26px; height: 26px; }
 }
-@media (max-width: 340px) {
-    .logo-text-short { display: none; }
-}
-
 /* ==========================================================================
    404
    ========================================================================== */
