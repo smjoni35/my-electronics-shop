@@ -44,4 +44,19 @@
     </div>
 </div>
 
+<script>
+(function () {
+    var items = document.querySelectorAll('.faq-list .faq-item');
+    items.forEach(function (item) {
+        item.addEventListener('toggle', function () {
+            if (item.open) {
+                items.forEach(function (other) {
+                    if (other !== item) other.open = false;
+                });
+            }
+        });
+    });
+})();
+</script>
+
 <%- include('partials/footer') %>
