@@ -13,6 +13,12 @@ const accountRoutes = require('./routes/customer');
 
 const app = express();
 
+// Changes once per deploy/restart. Used to cache-bust static assets (see
+// header.ejs) so browsers/CDNs never keep serving an old style.css after
+// a deploy — that's what caused the "double store name" bug to persist
+// even after the CSS fix had already gone out.
+app.locals.buildVersion = Date.now();
+
 // Fail loudly instead of quietly running with a guessable session secret —
 // a default fallback here would be a real vulnerability if .env is ever
 // missing in production.
