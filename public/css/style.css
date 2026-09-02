@@ -141,6 +141,7 @@ h1, h2, h3 { font-family: var(--font-display); font-weight: 700; letter-spacing:
     line-height: 1;
 }
 .logo-text-accent { color: var(--accent); }
+.logo-text-accent-2 { color: var(--accent-2); }
 
 /* Expandable search bar under the header */
 .header-search-bar {
