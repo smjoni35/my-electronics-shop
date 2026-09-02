@@ -84,23 +84,6 @@
     </div>
 </section>
 
-<% if (categories.length > 0) { %>
-<section class="category-grid-section" id="categories">
-    <h2 class="section-title">ক্যাটাগরি অনুযায়ী দেখুন</h2>
-    <div class="category-shortcut-grid">
-        <% categories.forEach(c => { %>
-            <a href="/?category=<%= encodeURIComponent(c.category) %>" class="category-shortcut-card">
-                <% if (categoryThumbs[c.category]) { %>
-                    <img src="<%= categoryThumbs[c.category] %>" alt="<%= c.category %>">
-                <% } else { %>
-                    <div class="no-img large"></div>
-                <% } %>
-                <span><%= c.category %></span>
-            </a>
-        <% }) %>
-    </div>
-</section>
-<% } %>
 <% } %>
 
 <% if (activeCategory) { %>
@@ -109,7 +92,7 @@
 </nav>
 <% } %>
 
-<div class="category-bar-wrap">
+<div class="category-bar-wrap" id="categories">
     <div class="category-bar">
         <a href="/" class="<%= activeCategory === '' ? 'active' : '' %>">All products</a>
         <% categories.forEach(c => { %>
