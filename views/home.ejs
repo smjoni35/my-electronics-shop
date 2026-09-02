@@ -10,16 +10,7 @@
                 <% } %>
                 <div class="hero-slide-overlay">
                     <span class="hero-tag">🏆 Best Seller</span>
-                    <h2 class="hero-slide-title"><%= p.name %></h2>
-                    <p class="hero-slide-price">
-                        <% if (p.discount_percent > 0) { %>
-                            ৳<%= parseFloat(p.effective_price).toLocaleString('en-BD') %>
-                            <span class="hero-slide-price-original">৳<%= parseFloat(p.price).toLocaleString('en-BD') %></span>
-                        <% } else { %>
-                            ৳<%= parseFloat(p.price).toLocaleString('en-BD') %>
-                        <% } %>
-                    </p>
-                    <span class="hero-cta-btn">এখনই কিনুন</span>
+                    <span class="hero-cta-btn">🛒 এখনই কিনুন</span>
                 </div>
             </a>
         <% }) %>
