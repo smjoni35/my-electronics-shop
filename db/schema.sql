@@ -106,6 +106,16 @@ ALTER TABLE orders ADD COLUMN IF NOT EXISTS delivery_charge NUMERIC(10, 2) NOT N
 ALTER TABLE orders ADD COLUMN IF NOT EXISTS coupon_code VARCHAR(50);
 
 -- ==========================================================================
+-- Courier (Steadfast) integration — tracks the consignment created for an
+-- order and the delivery status Steadfast reports back via webhook.
+-- ==========================================================================
+ALTER TABLE orders ADD COLUMN IF NOT EXISTS courier_provider VARCHAR(30);
+ALTER TABLE orders ADD COLUMN IF NOT EXISTS courier_consignment_id VARCHAR(100);
+ALTER TABLE orders ADD COLUMN IF NOT EXISTS courier_tracking_code VARCHAR(100);
+ALTER TABLE orders ADD COLUMN IF NOT EXISTS courier_status VARCHAR(50);
+CREATE INDEX IF NOT EXISTS idx_orders_courier_consignment_id ON orders(courier_consignment_id);
+
+-- ==========================================================================
 -- Product variants — Color / Storage / Size-Model combinations, each with
 -- its own stock. A product with zero rows here has no variant picker and is
 -- just sold at the product's own price/stock, exactly like before.
