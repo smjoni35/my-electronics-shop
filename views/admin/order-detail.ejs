@@ -19,6 +19,20 @@
         <% if (typeof updatedSuccess !== 'undefined' && updatedSuccess) { %>
             <p class="info-note">✅ অর্ডার স্ট্যাটাস সফলভাবে আপডেট হয়েছে।</p>
         <% } %>
+        <% if (typeof shippedSuccess !== 'undefined' && shippedSuccess) { %>
+            <p class="info-note">✅ অর্ডারটি কুরিয়ারে (Steadfast) পাঠানো হয়েছে।</p>
+        <% } %>
+        <% if (typeof shipError !== 'undefined' && shipError === 'already') { %>
+            <p class="error-msg">⚠️ এই অর্ডারটি ইতিমধ্যে কুরিয়ারে পাঠানো হয়েছে।</p>
+        <% } else if (typeof shipError !== 'undefined' && shipError) { %>
+            <p class="error-msg">❌ কুরিয়ারে পাঠানো যায়নি — একটু পর আবার চেষ্টা করুন।</p>
+        <% } %>
+        <% if (typeof refreshedSuccess !== 'undefined' && refreshedSuccess) { %>
+            <p class="info-note">✅ কুরিয়ার স্ট্যাটাস আপডেট হয়েছে।</p>
+        <% } %>
+        <% if (typeof refreshError !== 'undefined' && refreshError) { %>
+            <p class="error-msg">❌ স্ট্যাটাস চেক করা যায়নি — একটু পর আবার চেষ্টা করুন।</p>
+        <% } %>
         <div class="order-detail-box">
             <div class="order-info-grid">
                 <div class="order-info-item">
@@ -85,6 +99,36 @@
                     <button type="submit" class="btn-remove">🗑️ Delete Order</button>
                 </form>
             </div>
+        </div>
+
+        <div class="order-detail-box courier-box">
+            <h3>🚚 কুরিয়ার (Steadfast)</h3>
+            <% if (order.courier_consignment_id) { %>
+                <div class="order-info-grid">
+                    <div class="order-info-item">
+                        <span class="order-info-label">Consignment ID</span>
+                        <span class="order-info-value"><%= order.courier_consignment_id %></span>
+                    </div>
+                    <div class="order-info-item">
+                        <span class="order-info-label">Tracking Code</span>
+                        <span class="order-info-value"><%= order.courier_tracking_code || '-' %></span>
+                    </div>
+                    <div class="order-info-item">
+                        <span class="order-info-label">Courier Status</span>
+                        <span class="order-info-value"><%= order.courier_status || '-' %></span>
+                    </div>
+                </div>
+                <form action="/admin/orders/<%= order.id %>/courier-refresh" method="POST" class="status-form">
+                    <input type="hidden" name="_csrf" value="<%= csrfToken %>">
+                    <button type="submit" class="btn-details">🔄 স্ট্যাটাস রিফ্রেশ করুন</button>
+                </form>
+            <% } else { %>
+                <p class="policy-updated">এখনো কুরিয়ারে পাঠানো হয়নি।</p>
+                <form action="/admin/orders/<%= order.id %>/ship" method="POST" class="status-form" onsubmit="return confirm('অর্ডারটি Steadfast কুরিয়ারে পাঠানো হবে। আপনি কি নিশ্চিত?')">
+                    <input type="hidden" name="_csrf" value="<%= csrfToken %>">
+                    <button type="submit" class="btn-primary">📦 কুরিয়ারে পাঠান</button>
+                </form>
+            <% } %>
         </div>
 
         <h2>প্রোডাক্টসমূহ</h2>
