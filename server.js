@@ -10,6 +10,7 @@ const { attachCsrfToken, csrfGate } = require('./middleware/csrf');
 const shopRoutes = require('./routes/shop');
 const adminRoutes = require('./routes/admin');
 const accountRoutes = require('./routes/customer');
+const webhookRoutes = require('./routes/webhooks');
 
 const app = express();
 
@@ -45,6 +46,11 @@ app.use(helmet({ contentSecurityPolicy: false }));
 app.use(express.urlencoded({ extended: true }));
 app.use(express.json());
 app.use(express.static(path.join(__dirname, 'public')));
+
+// Mounted before session/CSRF on purpose — Steadfast's server calls this
+// URL directly (no browser session, no CSRF token). It has its own shared-
+// secret check instead (see routes/webhooks.js).
+app.use('/webhooks', webhookRoutes);
 
 app.use(session({
     store: new pgSession({ pool, tableName: 'session' }),

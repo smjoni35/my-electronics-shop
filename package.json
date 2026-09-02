@@ -3,6 +3,9 @@
   "version": "1.0.0",
   "description": "Custom e-commerce website for electronics/gadgets business",
   "main": "server.js",
+  "engines": {
+    "node": ">=18"
+  },
   "scripts": {
     "start": "node db/migrate.js && node server.js",
     "migrate": "node db/migrate.js"
