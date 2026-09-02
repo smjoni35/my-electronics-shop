@@ -40,7 +40,9 @@ async function createConsignment(order, items) {
         recipient_name: order.customer_name,
         recipient_phone: order.phone,
         recipient_address: [order.address, order.city].filter(Boolean).join(', '),
-        cod_amount: order.payment_method === 'cod' ? Number(order.total) : 0,
+        // Steadfast expects a whole-taka amount — order totals can carry paisa
+        // (e.g. ৳1,878.34), which their API rejects if sent with decimals.
+        cod_amount: order.payment_method === 'cod' ? Math.round(Number(order.total)) : 0,
         note: itemDescription
     };
 
@@ -56,8 +58,9 @@ async function createConsignment(order, items) {
         throw new Error('Steadfast এ যোগাযোগ করা যায়নি — ইন্টারনেট বা সার্ভিস ডাউন থাকতে পারে।');
     }
 
-    if (!res.ok || !data || !data.consignment) {
-        throw new Error((data && data.message) || 'Steadfast এ অর্ডার পাঠানো যায়নি।');
+    if (!res.ok || !data || data.status !== 200 || !data.consignment) {
+        const detail = (data && (data.message || JSON.stringify(data.errors || data))) || `HTTP ${res.status}`;
+        throw new Error(`Steadfast এ অর্ডার পাঠানো যায়নি: ${detail}`);
     }
 
     return {
