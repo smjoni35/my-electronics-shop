@@ -1588,9 +1588,6 @@ h1, h2, h3 { font-family: var(--font-display); font-weight: 700; letter-spacing:
     .float-btn svg { width: 22px; height: 22px; }
     .whatsapp-float svg { width: 26px; height: 26px; }
 }
-@media (max-width: 380px) {
-    .logo-text-short { font-size: 0.78rem; }
-}
 @media (max-width: 340px) {
     .logo-text-short { display: none; }
 }
@@ -1617,8 +1614,7 @@ h1, h2, h3 { font-family: var(--font-display); font-weight: 700; letter-spacing:
     .logo { gap: 4px; min-width: 0; }
     .logo-chip { padding: 3px 5px; border-radius: 10px; height: 38px; }
     .logo-img { height: 28px; }
-    .logo-text-full { display: none; }
-    .logo-text-short { display: inline; font-size: 0.92rem; }
+    .logo-text-full { font-size: 0.92rem; }
     .header-icon-actions { gap: 6px; }
     .icon-btn { width: 38px; height: 38px; }
 }
@@ -2797,7 +2793,6 @@ body.admin-body { display: block; min-height: 100vh; }
 
     .container { padding: 0 14px; }
 
-    /* Header */
     .header-inner { padding: 10px 14px; gap: 10px; }
     .hamburger-btn, .icon-btn { width: 36px; height: 36px; border-radius: 10px; }
     .header-search-bar .container { padding: 10px 14px; }
