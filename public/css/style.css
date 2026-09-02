@@ -1084,7 +1084,7 @@ h1, h2, h3 { font-family: var(--font-display); font-weight: 700; letter-spacing:
 
 .success-support-row {
     display: flex;
-    align-items: flex-start;
+    align-items: center;
     gap: 12px;
     text-align: left;
     margin-bottom: 24px;
