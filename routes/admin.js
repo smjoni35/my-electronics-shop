@@ -9,6 +9,7 @@ const { adminLoginLimiter } = require('../middleware/rateLimit');
 const { streamInvoice } = require('../services/invoice');
 const { notifyLowStock } = require('../services/notify');
 const { logActivity } = require('../services/activityLog');
+const steadfast = require('../services/courier/steadfast');
 
 // Matches the admin dashboard's Low Stock widget and routes/shop.js's badge —
 // keep all three in sync if this ever changes.
@@ -588,7 +589,16 @@ router.get('/orders/:id', requireAdmin, async (req, res) => {
     const { rows: orderRows } = await pool.query('SELECT * FROM orders WHERE id = $1', [req.params.id]);
     if (orderRows.length === 0) return res.redirect('/admin/orders');
     const { rows: items } = await pool.query('SELECT * FROM order_items WHERE order_id = $1', [req.params.id]);
-    res.render('admin/order-detail', { pageTitle: 'Order #' + orderRows[0].id, order: orderRows[0], items, updatedSuccess: req.query.updated === '1' });
+    res.render('admin/order-detail', {
+        pageTitle: 'Order #' + orderRows[0].id,
+        order: orderRows[0],
+        items,
+        updatedSuccess: req.query.updated === '1',
+        shippedSuccess: req.query.shipped === '1',
+        shipError: req.query.shipError || null,
+        refreshedSuccess: req.query.refreshed === '1',
+        refreshError: req.query.refreshError || null
+    });
 });
 
 // Update order status
@@ -597,6 +607,52 @@ router.post('/orders/:id/status', requireAdmin, async (req, res) => {
     await pool.query('UPDATE orders SET status = $1 WHERE id = $2', [status, req.params.id]);
     logActivity(req, 'Updated order status', `Order #ORD-${String(req.params.id).padStart(5, '0')} → ${status}`);
     res.redirect(`/admin/orders/${req.params.id}?updated=1`);
+});
+
+// Send this order to Steadfast as a new consignment
+router.post('/orders/:id/ship', requireAdmin, async (req, res) => {
+    const { rows: orderRows } = await pool.query('SELECT * FROM orders WHERE id = $1', [req.params.id]);
+    if (orderRows.length === 0) return res.redirect('/admin/orders');
+    const order = orderRows[0];
+
+    if (order.courier_consignment_id) {
+        return res.redirect(`/admin/orders/${order.id}?shipError=already`);
+    }
+
+    try {
+        const { rows: items } = await pool.query('SELECT * FROM order_items WHERE order_id = $1', [order.id]);
+        const result = await steadfast.createConsignment(order, items);
+
+        await pool.query(
+            `UPDATE orders
+             SET courier_provider = 'steadfast', courier_consignment_id = $1, courier_tracking_code = $2, courier_status = $3, status = 'shipped'
+             WHERE id = $4`,
+            [String(result.consignmentId), result.trackingCode, result.status, order.id]
+        );
+        logActivity(req, 'Sent order to courier', `Order #ORD-${String(order.id).padStart(5, '0')} → Steadfast`);
+        res.redirect(`/admin/orders/${order.id}?shipped=1`);
+    } catch (err) {
+        console.error('Steadfast ship error:', err.message);
+        res.redirect(`/admin/orders/${order.id}?shipError=1`);
+    }
+});
+
+// Manually re-check delivery status from Steadfast (backup for a missed webhook)
+router.post('/orders/:id/courier-refresh', requireAdmin, async (req, res) => {
+    const { rows: orderRows } = await pool.query('SELECT * FROM orders WHERE id = $1', [req.params.id]);
+    if (orderRows.length === 0) return res.redirect('/admin/orders');
+    const order = orderRows[0];
+    if (!order.courier_consignment_id) return res.redirect(`/admin/orders/${order.id}`);
+
+    try {
+        const status = await steadfast.checkStatus(order.courier_consignment_id);
+        const newStatus = steadfast.mapStatus(status);
+        await pool.query('UPDATE orders SET courier_status = $1, status = $2 WHERE id = $3', [status, newStatus, order.id]);
+        res.redirect(`/admin/orders/${order.id}?refreshed=1`);
+    } catch (err) {
+        console.error('Steadfast refresh error:', err.message);
+        res.redirect(`/admin/orders/${order.id}?refreshError=1`);
+    }
 });
 
 // Invoice PDF for any order — staff use (e.g. printing for a delivery run)
