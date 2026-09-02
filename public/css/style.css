@@ -1550,13 +1550,18 @@ display: inline-flex;
    ========================================================================== */
 .breadcrumb {
     display: flex;
-    flex-wrap: wrap;
+    flex-wrap: nowrap;
     align-items: center;
     gap: 6px;
     font-size: 0.82rem;
     color: var(--text-faint);
     margin: 16px 0 4px;
+    overflow-x: auto;
+    white-space: nowrap;
+    scrollbar-width: none;
 }
+.breadcrumb::-webkit-scrollbar { display: none; }
+.breadcrumb a, .breadcrumb-current { flex-shrink: 0; }
 .breadcrumb a { color: var(--text-muted); text-decoration: none; }
 .breadcrumb a:hover { color: var(--accent-2); }
 .breadcrumb-sep { color: var(--text-faint); }
