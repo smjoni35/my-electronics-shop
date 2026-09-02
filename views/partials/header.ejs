@@ -29,21 +29,119 @@
 <body>
     <header class="site-header">
         <div class="container header-inner">
-            <a href="/" class="logo"><span class="logo-chip"><img src="/img/logo.png" alt="<%= storeName %>" class="logo-img"></span><span class="logo-text"><%= storeName %></span></a>
-            <form action="/" method="GET" class="search-form">
-                <span class="search-prompt">&#10095;</span>
-                <input type="text" name="q" placeholder="Find the product..." value="<%= typeof q !== 'undefined' ? q : '' %>" enterkeyhint="search">
-                <button type="submit" aria-label="Search"><span class="search-btn-icon">🔍</span><span class="search-btn-text">Search</span></button>
-            </form>
-            <div class="header-actions">
-                <a href="/track-order" class="track-order-link">📦 <span class="cart-text">আমার অর্ডার</span></a>
-                <% if (typeof currentCustomerId !== 'undefined' && currentCustomerId) { %>
-                    <a href="/account/dashboard" class="track-order-link account-link">👤 <span class="cart-text">আমার অ্যাকাউন্ট</span></a>
-                <% } else { %>
-                    <a href="/account/login" class="track-order-link account-link">👤 <span class="cart-text">লগইন</span></a>
-                <% } %>
-                <a href="/cart" class="cart-link">🛒 <span class="cart-text">Cart</span> <span class="cart-count"><%= cartCount %></span></a>
+            <button type="button" class="hamburger-btn" id="menuToggle" aria-label="Menu">
+                <svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><line x1="3" y1="6" x2="21" y2="6"/><line x1="3" y1="12" x2="21" y2="12"/><line x1="3" y1="18" x2="21" y2="18"/></svg>
+            </button>
+            <a href="/" class="logo">
+                <span class="logo-chip"><img src="/img/logo.png" alt="<%= storeName %>" class="logo-img"></span>
+                <span class="logo-text logo-text-full">JM <span class="logo-text-accent">Gadget Zone</span></span>
+                <span class="logo-text logo-text-short">JMG <span class="logo-text-accent">Zone</span></span>
+            </a>
+            <div class="header-icon-actions">
+                <button type="button" class="icon-btn" id="searchToggleBtn" aria-label="Search">
+                    <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="7"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+                </button>
+                <a href="/cart" class="icon-btn cart-icon-btn" aria-label="Cart">
+                    <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><circle cx="9" cy="21" r="1"/><circle cx="20" cy="21" r="1"/><path d="M1 1h4l2.68 13.39a2 2 0 0 0 2 1.61h9.72a2 2 0 0 0 2-1.61L23 6H6"/></svg>
+                    <span class="cart-count cart-badge"><%= cartCount %></span>
+                </a>
+            </div>
+        </div>
+        <div class="header-search-bar" id="headerSearchBar">
+            <div class="container">
+                <form action="/" method="GET" class="search-form" id="headerSearchForm">
+                    <span class="search-prompt">&#10095;</span>
+                    <input type="text" name="q" placeholder="Find the product..." value="<%= typeof q !== 'undefined' ? q : '' %>" enterkeyhint="search" id="headerSearchInput">
+                    <button type="submit" aria-label="Search"><span class="search-btn-icon">🔍</span><span class="search-btn-text">Search</span></button>
+                </form>
             </div>
         </div>
     </header>
+
+    <div class="nav-drawer-overlay" id="navDrawerOverlay"></div>
+    <nav class="nav-drawer" id="navDrawer" aria-hidden="true">
+        <div class="nav-drawer-head">
+            <span class="nav-drawer-brand">JM <span class="logo-text-accent">Gadget Zone</span></span>
+            <button type="button" class="nav-drawer-close" id="navDrawerClose" aria-label="বন্ধ করুন">✕</button>
+        </div>
+        <div class="nav-drawer-links">
+            <a href="/">🏠 হোম</a>
+            <a href="/#categories">🗂️ ক্যাটাগরি</a>
+            <a href="/track-order">📦 আমার অর্ডার</a>
+            <% if (typeof currentCustomerId !== 'undefined' && currentCustomerId) { %>
+                <a href="/account/dashboard">👤 আমার অ্যাকাউন্ট</a>
+            <% } else { %>
+                <a href="/account/login">👤 লগইন</a>
+            <% } %>
+            <a href="/cart">🛒 কার্ট</a>
+            <a href="/faq">❓ সাধারণ জিজ্ঞাসা</a>
+            <a href="/return-policy">🔁 রিটার্ন পলিসি</a>
+        </div>
+    </nav>
+
+    <nav class="bottom-nav" id="bottomNav">
+        <a href="/" class="bottom-nav-item" data-path="/">
+            <svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 10.5 12 3l9 7.5"/><path d="M5 9.5V21h14V9.5"/></svg>
+            <span>Home</span>
+        </a>
+        <a href="/#categories" class="bottom-nav-item" data-path="/#categories">
+            <svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="7" height="7" rx="1.5"/><rect x="14" y="3" width="7" height="7" rx="1.5"/><rect x="3" y="14" width="7" height="7" rx="1.5"/><rect x="14" y="14" width="7" height="7" rx="1.5"/></svg>
+            <span>Category</span>
+        </a>
+        <% if (typeof currentCustomerId !== 'undefined' && currentCustomerId) { %>
+        <a href="/account/dashboard" class="bottom-nav-item" data-path="/account/dashboard">
+            <svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="8" r="4"/><path d="M4 21v-1a8 8 0 0 1 16 0v1"/></svg>
+            <span>Account</span>
+        </a>
+        <% } else { %>
+        <a href="/account/login" class="bottom-nav-item" data-path="/account/login">
+            <svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="8" r="4"/><path d="M4 21v-1a8 8 0 0 1 16 0v1"/></svg>
+            <span>Sign In</span>
+        </a>
+        <% } %>
+    </nav>
+
+    <script>
+    (function () {
+        var menuToggle = document.getElementById('menuToggle');
+        var navDrawer = document.getElementById('navDrawer');
+        var navDrawerOverlay = document.getElementById('navDrawerOverlay');
+        var navDrawerClose = document.getElementById('navDrawerClose');
+
+        function openDrawer() {
+            navDrawer.classList.add('open');
+            navDrawerOverlay.classList.add('open');
+            navDrawer.setAttribute('aria-hidden', 'false');
+        }
+        function closeDrawer() {
+            navDrawer.classList.remove('open');
+            navDrawerOverlay.classList.remove('open');
+            navDrawer.setAttribute('aria-hidden', 'true');
+        }
+        if (menuToggle) menuToggle.addEventListener('click', openDrawer);
+        if (navDrawerClose) navDrawerClose.addEventListener('click', closeDrawer);
+        if (navDrawerOverlay) navDrawerOverlay.addEventListener('click', closeDrawer);
+
+        var searchToggleBtn = document.getElementById('searchToggleBtn');
+        var headerSearchBar = document.getElementById('headerSearchBar');
+        var headerSearchInput = document.getElementById('headerSearchInput');
+        if (searchToggleBtn) {
+            searchToggleBtn.addEventListener('click', function () {
+                var isOpen = headerSearchBar.classList.toggle('open');
+                if (isOpen && headerSearchInput) {
+                    setTimeout(function () { headerSearchInput.focus(); }, 150);
+                }
+            });
+        }
+
+        var here = window.location.pathname + window.location.hash;
+        document.querySelectorAll('.bottom-nav-item').forEach(function (item) {
+            var path = item.getAttribute('data-path');
+            var isHome = path === '/' && window.location.pathname === '/' && !window.location.hash;
+            var isMatch = path === here || isHome || (path !== '/' && path.indexOf('#') === -1 && window.location.pathname === path);
+            if (isMatch) item.classList.add('active');
+        });
+    })();
+    </script>
+
     <main class="container">
