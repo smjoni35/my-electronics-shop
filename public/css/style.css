@@ -2298,39 +2298,6 @@ display: inline-flex;
 .faq-item p a:hover { text-decoration: underline; }
 
 /* ==========================================================================
-   Back-to-top button
-   ========================================================================== */
-.back-to-top {
-    position: fixed;
-    right: 20px;
-    bottom: 86px;
-    width: 44px;
-    height: 44px;
-    border-radius: 50%;
-    background: var(--surface-2);
-    border: 1px solid var(--border);
-    color: var(--text);
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    cursor: pointer;
-    z-index: 34;
-    opacity: 0;
-    pointer-events: none;
-    transform: translateY(8px);
-    transition: opacity 0.2s, transform 0.2s, border-color 0.15s;
-    box-shadow: 0 6px 16px rgba(0,0,0,0.35);
-}
-.back-to-top.visible { opacity: 1; pointer-events: auto; transform: translateY(0); }
-.back-to-top:hover { border-color: var(--accent-2); color: var(--accent-2); }
-@media (max-width: 700px) {
-    .back-to-top { bottom: 154px; }
-}
-@media (max-width: 560px) {
-    .back-to-top { right: 14px; width: 40px; height: 40px; }
-}
-
-/* ==========================================================================
    Customer accounts, product variants, coupons, invoices — added on top of
    the existing theme, reusing the same design tokens.
    ========================================================================== */
