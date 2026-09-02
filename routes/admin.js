@@ -302,7 +302,7 @@ router.get('/api/sales-overview', requireAdmin, async (req, res) => {
 // pure analytics overview, matching the sidebar's separate "Products" entry)
 router.get('/products', requireAdmin, async (req, res) => {
     const { rows: products } = await pool.query('SELECT * FROM products ORDER BY created_at DESC');
-    res.render('admin/products', { pageTitle: 'Products', products, addedSuccess: req.query.added === '1' });
+    res.render('admin/products', { pageTitle: 'Products', products, addedSuccess: req.query.added === '1', updatedSuccess: req.query.updated === '1' });
 });
 
 // Customers — merges registered accounts with guest checkouts (grouped by phone,
@@ -463,7 +463,7 @@ router.post('/products/:id/edit', requireAdmin, productImageUpload, verifyCsrfTo
             notifyLowStock([{ name, stock: stockAfter }]).catch(err => console.error('notifyLowStock error:', err.message));
         }
 
-        res.redirect('/admin/products/' + req.params.id + '/edit?saved=1');
+        res.redirect('/admin/products?updated=1');
     } catch (err) {
         await client.query('ROLLBACK');
         console.error(err);
