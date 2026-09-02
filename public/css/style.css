@@ -258,8 +258,6 @@ h1, h2, h3 { font-family: var(--font-display); font-weight: 700; letter-spacing:
 @media (max-width: 700px) {
     .bottom-nav { display: flex; }
     body { padding-bottom: 74px; }
-    .whatsapp-float { bottom: 86px; }
-    .back-to-top { bottom: 148px; }
 }
 
 .logo {
@@ -1544,32 +1542,50 @@ h1, h2, h3 { font-family: var(--font-display); font-weight: 700; letter-spacing:
 .footer-copyright { text-align: center; color: var(--text-faint); font-size: 0.8rem; }
 
 /* ==========================================================================
-   WhatsApp floating button
+   Floating action buttons (call + WhatsApp)
    ========================================================================== */
-.whatsapp-float {
+.float-actions {
     position: fixed;
     right: 20px;
     bottom: 20px;
+    z-index: 35;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 12px;
+}
+.float-btn {
     width: 56px;
     height: 56px;
     border-radius: 50%;
-    background: #25D366;
     display: flex;
     align-items: center;
     justify-content: center;
-    box-shadow: 0 6px 18px rgba(0,0,0,0.4), 0 0 0 4px rgba(37,211,102,0.18);
-    z-index: 40;
-    animation: waPulse 2.4s ease-in-out infinite;
+    box-shadow: 0 6px 18px rgba(0,0,0,0.4);
     transition: transform 0.15s ease;
 }
-.whatsapp-float:hover { transform: scale(1.08); }
-.whatsapp-float svg { width: 30px; height: 30px; color: #fff; }
+.float-btn:hover { transform: scale(1.08); }
+.float-btn svg { width: 26px; height: 26px; color: #fff; }
+.call-float {
+    background: linear-gradient(145deg, var(--accent-2), var(--accent-2-dark));
+}
+.whatsapp-float {
+    background: #25D366;
+    box-shadow: 0 6px 18px rgba(0,0,0,0.4), 0 0 0 4px rgba(37,211,102,0.18);
+    animation: waPulse 2.4s ease-in-out infinite;
+}
+.whatsapp-float svg { width: 30px; height: 30px; }
 @keyframes waPulse {
     0%, 100% { box-shadow: 0 6px 18px rgba(0,0,0,0.4), 0 0 0 4px rgba(37,211,102,0.18); }
     50% { box-shadow: 0 6px 18px rgba(0,0,0,0.4), 0 0 0 9px rgba(37,211,102,0.05); }
 }
+@media (max-width: 700px) {
+    .float-actions { bottom: 88px; }
+}
 @media (max-width: 560px) {
-    .whatsapp-float { right: 14px; bottom: 14px; width: 50px; height: 50px; }
+    .float-actions { right: 14px; gap: 10px; }
+    .float-btn { width: 48px; height: 48px; }
+    .float-btn svg { width: 22px; height: 22px; }
     .whatsapp-float svg { width: 26px; height: 26px; }
 }
 @media (max-width: 380px) {
@@ -2301,7 +2317,7 @@ display: inline-flex;
     align-items: center;
     justify-content: center;
     cursor: pointer;
-    z-index: 39;
+    z-index: 34;
     opacity: 0;
     pointer-events: none;
     transform: translateY(8px);
@@ -2310,8 +2326,11 @@ display: inline-flex;
 }
 .back-to-top.visible { opacity: 1; pointer-events: auto; transform: translateY(0); }
 .back-to-top:hover { border-color: var(--accent-2); color: var(--accent-2); }
+@media (max-width: 700px) {
+    .back-to-top { bottom: 154px; }
+}
 @media (max-width: 560px) {
-    .back-to-top { right: 14px; bottom: 76px; width: 40px; height: 40px; }
+    .back-to-top { right: 14px; width: 40px; height: 40px; }
 }
 
 /* ==========================================================================
