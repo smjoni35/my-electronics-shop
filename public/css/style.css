@@ -2783,3 +2783,57 @@ body.admin-body { display: block; min-height: 100vh; }
     .admin-search-row { flex-direction: column; }
     .admin-search-btn, .admin-search-clear { width: 100%; justify-content: center; text-align: center; }
 }
+
+/* ==========================================================================
+   Compact mobile mode
+   Most spacing/type in this file is set in rem, so scaling the root font-size
+   down on phone screens shrinks text, padding, gaps, icon sizes, etc. all
+   together proportionally. The rules below scale the root, then tighten the
+   handful of spots that are set in fixed px (header, hero, cards, buttons)
+   so the site reads as compact — not just "smaller" — on real phone widths.
+   ========================================================================== */
+@media (max-width: 700px) {
+    html { font-size: 15px; }
+
+    .container { padding: 0 14px; }
+
+    /* Header */
+    .header-inner { padding: 10px 14px; gap: 10px; }
+    .hamburger-btn, .icon-btn { width: 36px; height: 36px; border-radius: 10px; }
+    .header-search-bar .container { padding: 10px 14px; }
+    .nav-drawer-head { padding: 14px 14px 10px; }
+    .nav-drawer-links a { padding: 11px 16px; }
+
+    /* Hero */
+    .hero { padding: 26px 16px; }
+    .hero-slider { margin: 14px 0; }
+    .hero-cta-btn { padding: 8px 18px; }
+
+    /* Product grid + cards */
+    .product-grid { grid-template-columns: repeat(auto-fill, minmax(140px, 1fr)); gap: 10px; margin-top: 14px; margin-bottom: 26px; }
+    .product-info { padding: 8px 9px 10px; }
+    .page-title { margin: 12px 0 8px; }
+    .toolbar-row { gap: 8px; }
+
+    /* Buttons */
+    .btn-primary { padding: 9px 16px; }
+    .btn-whatsapp-order { padding: 9px 16px; }
+    .btn-price-filter { padding: 8px 14px; }
+
+    /* Cards / list rows */
+    .cart-item { padding: 10px 12px; }
+    .review-item { padding: 10px 12px; }
+    .review-form { padding: 14px; gap: 10px; }
+    .delivery-estimate { padding: 8px 10px; gap: 6px; }
+
+    /* Sections */
+    .section-title { margin-bottom: 10px; }
+    .policy-section { margin-bottom: 18px; }
+}
+
+@media (max-width: 420px) {
+    html { font-size: 14px; }
+    .product-grid { grid-template-columns: repeat(auto-fill, minmax(128px, 1fr)); gap: 8px; }
+    .container { padding: 0 12px; }
+    .header-inner { padding: 8px 12px; }
+}
