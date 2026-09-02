@@ -596,6 +596,7 @@ router.get('/orders/:id', requireAdmin, async (req, res) => {
         updatedSuccess: req.query.updated === '1',
         shippedSuccess: req.query.shipped === '1',
         shipError: req.query.shipError || null,
+        shipErrorMsg: req.query.shipErrorMsg || null,
         refreshedSuccess: req.query.refreshed === '1',
         refreshError: req.query.refreshError || null
     });
@@ -633,7 +634,7 @@ router.post('/orders/:id/ship', requireAdmin, async (req, res) => {
         res.redirect(`/admin/orders/${order.id}?shipped=1`);
     } catch (err) {
         console.error('Steadfast ship error:', err.message);
-        res.redirect(`/admin/orders/${order.id}?shipError=1`);
+        res.redirect(`/admin/orders/${order.id}?shipError=1&shipErrorMsg=${encodeURIComponent(err.message)}`);
     }
 });
 
