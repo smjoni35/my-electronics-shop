@@ -23,7 +23,7 @@ function variantLabel(variant) {
 // applied either way, so a discount campaign covers every variant too.
 function effectiveUnitPrice(product, variant) {
     const base = variant && variant.price_override != null ? parseFloat(variant.price_override) : parseFloat(product.price);
-    return Math.round(base * (1 - (product.discount_percent || 0) / 100) * 100) / 100;
+    return Math.round(base * (1 - (product.discount_percent || 0) / 100));
 }
 
 // Reads req.session.cart and resolves it against the DB into full line items

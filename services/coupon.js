@@ -41,7 +41,7 @@ async function validateCoupon(code, subtotal) {
     } else {
         discount = parseFloat(coupon.value);
     }
-    discount = Math.min(Math.round(discount * 100) / 100, subtotal);
+    discount = Math.min(Math.round(discount), subtotal);
 
     return { ok: true, coupon, discount, message: `কুপন প্রয়োগ হয়েছে — ৳${discount.toLocaleString('en-BD')} ছাড়!` };
 }
