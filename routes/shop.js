@@ -24,7 +24,7 @@ const SORT_OPTIONS = {
 function buildProductQuery({ category, q, minPrice, maxPrice }) {
     let query = `
         SELECT p.*,
-            ROUND(p.price * (1 - p.discount_percent / 100.0), 2) AS effective_price,
+            ROUND(p.price * (1 - p.discount_percent / 100.0)) AS effective_price,
             COALESCE(r.avg_rating, 0) AS avg_rating,
             COALESCE(r.review_count, 0) AS review_count
         FROM products p
@@ -46,11 +46,11 @@ function buildProductQuery({ category, q, minPrice, maxPrice }) {
     }
     if (minPrice) {
         params.push(minPrice);
-        query += ` AND ROUND(p.price * (1 - p.discount_percent / 100.0), 2) >= $${params.length}`;
+        query += ` AND ROUND(p.price * (1 - p.discount_percent / 100.0)) >= $${params.length}`;
     }
     if (maxPrice) {
         params.push(maxPrice);
-        query += ` AND ROUND(p.price * (1 - p.discount_percent / 100.0), 2) <= $${params.length}`;
+        query += ` AND ROUND(p.price * (1 - p.discount_percent / 100.0)) <= $${params.length}`;
     }
     return { query, params };
 }
@@ -94,8 +94,8 @@ router.get('/', async (req, res) => {
     // Overall min/max effective price across all products — used to size the price slider
     const { rows: boundsRows } = await pool.query(`
         SELECT
-            COALESCE(MIN(ROUND(price * (1 - discount_percent / 100.0), 2)), 0) AS min,
-            COALESCE(MAX(ROUND(price * (1 - discount_percent / 100.0), 2)), 0) AS max
+            COALESCE(MIN(ROUND(price * (1 - discount_percent / 100.0))), 0) AS min,
+            COALESCE(MAX(ROUND(price * (1 - discount_percent / 100.0))), 0) AS max
         FROM products
     `);
     const priceBounds = {
@@ -119,7 +119,7 @@ router.get('/', async (req, res) => {
     let bestSellers = [];
     if (bestSellerIds.length > 0) {
         const { rows } = await pool.query(
-            `SELECT p.*, ROUND(p.price * (1 - p.discount_percent / 100.0), 2) AS effective_price
+            `SELECT p.*, ROUND(p.price * (1 - p.discount_percent / 100.0)) AS effective_price
              FROM products p
              WHERE p.id = ANY($1::int[])
              ORDER BY array_position($1::int[], p.id)`,
@@ -169,7 +169,7 @@ router.get('/api/products/more', async (req, res) => {
 // Product detail page
 router.get('/product/:id', async (req, res) => {
     const { rows } = await pool.query(
-        `SELECT *, ROUND(price * (1 - discount_percent / 100.0), 2) AS effective_price
+        `SELECT *, ROUND(price * (1 - discount_percent / 100.0)) AS effective_price
          FROM products WHERE id = $1`,
         [req.params.id]
     );
@@ -245,7 +245,7 @@ router.post('/product/:id/review', reviewLimiter, async (req, res) => {
     const rating = parseInt(req.body.rating, 10);
 
     const { rows } = await pool.query(
-        `SELECT *, ROUND(price * (1 - discount_percent / 100.0), 2) AS effective_price
+        `SELECT *, ROUND(price * (1 - discount_percent / 100.0)) AS effective_price
          FROM products WHERE id = $1`,
         [req.params.id]
     );
@@ -446,7 +446,7 @@ router.post('/checkout', checkoutLimiter, async (req, res) => {
     }
 
     const deliveryCharge = cartService.calculateDeliveryCharge(city);
-    const total = Math.round((subtotal - discountAmount + deliveryCharge) * 100) / 100;
+    const total = Math.round(subtotal - discountAmount + deliveryCharge);
 
     const client = await pool.connect();
     try {
